@@ -1,8 +1,443 @@
-/*
+/* ==========================================================================
+   Obsidian Presenter Plugin Styles
+   ========================================================================== */
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+/* Modal Overrides */
+.presenter-modal-container {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: 1000;
+	background: #090d16 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
 
-If your plugin does not need CSS, delete this file.
+.presenter-modal-container .modal-bg {
+	background: rgba(9, 13, 22, 0.95) !important;
+}
 
-*/
+.presenter-modal-fullscreen {
+	width: 100vw !important;
+	height: 100vh !important;
+	max-width: 100vw !important;
+	max-height: 100vh !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	background: transparent !important;
+}
+
+.presenter-modal-fullscreen .modal-close-button {
+	display: none !important;
+}
+
+.presenter-main-content {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	height: 100%;
+	padding: 0 !important;
+	overflow: hidden;
+	position: relative;
+	background: #090d16;
+}
+
+/* 1. Progress Bar */
+.presenter-progress-bar {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 4px;
+	background: var(--presenter-accent-color, #2563eb);
+	z-index: 110;
+	transition: width 0.25s ease-out;
+}
+
+/* 2. Slide Stage & Card Layout */
+.presenter-stage {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	position: relative;
+	padding: 24px;
+	box-sizing: border-box;
+}
+
+.presenter-slide-card {
+	--presenter-base-color: #ffffff;
+	--presenter-main-color: #1e293b;
+	--presenter-accent-color: #2563eb;
+
+	background-color: var(--presenter-base-color);
+	color: var(--presenter-main-color);
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+	border-radius: 12px;
+	padding: 44px 64px;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	transform-origin: center center;
+	font-family: var(--font-text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+	position: relative;
+	user-select: text;
+}
+
+/* 3. Slide Header */
+.presenter-slide-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	min-height: 38px;
+	margin-bottom: 20px;
+	border-bottom: 1px solid rgba(120, 120, 120, 0.15);
+	padding-bottom: 8px;
+	font-size: 14px;
+	color: var(--presenter-main-color);
+	opacity: 0.75;
+}
+
+.presenter-header-title {
+	font-weight: 500;
+	letter-spacing: 0.5px;
+}
+
+.presenter-header-logo {
+	display: flex;
+	align-items: center;
+}
+
+.presenter-logo-image {
+	max-height: 32px;
+	max-width: 150px;
+	object-fit: contain;
+}
+
+/* 4. Slide Content / Body */
+.presenter-slide-body {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+	overflow-x: hidden;
+	line-height: 1.6;
+}
+
+/* Typography Inside Slides */
+.presenter-slide-body h1,
+.presenter-slide-body h2,
+.presenter-slide-body h3,
+.presenter-slide-body h4 {
+	color: var(--presenter-main-color);
+}
+
+.presenter-slide-body h1 {
+	font-size: 48px;
+	font-weight: 800;
+	line-height: 1.2;
+	margin: 0 0 20px 0;
+	color: var(--presenter-accent-color);
+}
+
+.presenter-slide-body h2 {
+	font-size: 36px;
+	font-weight: 700;
+	line-height: 1.25;
+	margin: 0 0 24px 0;
+	padding-bottom: 12px;
+	border-bottom: 4px solid var(--presenter-accent-color);
+}
+
+.presenter-slide-body h3 {
+	font-size: 24px;
+	font-weight: 600;
+	margin: 18px 0 10px 0;
+}
+
+.presenter-slide-body h4 {
+	font-size: 20px;
+	font-weight: 600;
+	margin: 14px 0 6px 0;
+}
+
+.presenter-slide-body p,
+.presenter-slide-body li {
+	font-size: 20px;
+	line-height: 1.6;
+	margin: 8px 0;
+}
+
+.presenter-slide-body ul,
+.presenter-slide-body ol {
+	padding-left: 28px;
+	margin: 12px 0;
+}
+
+.presenter-slide-body li::marker {
+	color: var(--presenter-accent-color);
+}
+
+.presenter-slide-body strong {
+	color: var(--presenter-accent-color);
+	font-weight: 700;
+}
+
+.presenter-slide-body blockquote {
+	border-left: 5px solid var(--presenter-accent-color);
+	padding: 10px 20px;
+	background: rgba(120, 120, 120, 0.06);
+	border-radius: 0 8px 8px 0;
+	margin: 16px 0;
+	font-size: 20px;
+	font-style: italic;
+}
+
+.presenter-slide-body table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 18px;
+	margin: 16px 0;
+}
+
+.presenter-slide-body th {
+	background: rgba(120, 120, 120, 0.08);
+	font-weight: 600;
+	padding: 10px 14px;
+	border: 1px solid rgba(120, 120, 120, 0.2);
+}
+
+.presenter-slide-body td {
+	padding: 10px 14px;
+	border: 1px solid rgba(120, 120, 120, 0.15);
+}
+
+.presenter-slide-body img {
+	max-width: 100%;
+	max-height: 380px;
+	object-fit: contain;
+	border-radius: 8px;
+	margin: 8px 0;
+}
+
+.presenter-slide-body pre {
+	border-radius: 8px;
+	font-size: 16px;
+	margin: 16px 0;
+	padding: 14px 18px;
+}
+
+/* Cover Slide Specific Layout */
+.presenter-slide-cover {
+	justify-content: center;
+	text-align: center;
+}
+
+.presenter-slide-cover .presenter-slide-body {
+	justify-content: center;
+	align-items: center;
+}
+
+.presenter-slide-cover h1 {
+	font-size: 54px;
+	margin-bottom: 20px;
+}
+
+.presenter-slide-cover p {
+	font-size: 24px;
+	opacity: 0.85;
+}
+
+/* 5. Multi-Column Grid Layout */
+.presenter-cols {
+	display: grid;
+	gap: 28px;
+	width: 100%;
+	margin: 16px 0;
+	align-items: stretch;
+}
+
+.presenter-cols-2 {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.presenter-cols-3 {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.presenter-cols-4 {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.presenter-col {
+	display: flex;
+	flex-direction: column;
+	background: rgba(120, 120, 120, 0.04);
+	border: 1px solid rgba(120, 120, 120, 0.12);
+	border-radius: 10px;
+	padding: 22px 26px;
+	box-sizing: border-box;
+}
+
+.presenter-col > :first-child {
+	margin-top: 0;
+}
+
+.presenter-col > :last-child {
+	margin-bottom: 0;
+}
+
+/* 6. Slide Footer */
+.presenter-slide-footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	min-height: 34px;
+	margin-top: auto;
+	padding-top: 14px;
+	border-top: 1px solid rgba(120, 120, 120, 0.15);
+	font-size: 13px;
+	color: var(--presenter-main-color);
+	opacity: 0.7;
+}
+
+.presenter-footer-text {
+	font-weight: 400;
+}
+
+.presenter-footer-counter {
+	font-weight: 500;
+	font-variant-numeric: tabular-nums;
+}
+
+/* 7. Floating Navigation Toolbar */
+.presenter-toolbar {
+	position: absolute;
+	bottom: 24px;
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	align-items: center;
+	background: rgba(15, 23, 42, 0.82);
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	border: 1px solid rgba(255, 255, 255, 0.16);
+	border-radius: 32px;
+	padding: 6px 14px;
+	gap: 6px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+	z-index: 100;
+	opacity: 0.3;
+	transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.presenter-toolbar:hover {
+	opacity: 1;
+	transform: translateX(-50%) translateY(-2px);
+}
+
+.presenter-toolbar-btn {
+	background: transparent;
+	border: none;
+	color: #f8fafc;
+	cursor: pointer;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	transition: background 0.15s ease;
+	padding: 0;
+}
+
+.presenter-toolbar-btn:hover {
+	background: rgba(255, 255, 255, 0.16);
+}
+
+.presenter-toolbar-counter {
+	background: transparent;
+	border: none;
+	color: #f8fafc;
+	font-size: 13px;
+	font-weight: 600;
+	padding: 4px 10px;
+	cursor: pointer;
+	border-radius: 12px;
+	font-variant-numeric: tabular-nums;
+}
+
+.presenter-toolbar-counter:hover {
+	background: rgba(255, 255, 255, 0.12);
+}
+
+.presenter-toolbar-sep {
+	width: 1px;
+	height: 16px;
+	background: rgba(255, 255, 255, 0.2);
+	margin: 0 2px;
+}
+
+.presenter-btn-close:hover {
+	background: rgba(239, 68, 68, 0.35);
+}
+
+/* 8. Print / PDF Export Styles */
+.presenter-print-container {
+	display: none;
+}
+
+@media print {
+	@page {
+		size: landscape;
+		margin: 0;
+	}
+
+	body,
+	html {
+		background: #ffffff !important;
+		margin: 0 !important;
+		padding: 0 !important;
+	}
+
+	.presenter-stage,
+	.presenter-toolbar,
+	.presenter-progress-bar,
+	.modal-close-button {
+		display: none !important;
+	}
+
+	.presenter-modal-container,
+	.presenter-modal-fullscreen,
+	.presenter-main-content {
+		position: static !important;
+		width: 100% !important;
+		height: auto !important;
+		background: #ffffff !important;
+	}
+
+	.presenter-print-container {
+		display: block !important;
+		width: 100% !important;
+	}
+
+	.presenter-print-container .presenter-slide-card {
+		page-break-after: always !important;
+		break-after: page !important;
+		width: 100vw !important;
+		height: 100vh !important;
+		border-radius: 0 !important;
+		box-shadow: none !important;
+		transform: none !important;
+		padding: 40px 60px !important;
+		box-sizing: border-box !important;
+	}
+}

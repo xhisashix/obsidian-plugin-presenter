@@ -1,0 +1,120 @@
+---
+baseColor: "#0f172a"
+mainColor: "#f8fafc"
+accentColor: "#38bdf8"
+header: "Presenter Plugin Demo"
+footer: "Confidential - Antigravity Systems Inc."
+logo: ""
+aspectRatio: "16:9"
+---
+
+# Obsidian Presenter
+
+AI時代のMarkdownスライドプレゼンテーションプラグイン
+
+著者: Antigravity Team
+日付: 2026-09-27
+
+## プラグインのコンセプト
+
+AI（LLM）の発展により、資料構成やテキストは**Markdownファイル**で素早く作成できるようになりました。
+
+- **Markdownで完結**: 面倒なPowerPointのレイアウト調整から解放
+- **文章構造そのまま**: `# H1` が表紙、`## H2` が各スライドの区切り
+- **即時プレビュー**: Obsidianの画面からワンクリックでフルスクリーン表示
+- **顧客への共有**: 商談や報告会ではPDFエクスポートで提出可能
+
+> 思考の速度でスライドを作成し、そのままプレゼンへ。
+
+## グリッドレイアウト（2カラム）
+
+`::: cols-2` 記法を使うことで、左右に分割したレイアウトを直感的に配置できます。
+
+::: cols-2
+
+### 従来の課題
+
+- PowerPointの作成に時間がかかる
+- バージョン管理が困難（バイナリ差分）
+- AI生成テキストをスライドにコピペする手間
++++
+
+### Presenterの解決策
+
+- Markdown記述だけで自動スライド生成
+- Gitでの完全なバージョン管理
+- AIが生成した見出し構成がそのままスライド化
+:::
+
+## 3カラムレイアウト比較
+
+::: cols-3
+
+### ステップ 1: 記述
+
+Obsidianでいつものように
+Markdownノートを書く
+
+- H1: 表紙タイトル
+- H2: スライド見出し
+- リストや表もそのまま
++++
+
+### ステップ 2: プレビュー
+
+リボンアイコンまたは
+コマンドパレットから起動
+
+- フルスクリーン再生
+- 矢印キーで軽快に操作
+- プログレスバー表示
++++
+
+### ステップ 3: 展開・PDF
+
+印刷機能（Cmd+P）から
+PDF形式で一発保存
+
+- 1スライド1ページの改ページ
+- 顧客への配布資料に最適
+- 高解像度ベクター出力
+:::
+
+## 表現力豊かなMarkdownレンダリング
+
+Obsidian標準のMarkdownRendererを活用しているため、テーブルやコードブロックも美しく表示されます。
+
+| 機能                   | Obsidian Presenter       | 従来ツール (Marp等) | PowerPoint          |
+| :--------------------- | :----------------------- | :------------------ | :------------------ |
+| **記法**               | 標準Markdown (H1/H2)     | 専用ディレクティブ  | GUI専用             |
+| **配色カスタマイズ**   | フロントマターで直感調整 | テーマCSS作成が必要 | 手動設定            |
+| **マルチカラム**       | 簡潔な `::: cols-N`      | 複雑なHTMLまたはCSS | 枠配置              |
+| **オフライン・安全性** | 完全ローカル動作         | プラグイン依存      | クラウド/アプリ依存 |
+
+```typescript
+// プレゼン起動コード
+const file = activeView.file;
+const content = await this.app.vault.read(file);
+const presentation = parsePresentation(content);
+new PresenterModal(this.app, presentation, this.settings, file.path).open();
+```
+
+## フロントマターによる柔軟なテーマ設定
+
+ノート冒頭のYAMLフロントマターでスライドのテーマを自由に上書きできます。
+
+- `baseColor`: スライド全体の背景色（例: `"#ffffff"` または `"#0f172a"`）
+- `mainColor`: 本文テキストや見出しの主色（例: `"#1e293b"` または `"#f8fafc"`）
+- `accentColor`: 強調色、アクセントライン、箇条書きマーカー（例: `"#2563eb"`, `"#38bdf8"`）
+- `header`: 上部に表示されるヘッダーテキスト
+- `footer`: 下部に表示されるフッターテキスト
+- `logo`: Vault内の画像パス（例: `attachments/logo.png`）または外部URL
+- `aspectRatio`: `"16:9"` (標準) または `"4:3"`
+
+## まとめ
+
+1. **文章を書く感覚でスライド資料が完成**
+2. **AIとの親和性が極めて高いMarkdown中心のワークフロー**
+3. **美しいデザイン・柔軟なカラーテーマ・PDFエクスポート対応**
+
+ご質問やフィードバックはお気軽にどうぞ！

@@ -1,11 +1,9 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "obsidian-presenter",
+	"name": "Presenter",
 	"version": "1.0.0",
 	"minAppVersion": "1.0.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "Present your markdown notes as clean, styled slides with frontmatter theming and multi-column grids.",
+	"author": "Obsidian Presenter Contributors",
 	"isDesktopOnly": false
 }

@@ -1,92 +1,173 @@
-# Obsidian Sample Plugin
+# Obsidian Presenter
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+Obsidian上でMarkdownノートから直接美しいスライド資料をプレビュー・プレゼンテーションできるプラグインです。
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+AI（LLM）で生成したMarkdownノートの文章構成（`# H1` を表紙、`## H2` を各スライドの区切り）を崩さずにそのまま活かし、直感的なフロントマター配色設定、マルチカラム（2カラム・3カラム）表示、そして高精細なPDFエクスポートを可能にします。
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
+---
 
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open modal (simple)" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and outputs a Notice on click.
-- Registers a global interval which logs 'setInterval' to the console.
+## 主な特徴 (Features)
 
-## First time developing plugins?
+- **自然な文章構造によるスライド化**:
+  - `# H1`: プレゼンテーション全体の「表紙スライド」
+  - `## H2`: 各スライドの「タイトル（改スライド）」
+  - `### H3` / `#### H4`: スライド内の小見出し・セクション
+  - （`---` による明示的なスライド分割もサポート）
+- **柔軟なデザイン・カラー設定 (Frontmatter)**:
+  - `baseColor`（背景色）、`mainColor`（文字色）、`accentColor`（強調色）を自由に指定可能。
+  - プラグインの全体設定（Settingsタブ）にもデフォルト値を保持。
+- **マルチカラム（グリッドレイアウト）**:
+  - `::: cols-2` や `::: cols-3` 構文で、横並びのレイアウトを素早く構築。
+- **ObsidianネイティブのMarkdown完全対応**:
+  - 表（テーブル）、コードブロック、画像、数式、Callout、リストなどをそのまま美しく描画。
+- **ヘッダー・フッター・ロゴ表示**:
+  - スライド上部にタイトルやロゴ、下部に著作権やページ番号（`X / Y`）を表示。
+- **PDFエクスポート (印刷機能)**:
+  - `Cmd + P` またはツールバーの印刷ボタンから、1スライド1ページの高品質なPDFを出力可能。
+- **レスポンシブ拡大縮小**:
+  - 16:9 または 4:3 の比率を保ちながら、ウィンドウや画面サイズに合わせて自動スケーリング。
 
-Quick starting guide for new plugin devs:
+---
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `src/main.ts` to `main.js`.
-- Make changes to `src/main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+## インストール方法 (Installation)
 
-## Releasing new releases
+### 手動インストール (Manual Installation)
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+1. 最新のリリースファイル（`main.js`, `manifest.json`, `styles.css`）をダウンロードします。
+2. Obsidian の Vault 内に以下のフォルダを作成します：
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+   ```bash
+   <Vault>/.obsidian/plugins/obsidian-presenter/
+   ```
 
-## Adding your plugin to the community plugin list
+3. 作成したフォルダに `main.js`, `manifest.json`, `styles.css` を配置します。
+4. Obsidian の **設定 → コミュニティプラグイン** を開き、プラグイン一覧を再読み込みして「Presenter」を有効化します。
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+---
 
-## How to use
+## 使い方 (Usage)
 
-- Clone this repo.
-- Make sure your NodeJS is at least v18 (`node --version`).
-- `npm i` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+### 1. スライドノートを書く
 
-## Manually installing the plugin
+ノート冒頭にフロントマターを設定し、通常のMarkdownを書くだけでスライドになります。
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+```markdown
+---
+baseColor: "#0f172a"
+mainColor: "#f8fafc"
+accentColor: "#38bdf8"
+header: "2026年度 提案資料"
+footer: "株式会社〇〇 - 禁無断転載"
+logo: "attachments/logo.png"
+aspectRatio: "16:9"
+---
 
-## Improve code quality with eslint
+# 新規事業提案書
+AIを活用したナレッジワークの革新
 
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code.
-- This project already has eslint preconfigured, you can invoke a check by running`npm run lint`
-- Together with a custom eslint [plugin](https://github.com/obsidianmd/eslint-plugin) for Obsidan specific code guidelines.
-- A GitHub action is preconfigured to automatically lint every commit on all branches.
+発表者: 山田 太郎
+日付: 2026-09-27
 
-## Funding URL
+## 背景と課題
 
-You can include funding URLs where people who use your plugin can financially support it.
+AIツールの普及により情報量は増加していますが、社内共有の形式化に時間がかかっています。
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
+- スライド作成のオーバーヘッド
+- デザイン調整による時間の浪費
+- 情報の鮮度低下
 
-```json
-{
-	"fundingUrl": "https://buymeacoffee.com"
-}
+## 提案するソリューション
+
+::: cols-2
+### Markdownドリブン
+- 普段のメモがそのままスライド化
+- AI生成のアウトラインを直接活用
++++
+### 高速プレビュー & PDF
+- ワンクリックでプレゼン表示
+- 印刷から商談用PDFを一発出力
+:::
+
+## まとめ
+
+Markdownによるスライド作成で、思考からプレゼンまでのリードタイムをゼロにします。
 ```
 
-If you have multiple URLs, you can also do:
+### 2. プレゼンテーションを開始する
 
-```json
-{
-	"fundingUrl": {
-		"Buy Me a Coffee": "https://buymeacoffee.com",
-		"GitHub Sponsor": "https://github.com/sponsors",
-		"Patreon": "https://www.patreon.com/"
-	}
-}
+- **リボンアイコン**: 左サイドバーのプロジェクター画面アイコンをクリック
+- **コマンドパレット**: `Cmd + P` (Mac) / `Ctrl + P` (Win) を押し、「`Presenter: Start presentation`」を実行
+
+---
+
+## ショートカットキー一覧 (Keyboard Shortcuts)
+
+| 操作                 | キー                                         |
+| :------------------- | :------------------------------------------- |
+| **次のスライド**     | `→` / `↓` / `Space` / `PageDown` / `L` / `J` |
+| **前のスライド**     | `←` / `↑` / `PageUp` / `H` / `K`             |
+| **最初のスライドへ** | `Home`                                       |
+| **最後のスライドへ** | `End`                                        |
+| **全画面切り替え**   | `F`                                          |
+| **印刷 / PDF出力**   | `P`                                          |
+| **終了**             | `Escape`                                     |
+
+---
+
+## カラム（グリッドレイアウト）の書き方
+
+### 2カラムレイアウト
+
+```markdown
+::: cols-2
+左カラムの内容（リスト、画像、テキストなど）
++++
+右カラムの内容
+:::
 ```
 
-## API Documentation
+### 3カラムレイアウト
 
-See https://docs.obsidian.md
+```markdown
+::: cols-3
+カラム 1
++++
+カラム 2
++++
+カラム 3
+:::
+```
+
+---
+
+## 設計書ドキュメント (Design Documents)
+
+本プラグインの内部構造や詳細仕様については、以下の設計書をご参照ください：
+
+- [システムアーキテクチャ設計書 (architecture.md)](docs/design/architecture.md)
+- [機能仕様書 (specification.md)](docs/design/specification.md)
+- [UI/UX・スタイリング設計書 (ui-ux.md)](docs/design/ui-ux.md)
+
+---
+
+## 開発・ビルド (Development)
+
+```bash
+# 依存関係のインストール
+npm install
+
+# 開発用ビルド (watch mode)
+npm run dev
+
+# 本番ビルド (型チェック & バンドル)
+npm run build
+
+# リンター実行
+npm run lint
+```
+
+---
+
+## ライセンス (License)
+
+MIT License

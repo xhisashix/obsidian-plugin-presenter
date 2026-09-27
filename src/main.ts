@@ -1,114 +1,90 @@
 import {
-	Editor,
 	MarkdownView,
-	MarkdownFileInfo,
-	Modal,
 	Notice,
 	Plugin,
+	TFile,
 } from 'obsidian';
-import {
-	DEFAULT_SETTINGS,
-	MyPluginSettings,
-	SampleSettingTab,
-} from './settings';
+import { parsePresentation } from './parser/slideParser';
+import { PresenterSettingTab } from './settings';
+import { DEFAULT_SETTINGS, type PresenterSettings } from './types';
+import { PresenterModal } from './ui/presenterModal';
 
-// Remember to rename these classes and interfaces!
-
-export default class MyPlugin extends Plugin {
-	settings!: MyPluginSettings;
+export default class PresenterPlugin extends Plugin {
+	settings!: PresenterSettings;
 
 	async onload() {
 		await this.loadSettings();
 
-		// This creates an icon in the left ribbon.
-		this.addRibbonIcon('dice', 'Sample', (_evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
+		// Add Ribbon icon to quickly launch presentation from the active note
+		this.addRibbonIcon('presentation', 'Start presentation', () => {
+			void this.startPresentationForActiveFile();
 		});
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status bar text');
-
-		// This adds a simple command that can be triggered anywhere
+		// Add command to start presentation
 		this.addCommand({
-			id: 'open-modal-simple',
-			name: 'Open modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
-			},
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'replace-selected',
-			name: 'Replace selected content',
-			editorCallback: (
-				editor: Editor,
-				_ctx: MarkdownView | MarkdownFileInfo,
-			) => {
-				editor.replaceSelection('Sample editor command');
-			},
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-modal-complex',
-			name: 'Open modal (complex)',
+			id: 'start-presentation',
+			name: 'Start presentation',
 			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
+				const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+				if (activeView && activeView.file instanceof TFile) {
 					if (!checking) {
-						new SampleModal(this.app).open();
+						void this.startPresentationForActiveFile();
 					}
-
-					// This command will only show up in Command Palette when the check function returns true
 					return true;
 				}
 				return false;
 			},
 		});
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(activeDocument, 'click', (_evt: MouseEvent) => {
-			new Notice('Click');
-		});
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(
-			window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000),
-		);
+		// Register plugin settings tab
+		this.addSettingTab(new PresenterSettingTab(this.app, this));
 	}
 
-	onunload() {}
+	onunload() {
+		// All modal listeners and intervals are managed via Component lifecycle
+	}
+
+	/**
+	 * Starts presentation modal for the currently active markdown note.
+	 */
+	async startPresentationForActiveFile() {
+		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (!activeView || !(activeView.file instanceof TFile)) {
+			new Notice('Please open a Markdown note to start the presentation.');
+			return;
+		}
+
+		try {
+			const file = activeView.file;
+			const content = await this.app.vault.read(file);
+			const presentation = parsePresentation(content);
+
+			if (presentation.slides.length === 0) {
+				new Notice('No slide content found in this note.');
+				return;
+			}
+
+			new PresenterModal(
+				this.app,
+				presentation,
+				this.settings,
+				file.path
+			).open();
+		} catch (err) {
+			console.error('Failed to start presentation:', err);
+			new Notice('Failed to start presentation. Check console for details.');
+		}
+	}
 
 	async loadSettings() {
 		this.settings = Object.assign(
 			{},
 			DEFAULT_SETTINGS,
-			(await this.loadData()) as Partial<MyPluginSettings>,
+			(await this.loadData()) as Partial<PresenterSettings>
 		);
 	}
 
 	async saveSettings() {
 		await this.saveData(this.settings);
-	}
-}
-
-class SampleModal extends Modal {
-	onOpen() {
-		const { contentEl } = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		const { contentEl } = this;
-		contentEl.empty();
 	}
 }
