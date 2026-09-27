@@ -478,3 +478,118 @@ h4 .presenter-badge {
 		box-sizing: border-box !important;
 	}
 }
+
+/* ==========================================================================
+   10. Real-time Preview Pane Styles (ItemView)
+   ========================================================================== */
+.presenter-preview-container {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	background: var(--background-secondary, #121826);
+	position: relative;
+}
+
+.presenter-preview-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 8px 12px;
+	background: var(--background-secondary-alt, rgba(15, 23, 42, 0.7));
+	border-bottom: 1px solid var(--background-modifier-border, rgba(255, 255, 255, 0.08));
+	backdrop-filter: blur(8px);
+	z-index: 10;
+	flex-shrink: 0;
+}
+
+.presenter-preview-toolbar .presenter-toolbar-btn {
+	background: transparent;
+	border: 1px solid transparent;
+	color: var(--text-muted, rgba(255, 255, 255, 0.7));
+	width: 30px;
+	height: 30px;
+	border-radius: 6px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+
+.presenter-preview-toolbar .presenter-toolbar-btn:hover {
+	background: var(--background-modifier-hover, rgba(255, 255, 255, 0.1));
+	color: var(--text-normal, #ffffff);
+}
+
+.presenter-preview-toolbar .presenter-toolbar-counter {
+	background: transparent;
+	border: 1px solid transparent;
+	color: var(--text-normal, #ffffff);
+	font-size: 13px;
+	font-weight: 500;
+	padding: 4px 10px;
+	cursor: pointer;
+	border-radius: 6px;
+	font-variant-numeric: tabular-nums;
+	transition: background 0.15s ease;
+}
+
+.presenter-preview-toolbar .presenter-toolbar-counter:hover {
+	background: var(--background-modifier-hover, rgba(255, 255, 255, 0.1));
+}
+
+.presenter-preview-toolbar .presenter-pin-btn.is-active {
+	color: var(--interactive-accent, #38bdf8);
+	background: rgba(56, 189, 248, 0.15);
+	border-color: rgba(56, 189, 248, 0.35);
+}
+
+.presenter-preview-toolbar .presenter-btn-start:hover {
+	color: var(--interactive-accent, #38bdf8);
+}
+
+.presenter-preview-stage-wrapper {
+	flex: 1;
+	width: 100%;
+	height: 100%;
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	padding: 12px;
+	box-sizing: border-box;
+}
+
+.presenter-preview-stage {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+}
+
+.presenter-preview-stage .presenter-slide-card {
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.presenter-preview-empty {
+	display: block;
+	color: var(--text-muted, #94a3b8);
+	font-size: 14px;
+	text-align: center;
+	padding: 32px 16px;
+	user-select: none;
+	line-height: 1.6;
+}
+
+.presenter-preview-stage.is-hidden,
+.presenter-preview-empty.is-hidden {
+	display: none !important;
+}
+
+

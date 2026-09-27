@@ -36,11 +36,15 @@ export interface SlideFrontmatter {
 
 export type SlideType = 'cover' | 'content';
 
+export const VIEW_TYPE_PRESENTER_PREVIEW = 'presenter-preview-view';
+
 export interface SlideData {
 	index: number;
 	type: SlideType;
 	title: string;
 	markdown: string;
+	startLine?: number;
+	endLine?: number;
 }
 
 export interface PresentationData {
@@ -48,3 +52,4 @@ export interface PresentationData {
 	frontmatter: SlideFrontmatter;
 	slides: SlideData[];
 }
+

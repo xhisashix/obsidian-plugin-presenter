@@ -3,67 +3,14 @@ import {
 	Component,
 	Modal,
 	Notice,
-	Setting,
 	setIcon,
 } from 'obsidian';
 import type {
 	PresentationData,
 	PresenterSettings,
 } from '../types';
+import { JumpToSlideModal } from './jumpModal';
 import { renderSlide } from './slideRenderer';
-
-class JumpToSlideModal extends Modal {
-	private totalSlides: number;
-	private onSelect: (slideIndex: number) => void;
-
-	constructor(app: App, totalSlides: number, onSelect: (slideIndex: number) => void) {
-		super(app);
-		this.totalSlides = totalSlides;
-		this.onSelect = onSelect;
-	}
-
-	onOpen() {
-		const { contentEl } = this;
-		contentEl.empty();
-		contentEl.createEl('h3', { text: 'Jump to slide' });
-
-		let target = 1;
-		new Setting(contentEl)
-			.setName(`Slide number (1 - ${this.totalSlides})`)
-			.addText((text) => {
-				text.inputEl.type = 'number';
-				text.inputEl.min = '1';
-				text.inputEl.max = String(this.totalSlides);
-				text.setValue('1');
-				text.onChange((val) => {
-					target = parseInt(val, 10);
-				});
-				text.inputEl.addEventListener('keydown', (e: KeyboardEvent) => {
-					if (e.key === 'Enter') {
-						if (!isNaN(target) && target >= 1 && target <= this.totalSlides) {
-							this.onSelect(target - 1);
-							this.close();
-						}
-					}
-				});
-			})
-			.addButton((btn) =>
-				btn
-					.setButtonText('Go')
-					.setCta()
-					.onClick(() => {
-						if (!isNaN(target) && target >= 1 && target <= this.totalSlides) {
-							this.onSelect(target - 1);
-							this.close();
-						}
-					})
-			);
-	}
-
-	onClose() {
-		this.contentEl.empty();
-	}
-}
 
 export class PresenterModal extends Modal {
 	presentation: PresentationData;
@@ -83,12 +30,15 @@ export class PresenterModal extends Modal {
 		app: App,
 		presentation: PresentationData,
 		settings: PresenterSettings,
-		sourcePath: string
+		sourcePath: string,
+		initialIndex = 0
 	) {
 		super(app);
 		this.presentation = presentation;
 		this.settings = settings;
 		this.sourcePath = sourcePath;
+		this.currentIndex =
+			initialIndex >= 0 && initialIndex < presentation.slides.length ? initialIndex : 0;
 		this.component = new Component();
 	}
 
@@ -124,8 +74,9 @@ export class PresenterModal extends Modal {
 		this.setupResponsiveScaling();
 
 		// Render Initial Slide
-		await this.showSlide(0);
+		await this.showSlide(this.currentIndex);
 	}
+
 
 	private buildToolbar(parentEl: HTMLElement) {
 		const toolbarEl = parentEl.createDiv({ cls: 'presenter-toolbar' });

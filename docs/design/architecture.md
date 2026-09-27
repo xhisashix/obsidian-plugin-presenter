@@ -22,9 +22,11 @@ src/
 ├── types.ts                 # データ構造・インターフェース定義
 ├── settings.ts              # グローバル設定UI (PluginSettingTab)
 ├── parser/
-│   └── slideParser.ts       # フロントマター抽出、スライド分割、カラム変換
+│   └── slideParser.ts       # フロントマター抽出、スライド分割、行番号追跡、カラム変換
 └── ui/
+    ├── jumpModal.ts         # スライド番号直接ジャンプモーダル
     ├── presenterModal.ts    # プレゼンテーション全画面モーダル・操作制御
+    ├── presenterPreviewView.ts # リアルタイムプレビューペイン (ItemView)
     └── slideRenderer.ts     # Markdownレンダリング、動的CSS変数・ヘッダー/フッター生成
 ```
 
@@ -36,9 +38,15 @@ flowchart TD
     PresenterPlugin --> Settings[PresenterSettingTab (settings.ts)]
     PresenterPlugin --> SlideParser[slideParser.ts]
     PresenterPlugin --> PresenterModal[PresenterModal (presenterModal.ts)]
+    PresenterPlugin --> PresenterPreviewView[PresenterPreviewView (presenterPreviewView.ts)]
     
     SlideParser --> Types[Data Models (types.ts)]
     PresenterModal --> SlideRenderer[slideRenderer.ts]
+    PresenterModal --> JumpModal[JumpToSlideModal (jumpModal.ts)]
+    PresenterPreviewView --> SlideRenderer
+    PresenterPreviewView --> JumpModal
+    PresenterPreviewView -.->|全画面プレゼン起動| PresenterModal
+    
     SlideRenderer --> MarkdownRenderer[Obsidian MarkdownRenderer.render]
     SlideRenderer --> DOM[Slide Card DOM Structure]
     PresenterModal --> KeyNav[Keyboard & Navigation Controls]
@@ -66,15 +74,46 @@ sequenceDiagram
     Main->>Vault: activeView.file の内容 (Raw Markdown) を読込
     Main->>Parser: parsePresentation(rawMarkdown)
     Parser->>Parser: extractFrontmatter() でYAML抽出
-    Parser->>Parser: H1/H2・--- 境界検出でスライド分割
+    Parser->>Parser: H1/H2・--- 境界検出でスライド分割 & 行番号マッピング
     Parser->>Parser: preprocessColumns() でカラム構文をHTML化
     Parser-->>Main: PresentationData (フロントマター + SlideData[])
-    Main->>Modal: new PresenterModal(app, presentation, settings, path).open()
+    Main->>Modal: new PresenterModal(app, presentation, settings, path, initialIndex).open()
     Modal->>Modal: 初期化 (Progress bar, Stage, Toolbar, PrintContainer)
     Modal->>Renderer: renderSlide(stageEl, activeSlide)
     Renderer->>Renderer: CSSカスタムプロパティ (--presenter-*) 注入
     Renderer->>NativeRenderer: MarkdownRenderer.render(bodyEl)
     Modal-->>User: フルスクリーンプレゼンテーション表示
+```
+
+### 3.2 リアルタイムプレビュー同期シーケンス (Real-time Preview Sync)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant Editor as Markdown Editor
+    participant Preview as PresenterPreviewView
+    participant Parser as SlideParser (slideParser.ts)
+    participant Renderer as SlideRenderer (slideRenderer.ts)
+
+    User->>Editor: ノート編集中 (テキスト入力)
+    Editor->>Preview: workspace.on('editor-change')
+    Preview->>Preview: 250ms デバウンスタイマー開始
+    Note over Preview: タイピング中は再描画を抑制
+    Preview->>Parser: parsePresentation(content)
+    Parser-->>Preview: PresentationData (startLine/endLine付き)
+    Preview->>Preview: getSlideIndexAtLine(slides, cursorLine)
+    Preview->>Renderer: renderSlide(stageEl, activeSlide)
+    Preview->>Preview: applySlideScale() (ResizeObserver)
+    Preview-->>User: 最新のスライドプレビューを即時更新
+
+    User->>Editor: カーソル移動 (矢印キー・クリック)
+    Editor->>Preview: document.on('selectionchange')
+    Preview->>Preview: 60ms デバウンスカーソルチェック
+    alt カーソル追従 (followCursor) 有効
+        Preview->>Parser: getSlideIndexAtLine(slides, cursorLine)
+        Preview->>Renderer: 対象スライドへ自動切り替え表示
+    end
 ```
 
 ---
@@ -87,11 +126,15 @@ Obsidianコミュニティプラグインの品質ガイドラインに従い、
 
 - **`onload()`**:
   - `loadSettings()` による保存済み設定の復元。
-  - `addRibbonIcon()` によるプレゼン開始アイコンの登録。
-  - `addCommand()` によるコマンドパレット連携（`MarkdownView` の存在を `checkCallback` で判定）。
+  - `registerView()` によるプレビュー用 `ItemView`（`VIEW_TYPE_PRESENTER_PREVIEW`）の登録。
+  - `addRibbonIcon()` によるプレゼン開始アイコンおよびプレビュートグルアイコンの登録。
+  - `addCommand()` によるコマンド登録（プレゼン開始、プレビュー開く、プレビュートグル）。
+  - `registerViewActions()` による Markdown タブヘッダーへのプレビューアイコン動的注入。
   - `addSettingTab()` による設定タブの登録。
 - **`onunload()`**:
-  - Obsidian のコアライフサイクルによって登録済みリボン・コマンド・設定タブは自動破棄されます。
+  - タブヘッダーのプレビューアイコンのクリーンアップ。
+  - リスナー・リボン・コマンド・設定タブは Obsidian のコアライフサイクルによって自動破棄されます。
+  - ※ユーザーのワークスペースレイアウト復元を阻害しないよう、`onunload` での葉の強制 detach は行いません。
 
 ### 4.2 モーダル・ビューのライフサイクル (`PresenterModal`)
 
@@ -105,6 +148,20 @@ Obsidianコミュニティプラグインの品質ガイドラインに従い、
   - `ResizeObserver` の切断 (`disconnect`)。
   - `this.component.unload()` による MarkdownRenderer 内部リスナーの確実なクリーンアップ。
   - コンテナ要素の破棄 (`this.contentEl.empty()`)。
+
+### 4.3 プレビュービューのライフサイクル (`PresenterPreviewView`)
+
+- **`onOpen()`**:
+  - `this.component.load()` の呼び出し。
+  - ツールバー、ステージ、空状態プレースホルダーの DOM 構築。
+  - `ResizeObserver` を `stageWrapperEl` にアタッチ（ペイン幅変更時に瞬時にスライドスケールを自動再計算）。
+  - `workspace.on('file-open')`, `workspace.on('active-leaf-change')`, `workspace.on('editor-change')` の登録（`registerEvent` による自動クリーンアップ）。
+  - `document.on('selectionchange')` によるカーソル位置監視（`registerDomEvent` による自動解除）。
+- **`onClose()`**:
+  - デバウンスタイマー (`debounceTimer`, `cursorCheckTimer`) の破棄。
+  - `ResizeObserver` の切断 (`disconnect`)。
+  - `this.component.unload()` による子コンポーネントの破棄。
+
 
 ---
 
