@@ -124,6 +124,61 @@ export function preprocessColumns(markdown: string): string {
 }
 
 /**
+ * Preprocesses label/badge syntax like `[xxx] testtest` into `<span class="presenter-badge">xxx</span> testtest`.
+ * Accurately preserves Markdown links [text](url), Wikilinks [[wikilink]], checkboxes [ ] / [x],
+ * footnote references [^1], link definitions [id]: url, and fenced/inline code.
+ */
+export function preprocessBadges(markdown: string): string {
+	const lines = markdown.split(/\r?\n/);
+	let inCodeBlock = false;
+
+	const processedLines = lines.map((line: string) => {
+		const trimmed = line.trim();
+
+		// Toggle fenced code block
+		if (/^(`{3,}|~{3,})/.test(trimmed)) {
+			inCodeBlock = !inCodeBlock;
+			return line;
+		}
+
+		if (inCodeBlock) {
+			return line;
+		}
+
+		// Split line into inline code segments vs normal segments
+		const segments = line.split(/(`[^`]*`)/);
+		const convertedSegments = segments.map((seg: string, idx: number) => {
+			// Odd indices are inside inline code `...`
+			if (idx % 2 === 1) {
+				return seg;
+			}
+
+			// In normal text, find [xxx] that are not links, images, wikilinks, or checkboxes
+			return seg.replace(
+				/(^|[^![])\[([^^\]\r\n]+)\](?![[(:\]])/g,
+				(fullMatch: string, prefix: string, label: string): string => {
+					const trimmedLabel = label.trim();
+					// Skip empty
+					if (!trimmedLabel) return fullMatch;
+					// Skip if contains [ or ]
+					if (label.includes('[') || label.includes(']')) return fullMatch;
+					// Skip task list checkboxes: [ ], [x], [X]
+					if (/^[\s\txX]$/.test(label)) return fullMatch;
+					// Skip footnote reference: starts with ^
+					if (label.startsWith('^')) return fullMatch;
+
+					return `${prefix}<span class="presenter-badge">${trimmedLabel}</span>`;
+				}
+			);
+		});
+
+		return convertedSegments.join('');
+	});
+
+	return processedLines.join('\n');
+}
+
+/**
  * Splits markdown content into slides based on H1 (Cover), H2 (Slide title/boundary),
  * or explicit --- dividers. Code blocks are ignored during boundary detection.
  */
@@ -231,7 +286,7 @@ export function parsePresentation(rawMarkdown: string): PresentationData {
 		index: idx,
 		type: s.type,
 		title: s.title || (s.type === 'cover' ? 'Title' : `Slide ${idx + 1}`),
-		markdown: preprocessColumns(s.lines.join('\n')),
+		markdown: preprocessBadges(preprocessColumns(s.lines.join('\n'))),
 	}));
 
 	return {
