@@ -34,6 +34,7 @@
 | **箇条書きマーカー**    | `li::marker`              | `--presenter-accent-color`                            |
 | **太字 (`strong`)**     | `color`                   | `--presenter-accent-color`                            |
 | **引用 (`blockquote`)** | `border-left-color`       | `--presenter-accent-color`                            |
+| **ラベル・バッジ (`.presenter-badge`)** | `background-color` / `color` | `--presenter-accent-color` / `#ffffff`               |
 | **進捗バー**            | `background`              | `--presenter-accent-color`                            |
 
 ---

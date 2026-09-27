@@ -99,6 +99,16 @@ const presentation = parsePresentation(content);
 new PresenterModal(this.app, presentation, this.settings, file.path).open();
 ```
 
+## ラベル・バッジ装飾の例
+
+`[xxx] テキスト` と書くだけで、アクセントカラーが適用されたスマートなラベルバッジになります。
+
+- [重要] 顧客への資料展開時はPDFエクスポートをご利用ください
+- [POINT] Markdown記法の互換性を完全保持（リンクやチェックボックスを誤認識しません）
+- [STEP 1] ノート冒頭にフロントマターで配色やヘッダーを設定
+- [STEP 2] `# H1` で表紙、`## H2` で各スライドを作成
+- [STEP 3] リボンアイコンまたはコマンドからワンクリックでプレゼン起動
+
 ## フロントマターによる柔軟なテーマ設定
 
 ノート冒頭のYAMLフロントマターでスライドのテーマを自由に上書きできます。
