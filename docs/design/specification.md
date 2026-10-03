@@ -51,6 +51,7 @@ aspectRatio: "16:9"
 | `footer`      | -            | string              | 空文字 (設定値)    | スライド下部に表示するフッターテキスト                 |
 | `logo`        | -            | string              | 空文字 (設定値)    | Vault内画像パス (`attachments/logo.png`) または外部URL |
 | `aspectRatio` | -            | `"16:9"` \| `"4:3"` | `"16:9"` (設定値)  | スライドの画面アスペクト比                             |
+| `columnStyle` | -            | `"card"` \| `"plain"` | `"card"` (設定値)  | カラムレイアウトのデフォルトスタイル（カード風かプレーンか） |
 
 ### 3.2 設定の優先度 (Priority Rule)
 
@@ -80,12 +81,14 @@ aspectRatio: "16:9"
 
 - `::: cols-2`: 2カラム均等グリッドを生成
 - `::: cols-3`: 3カラム均等グリッドを生成
+- `::: cols-2 plain`: 背景色・枠線なし（プレーン分割レイアウト）で2カラム生成
+- `::: cols-2 card`: 背景色・枠線・余白あり（カード風レイアウト）で2カラム生成
 - `+++`: 各カラムの境界線
 
 ### 4.2 コンテナ記法 (`::: columns` + `::: column`)
 
 ```markdown
-::: columns
+::: columns plain
 ::: column
 左カラムの内容
 :::
@@ -95,10 +98,31 @@ aspectRatio: "16:9"
 :::
 ```
 
-### 4.3 HTML直接記述
+- `::: columns`: 自動カラム数または指定カラム数のグリッドを生成
+- `::: columns 2 plain`: 2カラム・プレーンスタイル（背景・枠線なし）を指定
+- `::: columns 3 card`: 3カラム・カード風スタイル（背景・枠線あり）を指定
+
+### 4.3 スタイルオプション（カード vs プレーン）
+
+| スタイル | 特徴 | 適用方法 |
+| :--- | :--- | :--- |
+| **`card`** (デフォルト) | 背景色（`rgba(120, 120, 120, 0.04)`）、枠線、角丸、内側パディングを持つカード風 | `::: cols-2 card` または `columnStyle: card` |
+| **`plain`** | 背景色なし（透明）、枠線なし、パディング `0`。カラム間の余白（gap）のみで並ぶプレーンなテキスト配置 | `::: cols-2 plain` または `columnStyle: plain` |
+
+> [!NOTE]
+> スタイルの優先順位は **ブロック構文（`plain` / `card`） > フロントマター（`columnStyle`） > プラグイン設定（`defaultColumnStyle`）** です。
+
+### 4.4 HTML直接記述
 
 ```html
-<div class="presenter-cols presenter-cols-2">
+<!-- カードスタイル -->
+<div class="presenter-cols presenter-cols-2 presenter-cols-card">
+  <div class="presenter-col">左カラム</div>
+  <div class="presenter-col">右カラム</div>
+</div>
+
+<!-- プレーンスタイル（背景色・ボーダーなし） -->
+<div class="presenter-cols presenter-cols-2 presenter-cols-plain">
   <div class="presenter-col">左カラム</div>
   <div class="presenter-col">右カラム</div>
 </div>

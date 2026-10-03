@@ -1,4 +1,4 @@
-import type { PresentationData, SlideData, SlideFrontmatter, SlideType } from '../types';
+import type { ColumnStyle, PresentationData, SlideData, SlideFrontmatter, SlideType } from '../types';
 
 /**
  * Parses simple YAML frontmatter from the beginning of markdown content.
@@ -66,6 +66,11 @@ export function extractFrontmatter(content: string): {
 			case 'theme':
 				frontmatter.theme = val;
 				break;
+			case 'columnStyle':
+				if (val === 'card' || val === 'plain') {
+					frontmatter.columnStyle = val;
+				}
+				break;
 		}
 	}
 
@@ -76,27 +81,35 @@ export function extractFrontmatter(content: string): {
  * Preprocesses custom column syntax (e.g. ::: cols-2 ... ::: or ::: columns ... :::)
  * into standard HTML divs with CSS classes that MarkdownRenderer and flex/grid can handle.
  */
-export function preprocessColumns(markdown: string): string {
-	// Pattern 1: ::: cols-2 or ::: cols-3 with +++ separator
-	const colsWithPlusRegex = /:::\s*cols-(\d+)\r?\n([\s\S]*?)\r?\n:::/g;
+export function preprocessColumns(markdown: string, defaultColumnStyle: ColumnStyle = 'card'): string {
+	// Pattern 1: ::: cols-2 or ::: cols-3 with +++ separator, optional modifier (card or plain)
+	const colsWithPlusRegex = /:::\s*cols-(\d+)(?:\s+(card|plain))?\s*\r?\n([\s\S]*?)\r?\n:::/gi;
 	let processed = markdown.replace(
 		colsWithPlusRegex,
-		(_match: string, colsCount: string, body: string): string => {
+		(_match: string, colsCount: string, styleModifier: string | undefined, body: string): string => {
+			const lower = styleModifier?.toLowerCase();
+			const style: ColumnStyle = lower === 'plain' || lower === 'card' ? lower : defaultColumnStyle;
+			const styleClass = style === 'plain' ? ' presenter-cols-plain' : ' presenter-cols-card';
 			const cols: string[] = body.split(/\r?\n\+\+\+\r?\n/);
 			const colDivs: string = cols
 				.map((c: string) => `<div class="presenter-col">\n\n${c.trim()}\n\n</div>`)
 				.join('\n');
-			return `<div class="presenter-cols presenter-cols-${colsCount}">\n${colDivs}\n</div>`;
+			return `<div class="presenter-cols presenter-cols-${colsCount}${styleClass}">\n${colDivs}\n</div>`;
 		}
 	);
 
-	// Pattern 2: ::: columns ... ::: column ... ::: ... :::
-	const containerRegex = /:::\s*columns(?:\s+(\d+))?\r?\n([\s\S]*?)\r?\n:::/g;
+	// Pattern 2: ::: columns [count] [style] ... ::: column ... ::: ... :::
+	const containerRegex = /:::\s*columns(?:\s+([^\r\n]+))?\r?\n([\s\S]*?)\r?\n:::/gi;
 	processed = processed.replace(
 		containerRegex,
-		(_match: string, colsCount: string | undefined, body: string): string => {
-			const count = colsCount || '2';
-			const colRegex = /:::\s*column\r?\n([\s\S]*?)\r?\n:::/g;
+		(_match: string, args: string | undefined, body: string): string => {
+			const tokens = args ? args.trim().toLowerCase().split(/\s+/) : [];
+			const countToken = tokens.find((t) => /^\d+$/.test(t));
+			const styleToken = tokens.find((t): t is ColumnStyle => t === 'plain' || t === 'card');
+			const style: ColumnStyle = styleToken || defaultColumnStyle;
+			const styleClass = style === 'plain' ? ' presenter-cols-plain' : ' presenter-cols-card';
+
+			const colRegex = /:::\s*column\r?\n([\s\S]*?)\r?\n:::/gi;
 			let colMatches = 0;
 			const colDivs: string = body.replace(
 				colRegex,
@@ -107,16 +120,17 @@ export function preprocessColumns(markdown: string): string {
 			);
 
 			if (colMatches > 0) {
-				const finalCols = colsCount || String(colMatches);
-				return `<div class="presenter-cols presenter-cols-${finalCols}">\n${colDivs.trim()}\n</div>`;
+				const finalCols = countToken || String(colMatches);
+				return `<div class="presenter-cols presenter-cols-${finalCols}${styleClass}">\n${colDivs.trim()}\n</div>`;
 			}
 
 			// Fallback: if no ::: column inside, split by +++
+			const count = countToken || '2';
 			const cols: string[] = body.split(/\r?\n\+\+\+\r?\n/);
 			const fallbackDivs: string = cols
 				.map((c: string) => `<div class="presenter-col">\n\n${c.trim()}\n\n</div>`)
 				.join('\n');
-			return `<div class="presenter-cols presenter-cols-${count}">\n${fallbackDivs}\n</div>`;
+			return `<div class="presenter-cols presenter-cols-${count}${styleClass}">\n${fallbackDivs}\n</div>`;
 		}
 	);
 
@@ -182,8 +196,9 @@ export function preprocessBadges(markdown: string): string {
  * Splits markdown content into slides based on H1 (Cover), H2 (Slide title/boundary),
  * or explicit --- dividers. Code blocks are ignored during boundary detection.
  */
-export function parsePresentation(rawMarkdown: string): PresentationData {
+export function parsePresentation(rawMarkdown: string, defaultColumnStyle: ColumnStyle = 'card'): PresentationData {
 	const { frontmatter, body } = extractFrontmatter(rawMarkdown);
+	const resolvedDefaultStyle: ColumnStyle = frontmatter.columnStyle || defaultColumnStyle;
 	const lines = body.split(/\r?\n/);
 
 	interface RawSlide {
@@ -286,7 +301,7 @@ export function parsePresentation(rawMarkdown: string): PresentationData {
 		index: idx,
 		type: s.type,
 		title: s.title || (s.type === 'cover' ? 'Title' : `Slide ${idx + 1}`),
-		markdown: preprocessBadges(preprocessColumns(s.lines.join('\n'))),
+		markdown: preprocessBadges(preprocessColumns(s.lines.join('\n'), resolvedDefaultStyle)),
 	}));
 
 	return {

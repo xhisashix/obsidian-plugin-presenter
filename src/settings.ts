@@ -129,5 +129,19 @@ export class PresenterSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+
+		new Setting(containerEl)
+			.setName('Default column style')
+			.setDesc('Default style for multi-column layouts (card with background and border, or plain borderless).')
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOption('card', 'Card (background & border)')
+					.addOption('plain', 'Plain (transparent & borderless)')
+					.setValue(this.plugin.settings.defaultColumnStyle)
+					.onChange(async (val) => {
+						this.plugin.settings.defaultColumnStyle = val as 'card' | 'plain';
+						await this.plugin.saveSettings();
+					})
+			);
 	}
 }

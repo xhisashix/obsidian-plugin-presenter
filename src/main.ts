@@ -57,7 +57,7 @@ export default class PresenterPlugin extends Plugin {
 		try {
 			const file = activeView.file;
 			const content = await this.app.vault.read(file);
-			const presentation = parsePresentation(content);
+			const presentation = parsePresentation(content, this.settings.defaultColumnStyle);
 
 			if (presentation.slides.length === 0) {
 				new Notice('No slide content found in this note.');
