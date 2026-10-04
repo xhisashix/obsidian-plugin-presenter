@@ -1,11 +1,9 @@
 ---
-baseColor: "#0f172a"
-mainColor: "#f8fafc"
-accentColor: "#38bdf8"
+# 【フロントマターは完全任意（ゼロ記述で動作）】
+# 配色・ヘッダー・フッター・ロゴ等は「設定 → Presenter」のデフォルト値が自動適用されます。
+# ノート固有で個別に上書きしたい項目のみを記述してください。
 header: "Presenter Plugin Demo"
-footer: "Confidential - Antigravity Systems Inc."
-logo: ""
-aspectRatio: "16:9"
+accentColor: "#38bdf8"
 ---
 
 # Obsidian Presenter
@@ -19,7 +17,7 @@ AI時代のMarkdownスライドプレゼンテーションプラグイン
 
 AI（LLM）の発展により、資料構成やテキストは**Markdownファイル**で素早く作成できるようになりました。
 
-- **Markdownで完結**: 面倒なPowerPointのレイアウト調整から解放
+- **フロントマター不要（ゼロ設定）**: 基本設定はプラグイン設定に任せてテキスト作成に集中
 - **文章構造そのまま**: `# H1` が表紙、`## H2` が各スライドの区切り
 - **即時プレビュー**: Obsidianの画面からワンクリックでフルスクリーン表示
 - **顧客への共有**: 商談や報告会ではPDFエクスポートで提出可能

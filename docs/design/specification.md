@@ -24,40 +24,48 @@
 
 ---
 
-## 3. フロントマター (YAML Frontmatter) 仕様
+## 3. 設定とフロントマター仕様 (Settings & Frontmatter Specification)
 
-ノート先頭の YAML ブロックでスライド固有のデザイン・メタデータを設定できます。
+### 3.1 ゼロ設定（フロントマター不要）の原則
+**スライド作成にあたり、フロントマターの記述は必須ではありません（0行で動作します）。**
 
+配色、ヘッダー、フッター、ロゴ、アスペクト比、カラムスタイルなどの共通設定は、Obsidianのプラグイン設定画面（**Settings → Presenter**）で一度指定しておけば、すべてのノートに自動適用されます。
+フロントマターは、**「そのノート固有で特定の項目だけを上書きしたい場合」にのみ、必要な項目を1〜2行記述**します。
+
+#### 記述例 1: 完全ゼロ設定（推奨・最もシンプル）
+```markdown
+# プレゼンタイトル
+
+## スライド1
+- 箇条書き
+```
+
+#### 記述例 2: 特定の項目のみ上書きする場合
 ```yaml
 ---
-baseColor: "#0f172a"
-mainColor: "#f8fafc"
-accentColor: "#38bdf8"
-header: "プロジェクト進捗報告会"
-footer: "株式会社〇〇 - 社外秘"
-logo: "attachments/company-logo.png"
-aspectRatio: "16:9"
+header: "2026年度 経営計画発表会"
+accentColor: "#e11d48"
 ---
 ```
 
-### 3.1 パラメータ一覧
+### 3.2 パラメータ一覧（設定画面とフロントマターの対応）
 
-| キー名        | 別名         | 型                  | デフォルト値       | 説明                                                   |
-| :------------ | :----------- | :------------------ | :----------------- | :----------------------------------------------------- |
-| `baseColor`   | `background` | string (HEX/RGB)    | `#ffffff` (設定値) | スライドの背景色（ベースカラー）                       |
-| `mainColor`   | `color`      | string (HEX/RGB)    | `#1e293b` (設定値) | 本文テキスト・見出しの基本文字色                       |
-| `accentColor` | -            | string (HEX/RGB)    | `#2563eb` (設定値) | 強調テキスト、境界線、マーカーの色                     |
-| `header`      | -            | string              | 空文字 (設定値)    | スライド上部に表示するヘッダーテキスト                 |
-| `footer`      | -            | string              | 空文字 (設定値)    | スライド下部に表示するフッターテキスト                 |
-| `logo`        | -            | string              | 空文字 (設定値)    | Vault内画像パス (`attachments/logo.png`) または外部URL |
-| `aspectRatio` | -            | `"16:9"` \| `"4:3"` | `"16:9"` (設定値)  | スライドの画面アスペクト比                             |
-| `columnStyle` | -            | `"card"` \| `"plain"` | `"card"` (設定値)  | カラムレイアウトのデフォルトスタイル（カード風かプレーンか） |
+| フロントマターキー | 設定画面の対応項目 | 型 | デフォルト値 | 説明 |
+| :--- | :--- | :--- | :--- | :--- |
+| `baseColor` (または `background`) | Default base color (background) | string (HEX/RGB) | `#ffffff` | スライドの背景色（ベースカラー） |
+| `mainColor` (または `color`) | Default main color (text) | string (HEX/RGB) | `#1e293b` | 本文テキスト・見出しの基本文字色 |
+| `accentColor` | Default accent color | string (HEX/RGB) | `#2563eb` | 強調テキスト、境界線、マーカーの色 |
+| `header` | Default header | string | 空文字 | スライド上部に表示するヘッダーテキスト |
+| `footer` | Default footer | string | 空文字 | スライド下部に表示するフッターテキスト |
+| `logo` | Default logo | string | 空文字 | Vault内画像パス (`attachments/logo.png`) または外部URL |
+| `aspectRatio` | Aspect ratio | `"16:9"` \| `"4:3"` | `"16:9"` | スライドの画面アスペクト比 |
+| `columnStyle` | Default column style | `"card"` \| `"plain"` | `"card"` | カラムレイアウトの基本スタイル |
 
-### 3.2 設定の優先度 (Priority Rule)
+### 3.3 設定の優先度 (Priority Rule)
 
-1. **最高優先**: ノートの Frontmatter 設定値
+1. **最高優先**: ノートの Frontmatter 個別設定値（指定がある項目のみ）
 2. **基本値**: プラグイン設定（Settings タブ）の保存値
-3. **デフォルト値**: システム組込の規定値 (`DEFAULT_SETTINGS`)
+3. **システム規定値**: プラグイン組込の初期値 (`DEFAULT_SETTINGS`)
 
 ---
 
