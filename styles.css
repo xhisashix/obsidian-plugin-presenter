@@ -295,6 +295,15 @@
 	margin-bottom: 0;
 }
 
+/* Plain column style (borderless, transparent, no inner padding) */
+.presenter-cols-plain .presenter-col,
+.presenter-col.presenter-col-plain {
+	background: transparent;
+	border: none;
+	border-radius: 0;
+	padding: 0;
+}
+
 /* 6. Slide Footer */
 .presenter-slide-footer {
 	display: flex;

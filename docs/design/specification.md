@@ -24,39 +24,48 @@
 
 ---
 
-## 3. フロントマター (YAML Frontmatter) 仕様
+## 3. 設定とフロントマター仕様 (Settings & Frontmatter Specification)
 
-ノート先頭の YAML ブロックでスライド固有のデザイン・メタデータを設定できます。
+### 3.1 ゼロ設定（フロントマター不要）の原則
+**スライド作成にあたり、フロントマターの記述は必須ではありません（0行で動作します）。**
 
+配色、ヘッダー、フッター、ロゴ、アスペクト比、カラムスタイルなどの共通設定は、Obsidianのプラグイン設定画面（**Settings → Presenter**）で一度指定しておけば、すべてのノートに自動適用されます。
+フロントマターは、**「そのノート固有で特定の項目だけを上書きしたい場合」にのみ、必要な項目を1〜2行記述**します。
+
+#### 記述例 1: 完全ゼロ設定（推奨・最もシンプル）
+```markdown
+# プレゼンタイトル
+
+## スライド1
+- 箇条書き
+```
+
+#### 記述例 2: 特定の項目のみ上書きする場合
 ```yaml
 ---
-baseColor: "#0f172a"
-mainColor: "#f8fafc"
-accentColor: "#38bdf8"
-header: "プロジェクト進捗報告会"
-footer: "株式会社〇〇 - 社外秘"
-logo: "attachments/company-logo.png"
-aspectRatio: "16:9"
+header: "2026年度 経営計画発表会"
+accentColor: "#e11d48"
 ---
 ```
 
-### 3.1 パラメータ一覧
+### 3.2 パラメータ一覧（設定画面とフロントマターの対応）
 
-| キー名        | 別名         | 型                  | デフォルト値       | 説明                                                   |
-| :------------ | :----------- | :------------------ | :----------------- | :----------------------------------------------------- |
-| `baseColor`   | `background` | string (HEX/RGB)    | `#ffffff` (設定値) | スライドの背景色（ベースカラー）                       |
-| `mainColor`   | `color`      | string (HEX/RGB)    | `#1e293b` (設定値) | 本文テキスト・見出しの基本文字色                       |
-| `accentColor` | -            | string (HEX/RGB)    | `#2563eb` (設定値) | 強調テキスト、境界線、マーカーの色                     |
-| `header`      | -            | string              | 空文字 (設定値)    | スライド上部に表示するヘッダーテキスト                 |
-| `footer`      | -            | string              | 空文字 (設定値)    | スライド下部に表示するフッターテキスト                 |
-| `logo`        | -            | string              | 空文字 (設定値)    | Vault内画像パス (`attachments/logo.png`) または外部URL |
-| `aspectRatio` | -            | `"16:9"` \| `"4:3"` | `"16:9"` (設定値)  | スライドの画面アスペクト比                             |
+| フロントマターキー | 設定画面の対応項目 | 型 | デフォルト値 | 説明 |
+| :--- | :--- | :--- | :--- | :--- |
+| `baseColor` (または `background`) | Default base color (background) | string (HEX/RGB) | `#ffffff` | スライドの背景色（ベースカラー） |
+| `mainColor` (または `color`) | Default main color (text) | string (HEX/RGB) | `#1e293b` | 本文テキスト・見出しの基本文字色 |
+| `accentColor` | Default accent color | string (HEX/RGB) | `#2563eb` | 強調テキスト、境界線、マーカーの色 |
+| `header` | Default header | string | 空文字 | スライド上部に表示するヘッダーテキスト |
+| `footer` | Default footer | string | 空文字 | スライド下部に表示するフッターテキスト |
+| `logo` | Default logo | string | 空文字 | Vault内画像パス (`attachments/logo.png`) または外部URL |
+| `aspectRatio` | Aspect ratio | `"16:9"` \| `"4:3"` | `"16:9"` | スライドの画面アスペクト比 |
+| `columnStyle` | Default column style | `"card"` \| `"plain"` | `"card"` | カラムレイアウトの基本スタイル |
 
-### 3.2 設定の優先度 (Priority Rule)
+### 3.3 設定の優先度 (Priority Rule)
 
-1. **最高優先**: ノートの Frontmatter 設定値
+1. **最高優先**: ノートの Frontmatter 個別設定値（指定がある項目のみ）
 2. **基本値**: プラグイン設定（Settings タブ）の保存値
-3. **デフォルト値**: システム組込の規定値 (`DEFAULT_SETTINGS`)
+3. **システム規定値**: プラグイン組込の初期値 (`DEFAULT_SETTINGS`)
 
 ---
 
@@ -80,12 +89,14 @@ aspectRatio: "16:9"
 
 - `::: cols-2`: 2カラム均等グリッドを生成
 - `::: cols-3`: 3カラム均等グリッドを生成
+- `::: cols-2 plain`: 背景色・枠線なし（プレーン分割レイアウト）で2カラム生成
+- `::: cols-2 card`: 背景色・枠線・余白あり（カード風レイアウト）で2カラム生成
 - `+++`: 各カラムの境界線
 
 ### 4.2 コンテナ記法 (`::: columns` + `::: column`)
 
 ```markdown
-::: columns
+::: columns plain
 ::: column
 左カラムの内容
 :::
@@ -95,10 +106,31 @@ aspectRatio: "16:9"
 :::
 ```
 
-### 4.3 HTML直接記述
+- `::: columns`: 自動カラム数または指定カラム数のグリッドを生成
+- `::: columns 2 plain`: 2カラム・プレーンスタイル（背景・枠線なし）を指定
+- `::: columns 3 card`: 3カラム・カード風スタイル（背景・枠線あり）を指定
+
+### 4.3 スタイルオプション（カード vs プレーン）
+
+| スタイル | 特徴 | 適用方法 |
+| :--- | :--- | :--- |
+| **`card`** (デフォルト) | 背景色（`rgba(120, 120, 120, 0.04)`）、枠線、角丸、内側パディングを持つカード風 | `::: cols-2 card` または `columnStyle: card` |
+| **`plain`** | 背景色なし（透明）、枠線なし、パディング `0`。カラム間の余白（gap）のみで並ぶプレーンなテキスト配置 | `::: cols-2 plain` または `columnStyle: plain` |
+
+> [!NOTE]
+> スタイルの優先順位は **ブロック構文（`plain` / `card`） > フロントマター（`columnStyle`） > プラグイン設定（`defaultColumnStyle`）** です。
+
+### 4.4 HTML直接記述
 
 ```html
-<div class="presenter-cols presenter-cols-2">
+<!-- カードスタイル -->
+<div class="presenter-cols presenter-cols-2 presenter-cols-card">
+  <div class="presenter-col">左カラム</div>
+  <div class="presenter-col">右カラム</div>
+</div>
+
+<!-- プレーンスタイル（背景色・ボーダーなし） -->
+<div class="presenter-cols presenter-cols-2 presenter-cols-plain">
   <div class="presenter-col">左カラム</div>
   <div class="presenter-col">右カラム</div>
 </div>

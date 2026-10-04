@@ -1,3 +1,5 @@
+export type ColumnStyle = 'card' | 'plain';
+
 export interface PresenterSettings {
 	defaultBaseColor: string;
 	defaultMainColor: string;
@@ -6,6 +8,7 @@ export interface PresenterSettings {
 	defaultFooter: string;
 	defaultLogo: string;
 	aspectRatio: '16:9' | '4:3';
+	defaultColumnStyle: ColumnStyle;
 }
 
 export const DEFAULT_SETTINGS: PresenterSettings = {
@@ -16,6 +19,7 @@ export const DEFAULT_SETTINGS: PresenterSettings = {
 	defaultFooter: '',
 	defaultLogo: '',
 	aspectRatio: '16:9',
+	defaultColumnStyle: 'card',
 };
 
 export interface SlideFrontmatter {
@@ -27,6 +31,7 @@ export interface SlideFrontmatter {
 	logo?: string;
 	aspectRatio?: '16:9' | '4:3';
 	theme?: string;
+	columnStyle?: ColumnStyle;
 }
 
 export type SlideType = 'cover' | 'content';
