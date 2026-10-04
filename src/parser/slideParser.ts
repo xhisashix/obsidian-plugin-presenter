@@ -6,17 +6,20 @@ import type { ColumnStyle, PresentationData, SlideData, SlideFrontmatter, SlideT
 export function extractFrontmatter(content: string): {
 	frontmatter: SlideFrontmatter;
 	body: string;
+	frontmatterLines: number;
 } {
 	const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 	const match = content.match(frontmatterRegex);
 
 	if (!match || match[1] === undefined) {
-		return { frontmatter: {}, body: content };
+		return { frontmatter: {}, body: content, frontmatterLines: 0 };
 	}
 
 	const yamlBlock = match[1];
+	const frontmatterLines = match[0].split(/\r?\n/).length - 1;
 	const body = content.slice(match[0].length);
 	const frontmatter: SlideFrontmatter = {};
+
 
 	const lines = yamlBlock.split(/\r?\n/);
 	for (const line of lines) {
@@ -74,7 +77,7 @@ export function extractFrontmatter(content: string): {
 		}
 	}
 
-	return { frontmatter, body };
+	return { frontmatter, body, frontmatterLines };
 }
 
 /**
@@ -197,7 +200,7 @@ export function preprocessBadges(markdown: string): string {
  * or explicit --- dividers. Code blocks are ignored during boundary detection.
  */
 export function parsePresentation(rawMarkdown: string, defaultColumnStyle: ColumnStyle = 'card'): PresentationData {
-	const { frontmatter, body } = extractFrontmatter(rawMarkdown);
+	const { frontmatter, body, frontmatterLines } = extractFrontmatter(rawMarkdown);
 	const resolvedDefaultStyle: ColumnStyle = frontmatter.columnStyle || defaultColumnStyle;
 	const lines = body.split(/\r?\n/);
 
@@ -205,6 +208,8 @@ export function parsePresentation(rawMarkdown: string, defaultColumnStyle: Colum
 		type: SlideType;
 		title: string;
 		lines: string[];
+		startLine: number;
+		endLine: number;
 	}
 
 	const rawSlides: RawSlide[] = [];
@@ -212,7 +217,10 @@ export function parsePresentation(rawMarkdown: string, defaultColumnStyle: Colum
 	let inCodeBlock = false;
 	let title = 'Presentation';
 
-	for (const line of lines) {
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i];
+		if (line === undefined) continue;
+		const docLine = frontmatterLines + i;
 		const trimmed = line.trim();
 
 		// Track code blocks (``` or ~~~)
@@ -224,12 +232,15 @@ export function parsePresentation(rawMarkdown: string, defaultColumnStyle: Colum
 			// Check for explicit divider --- (at least 3 dashes, nothing else)
 			if (/^---{1,}$/.test(trimmed)) {
 				if (currentSlide && (currentSlide.lines.length > 0 || currentSlide.title)) {
+					currentSlide.endLine = docLine - 1;
 					rawSlides.push(currentSlide);
 				}
 				currentSlide = {
 					type: 'content',
 					title: '',
 					lines: [],
+					startLine: docLine,
+					endLine: docLine,
 				};
 				continue;
 			}
@@ -238,6 +249,7 @@ export function parsePresentation(rawMarkdown: string, defaultColumnStyle: Colum
 			const h1Match = line.match(/^#\s+(.+)$/);
 			if (h1Match && h1Match[1] !== undefined) {
 				if (currentSlide && (currentSlide.lines.length > 0 || currentSlide.title)) {
+					currentSlide.endLine = docLine - 1;
 					rawSlides.push(currentSlide);
 				}
 				const h1Title = h1Match[1].trim();
@@ -248,6 +260,8 @@ export function parsePresentation(rawMarkdown: string, defaultColumnStyle: Colum
 					type: 'cover',
 					title: h1Title,
 					lines: [line],
+					startLine: docLine,
+					endLine: docLine,
 				};
 				continue;
 			}
@@ -256,6 +270,7 @@ export function parsePresentation(rawMarkdown: string, defaultColumnStyle: Colum
 			const h2Match = line.match(/^##\s+(.+)$/);
 			if (h2Match && h2Match[1] !== undefined) {
 				if (currentSlide && (currentSlide.lines.length > 0 || currentSlide.title)) {
+					currentSlide.endLine = docLine - 1;
 					rawSlides.push(currentSlide);
 				}
 				const h2Title = h2Match[1].trim();
@@ -263,6 +278,8 @@ export function parsePresentation(rawMarkdown: string, defaultColumnStyle: Colum
 					type: 'content',
 					title: h2Title,
 					lines: [line],
+					startLine: docLine,
+					endLine: docLine,
 				};
 				continue;
 			}
@@ -276,14 +293,18 @@ export function parsePresentation(rawMarkdown: string, defaultColumnStyle: Colum
 					type: 'cover',
 					title: '',
 					lines: [line],
+					startLine: docLine,
+					endLine: docLine,
 				};
 			}
 		} else {
 			currentSlide.lines.push(line);
+			currentSlide.endLine = docLine;
 		}
 	}
 
 	if (currentSlide && (currentSlide.lines.length > 0 || currentSlide.title)) {
+		currentSlide.endLine = frontmatterLines + lines.length - 1;
 		rawSlides.push(currentSlide);
 	}
 
@@ -293,6 +314,8 @@ export function parsePresentation(rawMarkdown: string, defaultColumnStyle: Colum
 			type: 'cover',
 			title: 'Empty Slide',
 			lines: ['# Empty Slide', '', 'No content found in this note.'],
+			startLine: 0,
+			endLine: 0,
 		});
 	}
 
@@ -302,6 +325,8 @@ export function parsePresentation(rawMarkdown: string, defaultColumnStyle: Colum
 		type: s.type,
 		title: s.title || (s.type === 'cover' ? 'Title' : `Slide ${idx + 1}`),
 		markdown: preprocessBadges(preprocessColumns(s.lines.join('\n'), resolvedDefaultStyle)),
+		startLine: s.startLine,
+		endLine: s.endLine,
 	}));
 
 	return {
@@ -310,3 +335,32 @@ export function parsePresentation(rawMarkdown: string, defaultColumnStyle: Colum
 		slides,
 	};
 }
+
+/**
+ * Determines which slide index corresponds to a given line number in the source markdown.
+ */
+export function getSlideIndexAtLine(slides: SlideData[], lineNumber: number): number {
+	if (slides.length === 0) return 0;
+	const firstSlide = slides[0];
+	if (!firstSlide || lineNumber <= (firstSlide.startLine ?? 0)) return 0;
+
+	for (let i = 0; i < slides.length; i++) {
+		const s = slides[i];
+		if (!s) continue;
+		const start = s.startLine ?? 0;
+		const end = s.endLine ?? Number.MAX_SAFE_INTEGER;
+		if (lineNumber >= start && lineNumber <= end) {
+			return i;
+		}
+		if (i < slides.length - 1) {
+			const nextSlide = slides[i + 1];
+			const nextStart = nextSlide?.startLine ?? Number.MAX_SAFE_INTEGER;
+			if (lineNumber > end && lineNumber < nextStart) {
+				return i;
+			}
+		}
+	}
+	return slides.length - 1;
+}
+
+
