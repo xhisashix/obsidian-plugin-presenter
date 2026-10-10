@@ -152,5 +152,19 @@ export class PresenterSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+
+		new Setting(containerEl).setName('Speaker notes & handouts').setHeading();
+
+		new Setting(containerEl)
+			.setName('Show notes by default')
+			.setDesc('Display presenter notes panel (`> [!note]`) by default during presentations.')
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.showNotes)
+					.onChange(async (val) => {
+						this.plugin.settings.showNotes = val;
+						await this.plugin.saveSettings();
+					})
+			);
 	}
 }

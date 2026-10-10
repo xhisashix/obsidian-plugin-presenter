@@ -196,6 +196,64 @@ export function preprocessBadges(markdown: string): string {
 }
 
 /**
+ * Extracts note callouts (e.g. `> [!note] ...`, `> [!notes] ...`, or `> [!speaker-note] ...`)
+ * from slide lines so they can be separated from the main slide content into presenter notes / handouts.
+ */
+export function extractSlideNotes(lines: string[]): {
+	bodyLines: string[];
+	notesMarkdown?: string;
+} {
+	const bodyLines: string[] = [];
+	const notesLines: string[] = [];
+	let inNoteCallout = false;
+	let inCodeBlock = false;
+
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i];
+		if (line === undefined) continue;
+		const trimmed = line.trim();
+
+		// Track code blocks
+		if (/^(`{3,}|~{3,})/.test(trimmed)) {
+			inCodeBlock = !inCodeBlock;
+		}
+
+		if (!inCodeBlock) {
+			const calloutStartMatch = trimmed.match(/^>\s*\[!(note|notes|speaker-note)\](.*)$/i);
+			if (calloutStartMatch) {
+				inNoteCallout = true;
+				notesLines.push(line);
+				continue;
+			}
+
+			if (inNoteCallout) {
+				if (trimmed.startsWith('>')) {
+					notesLines.push(line);
+					continue;
+				} else if (trimmed === '') {
+					// Check if subsequent lines continue the blockquote
+					const nextLine = lines[i + 1]?.trim();
+					if (nextLine && nextLine.startsWith('>')) {
+						notesLines.push(line);
+						continue;
+					}
+					inNoteCallout = false;
+				} else {
+					inNoteCallout = false;
+				}
+			}
+		}
+
+		bodyLines.push(line);
+	}
+
+	return {
+		bodyLines,
+		notesMarkdown: notesLines.length > 0 ? notesLines.join('\n') : undefined,
+	};
+}
+
+/**
  * Splits markdown content into slides based on H1 (Cover), H2 (Slide title/boundary),
  * or explicit --- dividers. Code blocks are ignored during boundary detection.
  */
@@ -319,15 +377,19 @@ export function parsePresentation(rawMarkdown: string, defaultColumnStyle: Colum
 		});
 	}
 
-	// Map to SlideData and preprocess multi-column blocks
-	const slides: SlideData[] = rawSlides.map((s, idx) => ({
-		index: idx,
-		type: s.type,
-		title: s.title || (s.type === 'cover' ? 'Title' : `Slide ${idx + 1}`),
-		markdown: preprocessBadges(preprocessColumns(s.lines.join('\n'), resolvedDefaultStyle)),
-		startLine: s.startLine,
-		endLine: s.endLine,
-	}));
+	// Map to SlideData, extract notes, and preprocess multi-column blocks
+	const slides: SlideData[] = rawSlides.map((s, idx) => {
+		const { bodyLines, notesMarkdown } = extractSlideNotes(s.lines);
+		return {
+			index: idx,
+			type: s.type,
+			title: s.title || (s.type === 'cover' ? 'Title' : `Slide ${idx + 1}`),
+			markdown: preprocessBadges(preprocessColumns(bodyLines.join('\n'), resolvedDefaultStyle)),
+			notes: notesMarkdown ? preprocessBadges(notesMarkdown) : undefined,
+			startLine: s.startLine,
+			endLine: s.endLine,
+		};
+	});
 
 	return {
 		title,

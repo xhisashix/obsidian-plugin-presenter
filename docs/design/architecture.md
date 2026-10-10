@@ -22,12 +22,14 @@ src/
 ├── types.ts                 # データ構造・インターフェース定義
 ├── settings.ts              # グローバル設定UI (PluginSettingTab)
 ├── parser/
-│   └── slideParser.ts       # フロントマター抽出、スライド分割、行番号追跡、カラム変換
+│   └── slideParser.ts       # フロントマター抽出、スライド分割、ノート抽出、カラム・バッジ変換
+├── export/
+│   └── htmlExporter.ts      # スタンドアロン単一HTMLエクスポート（スライド＆ハンドアウト切替）
 └── ui/
     ├── jumpModal.ts         # スライド番号直接ジャンプモーダル
-    ├── presenterModal.ts    # プレゼンテーション全画面モーダル・操作制御
+    ├── presenterModal.ts    # プレゼンテーション全画面モーダル・ノートドロワー・印刷制御
     ├── presenterPreviewView.ts # リアルタイムプレビューペイン (ItemView)
-    └── slideRenderer.ts     # Markdownレンダリング、動的CSS変数・ヘッダー/フッター生成
+    └── slideRenderer.ts     # Markdownレンダリング、動的CSS変数・ヘッダー/フッター/ノート生成
 ```
 
 ### 2.1 コンポーネント関連図 (Component Relationship)
@@ -39,6 +41,7 @@ flowchart TD
     PresenterPlugin --> SlideParser[slideParser.ts]
     PresenterPlugin --> PresenterModal[PresenterModal (presenterModal.ts)]
     PresenterPlugin --> PresenterPreviewView[PresenterPreviewView (presenterPreviewView.ts)]
+    PresenterPlugin --> HtmlExporter[htmlExporter.ts]
     
     SlideParser --> Types[Data Models (types.ts)]
     PresenterModal --> SlideRenderer[slideRenderer.ts]
@@ -50,7 +53,11 @@ flowchart TD
     SlideRenderer --> MarkdownRenderer[Obsidian MarkdownRenderer.render]
     SlideRenderer --> DOM[Slide Card DOM Structure]
     PresenterModal --> KeyNav[Keyboard & Navigation Controls]
-    PresenterModal --> PrintManager[Print & PDF Export Engine]
+    PresenterModal --> NotesDrawer[Speaker Notes Drawer]
+    PresenterModal --> PrintManager[Print & Handout PDF Engine]
+
+    HtmlExporter --> MarkdownRenderer
+    HtmlExporter --> VaultStorage[Vault File & Browser Download]
 ```
 
 ---
@@ -114,6 +121,40 @@ sequenceDiagram
         Preview->>Parser: getSlideIndexAtLine(slides, cursorLine)
         Preview->>Renderer: 対象スライドへ自動切り替え表示
     end
+```
+
+### 3.3 単一HTMLエクスポートシーケンス (Standalone HTML Export Sequence)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant Main as PresenterPlugin (main.ts)
+    participant Parser as SlideParser (slideParser.ts)
+    participant Exporter as HtmlExporter (htmlExporter.ts)
+    participant NativeRenderer as Obsidian MarkdownRenderer
+    participant Vault as Obsidian Vault
+    participant Browser as Web Browser (Recipient)
+
+    User->>Main: コマンド実行 (Export presentation as standalone HTML)
+    Main->>Parser: parsePresentation(content)
+    Parser-->>Main: PresentationData (SlideData[ ] + notes)
+    Main->>Exporter: exportPresentationToHtml(app, file, presentation, settings)
+    
+    loop 各スライド & 各ノート
+        Exporter->>NativeRenderer: MarkdownRenderer.render(slide.markdown)
+        Exporter->>NativeRenderer: MarkdownRenderer.render(slide.notes)
+        Exporter->>Vault: ローカル画像読込 & Base64 Data URL 変換
+    end
+
+    Exporter->>Exporter: 自己完結HTML生成 (インラインCSS + バニラJS + デュアルビュー切替)
+    Exporter-->>Main: HTML文字列
+    Main->>Vault: <ノート名>-presentation.html を同一フォルダに保存
+    Main->>Main: Blob URL 生成 & ブラウザ自動ダウンロード発火
+    Main-->>User: 保存完了通知 (Notice)
+
+    User->>Browser: 非エンジニアへHTMLファイルを送付・ダブルクリックで起動
+    Browser-->>User: スライド表示 & 配布資料（詳細解説）表示を自由に切り替えて閲覧
 ```
 
 ---
