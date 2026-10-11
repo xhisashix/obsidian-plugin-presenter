@@ -466,7 +466,8 @@ h4 .presenter-badge {
 		width: 100% !important;
 	}
 
-	.presenter-print-container .presenter-slide-card {
+	/* Standard Slide Mode (1 slide per page) */
+	.presenter-print-container:not(.presenter-print-handout) .presenter-slide-card {
 		page-break-after: always !important;
 		break-after: page !important;
 		width: 100vw !important;
@@ -476,6 +477,55 @@ h4 .presenter-badge {
 		transform: none !important;
 		padding: 40px 60px !important;
 		box-sizing: border-box !important;
+	}
+
+	/* Handout Mode (1 page per slide + notes) */
+	.presenter-print-container.presenter-print-handout .presenter-print-slide-wrapper {
+		page-break-after: always !important;
+		break-after: page !important;
+		width: 100vw !important;
+		min-height: 100vh !important;
+		padding: 32px 48px !important;
+		box-sizing: border-box !important;
+		display: flex !important;
+		flex-direction: column !important;
+		gap: 24px !important;
+		background: #ffffff !important;
+		color: #1e293b !important;
+	}
+
+	.presenter-print-container.presenter-print-handout .presenter-slide-card {
+		width: 100% !important;
+		height: 380px !important;
+		border: 1px solid #cbd5e1 !important;
+		border-radius: 8px !important;
+		box-shadow: none !important;
+		padding: 24px 36px !important;
+		transform: none !important;
+		overflow: hidden !important;
+		background: var(--presenter-base-color, #ffffff) !important;
+	}
+
+	.presenter-print-container.presenter-print-handout .presenter-print-notes-section {
+		flex: 1 !important;
+		border-top: 2px dashed #cbd5e1 !important;
+		padding-top: 16px !important;
+		margin-top: 8px !important;
+	}
+
+	.presenter-print-container.presenter-print-handout .presenter-print-notes-heading {
+		font-size: 13px !important;
+		font-weight: 700 !important;
+		text-transform: uppercase !important;
+		letter-spacing: 0.05em !important;
+		color: #475569 !important;
+		margin-bottom: 8px !important;
+	}
+
+	.presenter-print-container.presenter-print-handout .presenter-print-notes-empty {
+		font-size: 13px !important;
+		color: #94a3b8 !important;
+		font-style: italic !important;
 	}
 }
 
@@ -588,8 +638,123 @@ h4 .presenter-badge {
 }
 
 .presenter-preview-stage.is-hidden,
-.presenter-preview-empty.is-hidden {
+.presenter-preview-empty.is-hidden,
+.presenter-hidden-export {
 	display: none !important;
+}
+
+/* ==========================================================================
+   11. Speaker Notes Drawer & Toolbar Button Styles
+   ========================================================================== */
+.presenter-btn-notes {
+	position: relative;
+}
+
+.presenter-btn-notes.has-notes::after {
+	content: '';
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background-color: var(--presenter-accent-color, #38bdf8);
+}
+
+.presenter-btn-notes.is-active {
+	color: var(--presenter-accent-color, #38bdf8);
+	background: rgba(56, 189, 248, 0.2);
+	border-color: rgba(56, 189, 248, 0.4);
+}
+
+.presenter-notes-drawer {
+	height: 220px;
+	max-height: 38vh;
+	background: rgba(15, 23, 42, 0.95);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border-top: 1px solid rgba(255, 255, 255, 0.12);
+	display: flex;
+	flex-direction: column;
+	z-index: 105;
+	color: #e2e8f0;
+	flex-shrink: 0;
+	box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.4);
+	animation: presenterDrawerSlideUp 0.2s ease-out;
+}
+
+@keyframes presenterDrawerSlideUp {
+	from {
+		transform: translateY(100%);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+.presenter-notes-drawer.is-hidden {
+	display: none !important;
+}
+
+.presenter-notes-drawer-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 20px;
+	background: rgba(0, 0, 0, 0.28);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: #94a3b8;
+}
+
+.presenter-notes-drawer-title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.presenter-notes-drawer-title svg {
+	width: 14px;
+	height: 14px;
+	color: var(--presenter-accent-color, #38bdf8);
+}
+
+.presenter-notes-drawer-close {
+	background: transparent;
+	border: none;
+	color: #94a3b8;
+	cursor: pointer;
+	padding: 4px;
+	border-radius: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.presenter-notes-drawer-close:hover {
+	color: #ffffff;
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.presenter-notes-drawer-body {
+	flex: 1;
+	overflow-y: auto;
+	padding: 16px 28px;
+	font-size: 14px;
+	line-height: 1.6;
+	user-select: text;
+}
+
+.presenter-notes-empty {
+	color: #64748b;
+	font-style: italic;
+	font-size: 13px;
 }
 
 

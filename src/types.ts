@@ -9,6 +9,7 @@ export interface PresenterSettings {
 	defaultLogo: string;
 	aspectRatio: '16:9' | '4:3';
 	defaultColumnStyle: ColumnStyle;
+	showNotes: boolean;
 }
 
 export const DEFAULT_SETTINGS: PresenterSettings = {
@@ -20,6 +21,7 @@ export const DEFAULT_SETTINGS: PresenterSettings = {
 	defaultLogo: '',
 	aspectRatio: '16:9',
 	defaultColumnStyle: 'card',
+	showNotes: false,
 };
 
 export interface SlideFrontmatter {
@@ -43,6 +45,7 @@ export interface SlideData {
 	type: SlideType;
 	title: string;
 	markdown: string;
+	notes?: string;
 	startLine?: number;
 	endLine?: number;
 }

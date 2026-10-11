@@ -5,6 +5,7 @@ import {
 	TFile,
 	type WorkspaceLeaf,
 } from 'obsidian';
+import { exportPresentationToHtml } from './export/htmlExporter';
 import { parsePresentation } from './parser/slideParser';
 import { PresenterSettingTab } from './settings';
 import {
@@ -68,6 +69,22 @@ export default class PresenterPlugin extends Plugin {
 			name: 'Toggle slide preview',
 			callback: () => {
 				void this.togglePreview();
+			},
+		});
+
+		// Add command to export presentation as standalone HTML
+		this.addCommand({
+			id: 'export-html',
+			name: 'Export presentation as standalone HTML',
+			checkCallback: (checking: boolean) => {
+				const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+				if (activeView && activeView.file instanceof TFile) {
+					if (!checking) {
+						void this.exportHtmlForActiveFile();
+					}
+					return true;
+				}
+				return false;
 			},
 		});
 
@@ -202,6 +219,66 @@ export default class PresenterPlugin extends Plugin {
 		}
 
 		await this.startPresentationForFile(activeView.file, 0);
+	}
+
+	/**
+	 * Exports the active markdown note as a standalone HTML presentation and handout file.
+	 */
+	async exportHtmlForActiveFile() {
+		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (!activeView || !(activeView.file instanceof TFile)) {
+			new Notice('Please open a Markdown note to export.');
+			return;
+		}
+
+		const file = activeView.file;
+		try {
+			new Notice('Exporting standalone HTML presentation...');
+			let content = '';
+			if (activeView.file.path === file.path) {
+				content = activeView.editor.getValue();
+			} else {
+				content = await this.app.vault.read(file);
+			}
+
+			const presentation = parsePresentation(content, this.settings.defaultColumnStyle);
+			if (presentation.slides.length === 0) {
+				new Notice('No slide content found in this note.');
+				return;
+			}
+
+			const html = await exportPresentationToHtml(this.app, file, presentation, this.settings);
+
+			// Determine output file path in the same directory as the note
+			const baseName = file.basename;
+			const parentPath = file.parent ? file.parent.path : '';
+			const exportFileName = `${baseName}-presentation.html`;
+			const exportPath = parentPath && parentPath !== '/' ? `${parentPath}/${exportFileName}` : exportFileName;
+
+			// Write to vault
+			const existingFile = this.app.vault.getAbstractFileByPath(exportPath);
+			if (existingFile instanceof TFile) {
+				await this.app.vault.modify(existingFile, html);
+			} else {
+				await this.app.vault.create(exportPath, html);
+			}
+
+			// Also trigger browser file download so the user can immediately distribute it
+			const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+			const url = URL.createObjectURL(blob);
+			const link = activeDocument.body.createEl('a', {
+				href: url,
+				attr: { download: exportFileName },
+			});
+			link.click();
+			link.remove();
+			URL.revokeObjectURL(url);
+
+			new Notice(`Presentation exported successfully!\nSaved to: ${exportPath}`, 5000);
+		} catch (err) {
+			console.error('Failed to export presentation as HTML:', err);
+			new Notice('Failed to export presentation. Check console for details.');
+		}
 	}
 
 	async loadSettings() {
