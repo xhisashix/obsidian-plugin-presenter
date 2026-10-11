@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-presenter",
 	"name": "Presenter",
-	"version": "1.0.1",
+	"version": "1.1.0",
 	"minAppVersion": "1.7.2",
 	"description": "Present your markdown notes as clean, styled slides with frontmatter theming and multi-column grids.",
 	"author": "Obsidian Presenter Contributors",
