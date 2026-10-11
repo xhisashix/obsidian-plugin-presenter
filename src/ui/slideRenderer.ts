@@ -123,3 +123,21 @@ export async function renderSlide(
 
 	return slideCardEl;
 }
+
+/**
+ * Renders slide notes into the target container element using Obsidian's MarkdownRenderer.
+ */
+export async function renderSlideNotes(
+	targetEl: HTMLElement,
+	options: {
+		app: App;
+		markdown: string;
+		sourcePath: string;
+		component: Component;
+	}
+): Promise<HTMLElement> {
+	const { app, markdown, sourcePath, component } = options;
+	const notesEl = targetEl.createDiv({ cls: 'presenter-notes-rendered markdown-rendered' });
+	await MarkdownRenderer.render(app, markdown, notesEl, sourcePath, component);
+	return notesEl;
+}

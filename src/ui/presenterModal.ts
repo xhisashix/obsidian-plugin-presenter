@@ -1,69 +1,17 @@
 import {
 	type App,
 	Component,
+	Menu,
 	Modal,
 	Notice,
-	Setting,
 	setIcon,
 } from 'obsidian';
 import type {
 	PresentationData,
 	PresenterSettings,
 } from '../types';
-import { renderSlide } from './slideRenderer';
-
-class JumpToSlideModal extends Modal {
-	private totalSlides: number;
-	private onSelect: (slideIndex: number) => void;
-
-	constructor(app: App, totalSlides: number, onSelect: (slideIndex: number) => void) {
-		super(app);
-		this.totalSlides = totalSlides;
-		this.onSelect = onSelect;
-	}
-
-	onOpen() {
-		const { contentEl } = this;
-		contentEl.empty();
-		contentEl.createEl('h3', { text: 'Jump to slide' });
-
-		let target = 1;
-		new Setting(contentEl)
-			.setName(`Slide number (1 - ${this.totalSlides})`)
-			.addText((text) => {
-				text.inputEl.type = 'number';
-				text.inputEl.min = '1';
-				text.inputEl.max = String(this.totalSlides);
-				text.setValue('1');
-				text.onChange((val) => {
-					target = parseInt(val, 10);
-				});
-				text.inputEl.addEventListener('keydown', (e: KeyboardEvent) => {
-					if (e.key === 'Enter') {
-						if (!isNaN(target) && target >= 1 && target <= this.totalSlides) {
-							this.onSelect(target - 1);
-							this.close();
-						}
-					}
-				});
-			})
-			.addButton((btn) =>
-				btn
-					.setButtonText('Go')
-					.setCta()
-					.onClick(() => {
-						if (!isNaN(target) && target >= 1 && target <= this.totalSlides) {
-							this.onSelect(target - 1);
-							this.close();
-						}
-					})
-			);
-	}
-
-	onClose() {
-		this.contentEl.empty();
-	}
-}
+import { JumpToSlideModal } from './jumpModal';
+import { renderSlide, renderSlideNotes } from './slideRenderer';
 
 export class PresenterModal extends Modal {
 	presentation: PresentationData;
@@ -74,7 +22,11 @@ export class PresenterModal extends Modal {
 	private stageEl!: HTMLElement;
 	private progressBarEl!: HTMLElement;
 	private counterButtonEl!: HTMLElement;
+	private notesBtn!: HTMLButtonElement;
+	private notesDrawerEl!: HTMLElement;
+	private notesContentEl!: HTMLElement;
 	private printContainerEl!: HTMLElement;
+	private isNotesOpen: boolean;
 	private keyHandler!: (e: KeyboardEvent) => void;
 	private resizeObserver!: ResizeObserver;
 	private component: Component;
@@ -83,12 +35,16 @@ export class PresenterModal extends Modal {
 		app: App,
 		presentation: PresentationData,
 		settings: PresenterSettings,
-		sourcePath: string
+		sourcePath: string,
+		initialIndex = 0
 	) {
 		super(app);
 		this.presentation = presentation;
 		this.settings = settings;
 		this.sourcePath = sourcePath;
+		this.currentIndex =
+			initialIndex >= 0 && initialIndex < presentation.slides.length ? initialIndex : 0;
+		this.isNotesOpen = settings.showNotes;
 		this.component = new Component();
 	}
 
@@ -110,21 +66,45 @@ export class PresenterModal extends Modal {
 		// 2. Active Slide Stage
 		this.stageEl = contentEl.createDiv({ cls: 'presenter-stage' });
 
-		// 3. Floating Navigation Toolbar
+		// 3. Speaker Notes Drawer
+		this.buildNotesDrawer(contentEl);
+
+		// 4. Floating Navigation Toolbar
 		this.buildToolbar(contentEl);
 
-		// 4. Hidden Container for Multi-Page PDF Printing
+		// 5. Hidden Container for Multi-Page PDF Printing
 		this.printContainerEl = contentEl.createDiv({ cls: 'presenter-print-container' });
-		void this.preparePrintSlides();
+		void this.preparePrintSlides('slides');
 
-		// 5. Setup Keyboard Navigation
+		// 6. Setup Keyboard Navigation
 		this.setupKeyEvents();
 
-		// 6. Setup Responsive Scaling
+		// 7. Setup Responsive Scaling
 		this.setupResponsiveScaling();
 
 		// Render Initial Slide
-		await this.showSlide(0);
+		await this.showSlide(this.currentIndex);
+	}
+
+	private buildNotesDrawer(parentEl: HTMLElement) {
+		this.notesDrawerEl = parentEl.createDiv({ cls: 'presenter-notes-drawer' });
+		if (!this.isNotesOpen) {
+			this.notesDrawerEl.addClass('is-hidden');
+		}
+
+		const headerEl = this.notesDrawerEl.createDiv({ cls: 'presenter-notes-drawer-header' });
+		const titleEl = headerEl.createDiv({ cls: 'presenter-notes-drawer-title' });
+		setIcon(titleEl, 'file-text');
+		titleEl.createSpan({ text: 'Speaker notes & details' });
+
+		const closeBtn = headerEl.createEl('button', {
+			cls: 'presenter-notes-drawer-close',
+			attr: { 'aria-label': 'Hide notes (n)' },
+		});
+		setIcon(closeBtn, 'chevron-down');
+		closeBtn.onclick = () => this.toggleNotes();
+
+		this.notesContentEl = this.notesDrawerEl.createDiv({ cls: 'presenter-notes-drawer-body' });
 	}
 
 	private buildToolbar(parentEl: HTMLElement) {
@@ -161,6 +141,14 @@ export class PresenterModal extends Modal {
 		// Separator
 		toolbarEl.createDiv({ cls: 'presenter-toolbar-sep' });
 
+		// Speaker Notes Toggle
+		this.notesBtn = toolbarEl.createEl('button', {
+			cls: `presenter-toolbar-btn presenter-btn-notes${this.isNotesOpen ? ' is-active' : ''}`,
+			attr: { 'aria-label': 'Toggle speaker notes (n)' },
+		});
+		setIcon(this.notesBtn, 'file-text');
+		this.notesBtn.onclick = () => this.toggleNotes();
+
 		// Fullscreen Toggle
 		const fsBtn = toolbarEl.createEl('button', {
 			cls: 'presenter-toolbar-btn',
@@ -169,15 +157,31 @@ export class PresenterModal extends Modal {
 		setIcon(fsBtn, 'expand');
 		fsBtn.onclick = () => this.toggleFullscreen();
 
-		// Print / Export PDF Button
+		// Print / Export PDF Button (with Handout option)
 		const printBtn = toolbarEl.createEl('button', {
 			cls: 'presenter-toolbar-btn',
 			attr: { 'aria-label': 'Print or export PDF (p)' },
 		});
 		setIcon(printBtn, 'printer');
-		printBtn.onclick = () => {
-			new Notice('Preparing slides for printing/PDF export...');
-			window.print();
+		printBtn.onclick = (e: MouseEvent) => {
+			const menu = new Menu();
+			menu.addItem((item) => {
+				item
+					.setTitle('Print slides only (1 slide per page)')
+					.setIcon('presentation')
+					.onClick(() => {
+						void this.printPresentation('slides');
+					});
+			});
+			menu.addItem((item) => {
+				item
+					.setTitle('Print handout with notes (for distribution)')
+					.setIcon('book-open')
+					.onClick(() => {
+						void this.printPresentation('handout');
+					});
+			});
+			menu.showAtMouseEvent(e);
 		};
 
 		// Close Button
@@ -217,13 +221,66 @@ export class PresenterModal extends Modal {
 			component: this.component,
 		});
 
+		// Update Speaker Notes
+		await this.updateNotesContent(slide);
+
 		this.applySlideScale();
 	}
 
-	private async preparePrintSlides() {
-		// Asynchronously populate the print container with all slides for @media print
+	private async updateNotesContent(slide: { notes?: string }) {
+		this.notesContentEl.empty();
+		if (slide.notes && slide.notes.trim()) {
+			this.notesBtn.addClass('has-notes');
+			await renderSlideNotes(this.notesContentEl, {
+				app: this.app,
+				markdown: slide.notes,
+				sourcePath: this.sourcePath,
+				component: this.component,
+			});
+		} else {
+			this.notesBtn.removeClass('has-notes');
+			this.notesContentEl.createDiv({
+				cls: 'presenter-notes-empty',
+				text: 'No speaker notes for this slide.',
+			});
+		}
+	}
+
+	private toggleNotes() {
+		this.isNotesOpen = !this.isNotesOpen;
+		if (this.isNotesOpen) {
+			this.notesDrawerEl.removeClass('is-hidden');
+			this.notesBtn.addClass('is-active');
+		} else {
+			this.notesDrawerEl.addClass('is-hidden');
+			this.notesBtn.removeClass('is-active');
+		}
+		// Recalculate scaling since available stage height changed
+		window.setTimeout(() => {
+			this.applySlideScale();
+		}, 50);
+	}
+
+	private async printPresentation(mode: 'slides' | 'handout') {
+		new Notice(`Preparing ${mode === 'handout' ? 'handouts with notes' : 'slides'} for printing...`);
+		await this.preparePrintSlides(mode);
+		window.print();
+	}
+
+	private async preparePrintSlides(mode: 'slides' | 'handout' = 'slides') {
+		this.printContainerEl.empty();
+		if (mode === 'handout') {
+			this.printContainerEl.addClass('presenter-print-handout');
+		} else {
+			this.printContainerEl.removeClass('presenter-print-handout');
+		}
+
 		for (const slide of this.presentation.slides) {
-			await renderSlide(this.printContainerEl, {
+			const wrapperEl = this.printContainerEl.createDiv({
+				cls: 'presenter-print-slide-wrapper',
+			});
+
+			await renderSlide(wrapperEl, {
 				app: this.app,
 				slide,
 				totalSlides: this.presentation.slides.length,
@@ -232,6 +289,27 @@ export class PresenterModal extends Modal {
 				sourcePath: this.sourcePath,
 				component: this.component,
 			});
+
+			if (mode === 'handout') {
+				const notesSection = wrapperEl.createDiv({ cls: 'presenter-print-notes-section' });
+				notesSection.createDiv({
+					cls: 'presenter-print-notes-heading',
+					text: 'Detailed notes & context',
+				});
+				if (slide.notes && slide.notes.trim()) {
+					await renderSlideNotes(notesSection, {
+						app: this.app,
+						markdown: slide.notes,
+						sourcePath: this.sourcePath,
+						component: this.component,
+					});
+				} else {
+					notesSection.createDiv({
+						cls: 'presenter-print-notes-empty',
+						text: 'No additional notes provided.',
+					});
+				}
+			}
 		}
 	}
 
@@ -272,11 +350,16 @@ export class PresenterModal extends Modal {
 					e.preventDefault();
 					this.toggleFullscreen();
 					break;
+				case 'n':
+				case 'N':
+					e.preventDefault();
+					this.toggleNotes();
+					break;
 				case 'p':
 				case 'P':
 					if (!e.metaKey && !e.ctrlKey) {
 						e.preventDefault();
-						window.print();
+						void this.printPresentation('slides');
 					}
 					break;
 			}

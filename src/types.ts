@@ -1,3 +1,5 @@
+export type ColumnStyle = 'card' | 'plain';
+
 export interface PresenterSettings {
 	defaultBaseColor: string;
 	defaultMainColor: string;
@@ -6,6 +8,8 @@ export interface PresenterSettings {
 	defaultFooter: string;
 	defaultLogo: string;
 	aspectRatio: '16:9' | '4:3';
+	defaultColumnStyle: ColumnStyle;
+	showNotes: boolean;
 }
 
 export const DEFAULT_SETTINGS: PresenterSettings = {
@@ -16,6 +20,8 @@ export const DEFAULT_SETTINGS: PresenterSettings = {
 	defaultFooter: '',
 	defaultLogo: '',
 	aspectRatio: '16:9',
+	defaultColumnStyle: 'card',
+	showNotes: false,
 };
 
 export interface SlideFrontmatter {
@@ -27,15 +33,21 @@ export interface SlideFrontmatter {
 	logo?: string;
 	aspectRatio?: '16:9' | '4:3';
 	theme?: string;
+	columnStyle?: ColumnStyle;
 }
 
 export type SlideType = 'cover' | 'content';
+
+export const VIEW_TYPE_PRESENTER_PREVIEW = 'presenter-preview-view';
 
 export interface SlideData {
 	index: number;
 	type: SlideType;
 	title: string;
 	markdown: string;
+	notes?: string;
+	startLine?: number;
+	endLine?: number;
 }
 
 export interface PresentationData {
@@ -43,3 +55,4 @@ export interface PresentationData {
 	frontmatter: SlideFrontmatter;
 	slides: SlideData[];
 }
+
