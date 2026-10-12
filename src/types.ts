@@ -10,6 +10,7 @@ export interface PresenterSettings {
 	aspectRatio: '16:9' | '4:3';
 	defaultColumnStyle: ColumnStyle;
 	showNotes: boolean;
+	enableBadges: boolean;
 }
 
 export const DEFAULT_SETTINGS: PresenterSettings = {
@@ -22,6 +23,7 @@ export const DEFAULT_SETTINGS: PresenterSettings = {
 	aspectRatio: '16:9',
 	defaultColumnStyle: 'card',
 	showNotes: false,
+	enableBadges: true,
 };
 
 export interface SlideFrontmatter {
@@ -56,3 +58,7 @@ export interface PresentationData {
 	slides: SlideData[];
 }
 
+export interface ParseOptions {
+	defaultColumnStyle?: ColumnStyle;
+	enableBadges?: boolean;
+}

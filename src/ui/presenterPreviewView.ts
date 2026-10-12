@@ -314,7 +314,10 @@ export class PresenterPreviewView extends ItemView {
 		}
 
 		this.cachedRawMarkdown = content;
-		this.presentation = parsePresentation(content);
+		this.presentation = parsePresentation(content, {
+			defaultColumnStyle: this.plugin.settings.defaultColumnStyle,
+			enableBadges: this.plugin.settings.enableBadges,
+		});
 
 		if (this.presentation.slides.length === 0) {
 			this.showEmptyState();

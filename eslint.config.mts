@@ -8,6 +8,7 @@ export default defineConfig(
 		'dist',
 		'esbuild.config.mjs',
 		'version-bump.mjs',
+		'scripts/**',
 		'versions.json',
 		'main.js',
 		'package.json',
@@ -29,4 +30,10 @@ export default defineConfig(
 		},
 	},
 	...obsidianmd.configs.recommended,
+	{
+		files: ['tests/**/*.ts'],
+		rules: {
+			'obsidianmd/no-nodejs-modules': 'off',
+		},
+	},
 );
