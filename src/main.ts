@@ -16,6 +16,8 @@ import {
 } from './types';
 import { PresenterModal } from './ui/presenterModal';
 import { PresenterPreviewView } from './ui/presenterPreviewView';
+import { checkPresentationOverflow } from './ui/overflow';
+import { OverflowReportModal } from './ui/overflowReportModal';
 
 export default class PresenterPlugin extends Plugin {
 	settings!: PresenterSettings;
@@ -82,6 +84,22 @@ export default class PresenterPlugin extends Plugin {
 				if (activeView && activeView.file instanceof TFile) {
 					if (!checking) {
 						void this.exportHtmlForActiveFile();
+					}
+					return true;
+				}
+				return false;
+			},
+		});
+
+		// Add command to inspect slide overflow
+		this.addCommand({
+			id: 'check-overflow',
+			name: 'Check slide overflow',
+			checkCallback: (checking: boolean) => {
+				const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+				if (activeView && activeView.file instanceof TFile) {
+					if (!checking) {
+						void this.checkOverflowForActiveFile();
 					}
 					return true;
 				}
@@ -288,6 +306,58 @@ export default class PresenterPlugin extends Plugin {
 		} catch (err) {
 			console.error('Failed to export presentation as HTML:', err);
 			new Notice('Failed to export presentation. Check console for details.');
+		}
+	}
+
+	/**
+	 * Inspects slides in the active markdown note for layout overflow and opens the report modal.
+	 */
+	async checkOverflowForActiveFile() {
+		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (!activeView || !(activeView.file instanceof TFile)) {
+			new Notice('Please open a Markdown note to inspect slide overflow.');
+			return;
+		}
+
+		const file = activeView.file;
+		try {
+			let content = '';
+			if (activeView.file.path === file.path) {
+				content = activeView.editor.getValue();
+			} else {
+				content = await this.app.vault.read(file);
+			}
+
+			const presentation = parsePresentation(content, {
+				defaultColumnStyle: this.settings.defaultColumnStyle,
+				enableBadges: this.settings.enableBadges,
+			});
+
+			if (presentation.slides.length === 0) {
+				new Notice('No slide content found in this note.');
+				return;
+			}
+
+			new Notice('Inspecting slide boundaries...');
+			const reports = await checkPresentationOverflow(
+				this.app,
+				presentation,
+				this.settings,
+				file.path,
+				this
+			);
+
+			new OverflowReportModal(
+				this.app,
+				reports,
+				file,
+				(slideIndex) => {
+					void this.startPresentationForFile(file, slideIndex);
+				}
+			).open();
+		} catch (err) {
+			console.error('Failed to inspect slide overflow:', err);
+			new Notice('Failed to inspect slide overflow. Check console for details.');
 		}
 	}
 

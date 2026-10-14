@@ -73,6 +73,16 @@ export function extractFrontmatter(content: string): {
 					frontmatter.columnStyle = val;
 				}
 				break;
+			case 'fit':
+			case 'presenter-fit':
+				if (val === 'auto' || val === 'none') {
+					frontmatter.fit = val;
+				} else if (val === 'true') {
+					frontmatter.fit = true;
+				} else if (val === 'false') {
+					frontmatter.fit = false;
+				}
+				break;
 		}
 	}
 

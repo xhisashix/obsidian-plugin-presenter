@@ -9,6 +9,11 @@ import type {
 	SlideData,
 	SlideFrontmatter,
 } from '../types';
+import {
+	applyContentScale,
+	calculateOverflow,
+	isAutoFitEnabled,
+} from './overflow';
 
 export interface RenderSlideOptions {
 	app: App;
@@ -71,9 +76,17 @@ export async function renderSlide(
 	const logoInput = config.logo !== undefined ? config.logo : settings.defaultLogo;
 	const logoUrl = resolveLogoUrl(app, logoInput, sourcePath);
 
+	const aspectRatio = config.aspectRatio || settings.aspectRatio || '16:9';
+	const targetRatio = aspectRatio === '4:3' ? 4 / 3 : 16 / 9;
+	const baseWidth = 1280;
+	const baseHeight = baseWidth / targetRatio;
+
 	const slideCardEl = targetEl.createDiv({
 		cls: `presenter-slide-card presenter-slide-${slide.type}`,
 	});
+
+	slideCardEl.style.width = `${baseWidth}px`;
+	slideCardEl.style.height = `${baseHeight}px`;
 
 	// Apply CSS custom properties dynamically to this slide
 	slideCardEl.style.setProperty('--presenter-base-color', baseColor);
@@ -109,6 +122,14 @@ export async function renderSlide(
 		sourcePath,
 		component
 	);
+
+	// Check and apply auto-fit if enabled
+	if (isAutoFitEnabled(config, settings)) {
+		const { isOverflowing, optimalScale } = calculateOverflow(bodyEl);
+		if (isOverflowing && optimalScale < 0.999) {
+			applyContentScale(bodyEl, optimalScale);
+		}
+	}
 
 	// 3. Footer (Footer Text & Slide Counter)
 	const footerEl = slideCardEl.createDiv({ cls: 'presenter-slide-footer' });
