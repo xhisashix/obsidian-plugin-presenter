@@ -56,7 +56,7 @@ AI（LLM）で生成したMarkdownノートの文章構成（`# H1` を表紙、
 2. Obsidian の Vault 内に以下のフォルダを作成します：
 
    ```bash
-   <Vault>/.obsidian/plugins/obsidian-presenter/
+   <Vault>/.obsidian/plugins/markdown-presenter/
    ```
 
 3. 作成したフォルダに `main.js`, `manifest.json`, `styles.css` を配置します。

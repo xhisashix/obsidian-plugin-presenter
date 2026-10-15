@@ -2,7 +2,7 @@
 
 ## 1. 概要 (Overview)
 
-本仕様書は、Obsidianプラグイン `obsidian-presenter` が提供する機能仕様、記法ルール、Frontmatterスキーマ、操作体系、および出力仕様を定義します。
+本仕様書は、Obsidianプラグイン `markdown-presenter` が提供する機能仕様、記法ルール、Frontmatterスキーマ、操作体系、および出力仕様を定義します。
 
 ---
 
