@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-10-12
+
+### Added
+
+- **Standard Markdown Compatibility**:
+  - Multi-column layouts using standard-compliant HTML comment directives (`<!-- columns 2 -->`, `<!-- columns 2 plain -->`, `<!-- column -->`, `<!-- /columns -->`), leaving raw markdown completely clean and natural in GitHub, VS Code, and Obsidian default reader.
+  - Heading-based automatic column partitioning: sibling headings within a `<!-- columns -->` region automatically format into columns without needing explicit column breaks.
+  - CommonMark-compliant Setext headings (`===` for cover slide, `---` after paragraph for slide boundary + title).
+  - Flexible thematic breaks (`---`, `***`, `___`) for explicit slide boundaries.
+  - Strict CommonMark fence tracking to eliminate unintended slide splits inside code blocks.
+  - Configurable toggle for `[label]` badge styling (`Enable label badges`), with link definition (`[label]: url`) collision protection.
+- **Column Layout Quick Insertion & Hotkey Commands**:
+  - Quick picker command (`Presenter: Insert column layout...`) to choose and insert any multi-column layout or column break from a single hotkey.
+  - Direct insertion commands for 2/3/4 columns, `card`/`plain` variants, and `<!-- column -->` breaks—each bindable in **Settings → Hotkeys**, supporting both empty-line cursor placement and selection wrapping.
+
+### Removed
+
+- **Legacy Non-Standard Column Syntax**:
+  - Removed proprietary `::: cols-N`, `::: columns`, and `+++` syntax in favor of universal standard-compatible HTML comments.
+
+---
+
 ## [1.1.0] - 2026-10-11
 
 ### Added

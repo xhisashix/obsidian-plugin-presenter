@@ -1,359 +1,166 @@
-import type { ColumnStyle, PresentationData, SlideData, SlideFrontmatter, SlideType } from '../types';
+import type { ColumnStyle, ParseOptions, PresentationData, SlideData, SlideType } from '../types';
+import { isThematicBreak, matchAtxHeading, setextUnderlineLevel, startsNonParagraphBlock } from './blocks';
+import { preprocessBadges } from './badges';
+import { preprocessColumns } from './columns';
+import { FenceTracker } from './fence';
+import { extractFrontmatter } from './frontmatter';
+import { extractSlideNotes } from './notes';
 
-/**
- * Parses simple YAML frontmatter from the beginning of markdown content.
- */
-export function extractFrontmatter(content: string): {
-	frontmatter: SlideFrontmatter;
-	body: string;
-	frontmatterLines: number;
-} {
-	const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
-	const match = content.match(frontmatterRegex);
+export { extractFrontmatter } from './frontmatter';
+export { preprocessColumns } from './columns';
+export { preprocessBadges } from './badges';
+export { extractSlideNotes } from './notes';
 
-	if (!match || match[1] === undefined) {
-		return { frontmatter: {}, body: content, frontmatterLines: 0 };
-	}
-
-	const yamlBlock = match[1];
-	const frontmatterLines = match[0].split(/\r?\n/).length - 1;
-	const body = content.slice(match[0].length);
-	const frontmatter: SlideFrontmatter = {};
-
-
-	const lines = yamlBlock.split(/\r?\n/);
-	for (const line of lines) {
-		const trimmed = line.trim();
-		if (!trimmed || trimmed.startsWith('#')) continue;
-
-		const colonIdx = trimmed.indexOf(':');
-		if (colonIdx === -1) continue;
-
-		const key = trimmed.slice(0, colonIdx).trim();
-		let val = trimmed.slice(colonIdx + 1).trim();
-
-		// Remove surrounding single or double quotes
-		if (
-			(val.startsWith('"') && val.endsWith('"')) ||
-			(val.startsWith("'") && val.endsWith("'"))
-		) {
-			val = val.slice(1, -1);
-		}
-
-		switch (key) {
-			case 'baseColor':
-			case 'background':
-				frontmatter.baseColor = val;
-				break;
-			case 'mainColor':
-			case 'color':
-				frontmatter.mainColor = val;
-				break;
-			case 'accentColor':
-				frontmatter.accentColor = val;
-				break;
-			case 'header':
-				frontmatter.header = val;
-				break;
-			case 'footer':
-				frontmatter.footer = val;
-				break;
-			case 'logo':
-				frontmatter.logo = val;
-				break;
-			case 'aspectRatio':
-				if (val === '16:9' || val === '4:3') {
-					frontmatter.aspectRatio = val;
-				}
-				break;
-			case 'theme':
-				frontmatter.theme = val;
-				break;
-			case 'columnStyle':
-				if (val === 'card' || val === 'plain') {
-					frontmatter.columnStyle = val;
-				}
-				break;
-		}
-	}
-
-	return { frontmatter, body, frontmatterLines };
+interface RawSlide {
+	type: SlideType;
+	title: string;
+	lines: string[];
+	startLine: number;
+	endLine: number;
 }
 
 /**
- * Preprocesses custom column syntax (e.g. ::: cols-2 ... ::: or ::: columns ... :::)
- * into standard HTML divs with CSS classes that MarkdownRenderer and flex/grid can handle.
+ * Splits markdown content into slides adhering to CommonMark rules:
+ * - H1 (# or ===): Cover slide
+ * - H2 (## or --- after paragraph): Content slide
+ * - Thematic break (---, ***, ___ after empty/list/quote): Content slide break
+ * Code blocks and fences are strictly respected.
  */
-export function preprocessColumns(markdown: string, defaultColumnStyle: ColumnStyle = 'card'): string {
-	// Pattern 1: ::: cols-2 or ::: cols-3 with +++ separator, optional modifier (card or plain)
-	const colsWithPlusRegex = /:::\s*cols-(\d+)(?:\s+(card|plain))?\s*\r?\n([\s\S]*?)\r?\n:::/gi;
-	let processed = markdown.replace(
-		colsWithPlusRegex,
-		(_match: string, colsCount: string, styleModifier: string | undefined, body: string): string => {
-			const lower = styleModifier?.toLowerCase();
-			const style: ColumnStyle = lower === 'plain' || lower === 'card' ? lower : defaultColumnStyle;
-			const styleClass = style === 'plain' ? ' presenter-cols-plain' : ' presenter-cols-card';
-			const cols: string[] = body.split(/\r?\n\+\+\+\r?\n/);
-			const colDivs: string = cols
-				.map((c: string) => `<div class="presenter-col">\n\n${c.trim()}\n\n</div>`)
-				.join('\n');
-			return `<div class="presenter-cols presenter-cols-${colsCount}${styleClass}">\n${colDivs}\n</div>`;
-		}
-	);
+export function parsePresentation(
+	rawMarkdown: string,
+	optionsOrStyle?: ColumnStyle | ParseOptions
+): PresentationData {
+	const options: ParseOptions =
+		typeof optionsOrStyle === 'string'
+			? { defaultColumnStyle: optionsOrStyle }
+			: optionsOrStyle || {};
 
-	// Pattern 2: ::: columns [count] [style] ... ::: column ... ::: ... :::
-	const containerRegex = /:::\s*columns(?:\s+([^\r\n]+))?\r?\n([\s\S]*?)\r?\n:::/gi;
-	processed = processed.replace(
-		containerRegex,
-		(_match: string, args: string | undefined, body: string): string => {
-			const tokens = args ? args.trim().toLowerCase().split(/\s+/) : [];
-			const countToken = tokens.find((t) => /^\d+$/.test(t));
-			const styleToken = tokens.find((t): t is ColumnStyle => t === 'plain' || t === 'card');
-			const style: ColumnStyle = styleToken || defaultColumnStyle;
-			const styleClass = style === 'plain' ? ' presenter-cols-plain' : ' presenter-cols-card';
+	const defaultStyle: ColumnStyle = options.defaultColumnStyle || 'card';
+	const enableBadges: boolean = options.enableBadges ?? true;
 
-			const colRegex = /:::\s*column\r?\n([\s\S]*?)\r?\n:::/gi;
-			let colMatches = 0;
-			const colDivs: string = body.replace(
-				colRegex,
-				(_colMatch: string, colContent: string): string => {
-					colMatches++;
-					return `<div class="presenter-col">\n\n${colContent.trim()}\n\n</div>`;
-				}
-			);
-
-			if (colMatches > 0) {
-				const finalCols = countToken || String(colMatches);
-				return `<div class="presenter-cols presenter-cols-${finalCols}${styleClass}">\n${colDivs.trim()}\n</div>`;
-			}
-
-			// Fallback: if no ::: column inside, split by +++
-			const count = countToken || '2';
-			const cols: string[] = body.split(/\r?\n\+\+\+\r?\n/);
-			const fallbackDivs: string = cols
-				.map((c: string) => `<div class="presenter-col">\n\n${c.trim()}\n\n</div>`)
-				.join('\n');
-			return `<div class="presenter-cols presenter-cols-${count}${styleClass}">\n${fallbackDivs}\n</div>`;
-		}
-	);
-
-	return processed;
-}
-
-/**
- * Preprocesses label/badge syntax like `[xxx] testtest` into `<span class="presenter-badge">xxx</span> testtest`.
- * Accurately preserves Markdown links [text](url), Wikilinks [[wikilink]], checkboxes [ ] / [x],
- * footnote references [^1], link definitions [id]: url, and fenced/inline code.
- */
-export function preprocessBadges(markdown: string): string {
-	const lines = markdown.split(/\r?\n/);
-	let inCodeBlock = false;
-
-	const processedLines = lines.map((line: string) => {
-		const trimmed = line.trim();
-
-		// Toggle fenced code block
-		if (/^(`{3,}|~{3,})/.test(trimmed)) {
-			inCodeBlock = !inCodeBlock;
-			return line;
-		}
-
-		if (inCodeBlock) {
-			return line;
-		}
-
-		// Split line into inline code segments vs normal segments
-		const segments = line.split(/(`[^`]*`)/);
-		const convertedSegments = segments.map((seg: string, idx: number) => {
-			// Odd indices are inside inline code `...`
-			if (idx % 2 === 1) {
-				return seg;
-			}
-
-			// In normal text, find [xxx] that are not links, images, wikilinks, or checkboxes
-			return seg.replace(
-				/(^|[^![])\[([^^\]\r\n]+)\](?![[(:\]])/g,
-				(fullMatch: string, prefix: string, label: string): string => {
-					const trimmedLabel = label.trim();
-					// Skip empty
-					if (!trimmedLabel) return fullMatch;
-					// Skip if contains [ or ]
-					if (label.includes('[') || label.includes(']')) return fullMatch;
-					// Skip task list checkboxes: [ ], [x], [X]
-					if (/^[\s\txX]$/.test(label)) return fullMatch;
-					// Skip footnote reference: starts with ^
-					if (label.startsWith('^')) return fullMatch;
-
-					return `${prefix}<span class="presenter-badge">${trimmedLabel}</span>`;
-				}
-			);
-		});
-
-		return convertedSegments.join('');
-	});
-
-	return processedLines.join('\n');
-}
-
-/**
- * Extracts note callouts (e.g. `> [!note] ...`, `> [!notes] ...`, or `> [!speaker-note] ...`)
- * from slide lines so they can be separated from the main slide content into presenter notes / handouts.
- */
-export function extractSlideNotes(lines: string[]): {
-	bodyLines: string[];
-	notesMarkdown?: string;
-} {
-	const bodyLines: string[] = [];
-	const notesLines: string[] = [];
-	let inNoteCallout = false;
-	let inCodeBlock = false;
-
-	for (let i = 0; i < lines.length; i++) {
-		const line = lines[i];
-		if (line === undefined) continue;
-		const trimmed = line.trim();
-
-		// Track code blocks
-		if (/^(`{3,}|~{3,})/.test(trimmed)) {
-			inCodeBlock = !inCodeBlock;
-		}
-
-		if (!inCodeBlock) {
-			const calloutStartMatch = trimmed.match(/^>\s*\[!(note|notes|speaker-note)\](.*)$/i);
-			if (calloutStartMatch) {
-				inNoteCallout = true;
-				notesLines.push(line);
-				continue;
-			}
-
-			if (inNoteCallout) {
-				if (trimmed.startsWith('>')) {
-					notesLines.push(line);
-					continue;
-				} else if (trimmed === '') {
-					// Check if subsequent lines continue the blockquote
-					const nextLine = lines[i + 1]?.trim();
-					if (nextLine && nextLine.startsWith('>')) {
-						notesLines.push(line);
-						continue;
-					}
-					inNoteCallout = false;
-				} else {
-					inNoteCallout = false;
-				}
-			}
-		}
-
-		bodyLines.push(line);
-	}
-
-	return {
-		bodyLines,
-		notesMarkdown: notesLines.length > 0 ? notesLines.join('\n') : undefined,
-	};
-}
-
-/**
- * Splits markdown content into slides based on H1 (Cover), H2 (Slide title/boundary),
- * or explicit --- dividers. Code blocks are ignored during boundary detection.
- */
-export function parsePresentation(rawMarkdown: string, defaultColumnStyle: ColumnStyle = 'card'): PresentationData {
 	const { frontmatter, body, frontmatterLines } = extractFrontmatter(rawMarkdown);
-	const resolvedDefaultStyle: ColumnStyle = frontmatter.columnStyle || defaultColumnStyle;
+	const resolvedDefaultStyle: ColumnStyle = frontmatter.columnStyle || defaultStyle;
 	const lines = body.split(/\r?\n/);
-
-	interface RawSlide {
-		type: SlideType;
-		title: string;
-		lines: string[];
-		startLine: number;
-		endLine: number;
-	}
 
 	const rawSlides: RawSlide[] = [];
 	let currentSlide: RawSlide | null = null;
-	let inCodeBlock = false;
-	let title = 'Presentation';
+	let explicitBreak = false;
+	const fenceTracker = new FenceTracker();
+	let presentationTitle = 'Presentation';
+
+	const pushCurrentSlide = (endLine: number) => {
+		if (currentSlide && (currentSlide.lines.length > 0 || currentSlide.title)) {
+			// Only push if slide has a title or non-empty content lines
+			const hasContent = currentSlide.lines.some((l) => l.trim().length > 0);
+			if (currentSlide.title || hasContent) {
+				currentSlide.endLine = endLine;
+				rawSlides.push(currentSlide);
+			}
+		}
+		currentSlide = null;
+	};
 
 	for (let i = 0; i < lines.length; i++) {
-		const line = lines[i];
-		if (line === undefined) continue;
+		const line = lines[i]!;
 		const docLine = frontmatterLines + i;
-		const trimmed = line.trim();
+		const isFence = fenceTracker.feed(line);
 
-		// Track code blocks (``` or ~~~)
-		if (/^(`{3,}|~{3,})/.test(trimmed)) {
-			inCodeBlock = !inCodeBlock;
-		}
+		if (!isFence) {
+			// Check for Setext heading underline
+			const setextLevel = setextUnderlineLevel(line);
+			if (setextLevel !== null) {
+				// To be a Setext heading, the preceding line in the current slide must be paragraph text
+				const prevLineInSlide = currentSlide?.lines[currentSlide.lines.length - 1];
+				const prevTrimmed = prevLineInSlide?.trim() ?? '';
 
-		if (!inCodeBlock) {
-			// Check for explicit divider --- (at least 3 dashes, nothing else)
-			if (/^---{1,}$/.test(trimmed)) {
-				if (currentSlide && (currentSlide.lines.length > 0 || currentSlide.title)) {
-					currentSlide.endLine = docLine - 1;
-					rawSlides.push(currentSlide);
+				if (
+					prevTrimmed.length > 0 &&
+					!startsNonParagraphBlock(prevTrimmed) &&
+					!isThematicBreak(prevTrimmed)
+				) {
+					// This is a Setext heading!
+					// Pop the title lines from current slide
+					const titleLines: string[] = [];
+					while (currentSlide && currentSlide.lines.length > 0) {
+						const last = currentSlide.lines[currentSlide.lines.length - 1]!;
+						if (last.trim() === '') break;
+						titleLines.unshift(currentSlide.lines.pop()!);
+					}
+
+					// Close previous slide before this Setext heading
+					pushCurrentSlide(docLine - titleLines.length - 1);
+
+					const setextTitle = titleLines.join(' ').trim();
+					const slideType: SlideType = setextLevel === 1 ? 'cover' : 'content';
+
+					if (setextLevel === 1 && (!presentationTitle || presentationTitle === 'Presentation')) {
+						presentationTitle = setextTitle;
+					}
+
+					currentSlide = {
+						type: slideType,
+						title: setextTitle,
+						lines: [...titleLines, line],
+						startLine: docLine - titleLines.length,
+						endLine: docLine,
+					};
+					explicitBreak = false;
+					continue;
 				}
-				currentSlide = {
-					type: 'content',
-					title: '',
-					lines: [],
-					startLine: docLine,
-					endLine: docLine,
-				};
+			}
+
+			// Check for Thematic break (explicit slide boundary)
+			if (isThematicBreak(line)) {
+				pushCurrentSlide(docLine - 1);
+				explicitBreak = true;
 				continue;
 			}
 
-			// Check for H1 (# Title)
-			const h1Match = line.match(/^#\s+(.+)$/);
-			if (h1Match && h1Match[1] !== undefined) {
-				if (currentSlide && (currentSlide.lines.length > 0 || currentSlide.title)) {
-					currentSlide.endLine = docLine - 1;
-					rawSlides.push(currentSlide);
+			// Check for ATX heading (#, ##, ...)
+			const atx = matchAtxHeading(line);
+			if (atx) {
+				if (atx.level === 1) {
+					// H1 -> Cover slide
+					pushCurrentSlide(docLine - 1);
+					if (!presentationTitle || presentationTitle === 'Presentation') {
+						presentationTitle = atx.text;
+					}
+					currentSlide = {
+						type: 'cover',
+						title: atx.text,
+						lines: [line],
+						startLine: docLine,
+						endLine: docLine,
+					};
+					explicitBreak = false;
+					continue;
+				} else if (atx.level === 2) {
+					// H2 -> Content slide
+					pushCurrentSlide(docLine - 1);
+					currentSlide = {
+						type: 'content',
+						title: atx.text,
+						lines: [line],
+						startLine: docLine,
+						endLine: docLine,
+					};
+					explicitBreak = false;
+					continue;
 				}
-				const h1Title = h1Match[1].trim();
-				if (!title || title === 'Presentation') {
-					title = h1Title;
-				}
-				currentSlide = {
-					type: 'cover',
-					title: h1Title,
-					lines: [line],
-					startLine: docLine,
-					endLine: docLine,
-				};
-				continue;
-			}
-
-			// Check for H2 (## Slide Title)
-			const h2Match = line.match(/^##\s+(.+)$/);
-			if (h2Match && h2Match[1] !== undefined) {
-				if (currentSlide && (currentSlide.lines.length > 0 || currentSlide.title)) {
-					currentSlide.endLine = docLine - 1;
-					rawSlides.push(currentSlide);
-				}
-				const h2Title = h2Match[1].trim();
-				currentSlide = {
-					type: 'content',
-					title: h2Title,
-					lines: [line],
-					startLine: docLine,
-					endLine: docLine,
-				};
-				continue;
 			}
 		}
 
 		// Accumulate lines for current slide
 		if (!currentSlide) {
-			// Content before any header
-			if (trimmed.length > 0) {
+			if (line.trim().length > 0) {
 				currentSlide = {
-					type: 'cover',
+					type: explicitBreak ? 'content' : 'cover',
 					title: '',
 					lines: [line],
 					startLine: docLine,
 					endLine: docLine,
 				};
+				explicitBreak = false;
 			}
 		} else {
 			currentSlide.lines.push(line);
@@ -361,10 +168,7 @@ export function parsePresentation(rawMarkdown: string, defaultColumnStyle: Colum
 		}
 	}
 
-	if (currentSlide && (currentSlide.lines.length > 0 || currentSlide.title)) {
-		currentSlide.endLine = frontmatterLines + lines.length - 1;
-		rawSlides.push(currentSlide);
-	}
+	pushCurrentSlide(frontmatterLines + lines.length - 1);
 
 	// If no slides were produced (e.g. empty file), create a placeholder slide
 	if (rawSlides.length === 0) {
@@ -377,22 +181,25 @@ export function parsePresentation(rawMarkdown: string, defaultColumnStyle: Colum
 		});
 	}
 
-	// Map to SlideData, extract notes, and preprocess multi-column blocks
+	// Map to SlideData, extract notes, preprocess columns and badges
 	const slides: SlideData[] = rawSlides.map((s, idx) => {
 		const { bodyLines, notesMarkdown } = extractSlideNotes(s.lines);
+		const columnProcessed = preprocessColumns(bodyLines.join('\n'), resolvedDefaultStyle);
+		const badgeProcessed = preprocessBadges(columnProcessed, enableBadges);
+
 		return {
 			index: idx,
 			type: s.type,
 			title: s.title || (s.type === 'cover' ? 'Title' : `Slide ${idx + 1}`),
-			markdown: preprocessBadges(preprocessColumns(bodyLines.join('\n'), resolvedDefaultStyle)),
-			notes: notesMarkdown ? preprocessBadges(notesMarkdown) : undefined,
+			markdown: badgeProcessed,
+			notes: notesMarkdown ? preprocessBadges(notesMarkdown, enableBadges) : undefined,
 			startLine: s.startLine,
 			endLine: s.endLine,
 		};
 	});
 
 	return {
-		title,
+		title: presentationTitle,
 		frontmatter,
 		slides,
 	};
@@ -424,5 +231,3 @@ export function getSlideIndexAtLine(slides: SlideData[], lineNumber: number): nu
 	}
 	return slides.length - 1;
 }
-
-

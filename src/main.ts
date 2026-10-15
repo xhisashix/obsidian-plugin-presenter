@@ -5,6 +5,7 @@ import {
 	TFile,
 	type WorkspaceLeaf,
 } from 'obsidian';
+import { registerColumnCommands } from './commands/insertColumns';
 import { exportPresentationToHtml } from './export/htmlExporter';
 import { parsePresentation } from './parser/slideParser';
 import { PresenterSettingTab } from './settings';
@@ -87,6 +88,9 @@ export default class PresenterPlugin extends Plugin {
 				return false;
 			},
 		});
+
+		// Register column insertion commands (for command palette & hotkeys)
+		registerColumnCommands(this);
 
 		// Register editor tab header action button
 		this.registerViewActions();
@@ -188,7 +192,10 @@ export default class PresenterPlugin extends Plugin {
 				content = await this.app.vault.read(file);
 			}
 
-			const presentation = parsePresentation(content, this.settings.defaultColumnStyle);
+			const presentation = parsePresentation(content, {
+				defaultColumnStyle: this.settings.defaultColumnStyle,
+				enableBadges: this.settings.enableBadges,
+			});
 
 			if (presentation.slides.length === 0) {
 				new Notice('No slide content found in this note.');
@@ -241,7 +248,10 @@ export default class PresenterPlugin extends Plugin {
 				content = await this.app.vault.read(file);
 			}
 
-			const presentation = parsePresentation(content, this.settings.defaultColumnStyle);
+			const presentation = parsePresentation(content, {
+				defaultColumnStyle: this.settings.defaultColumnStyle,
+				enableBadges: this.settings.enableBadges,
+			});
 			if (presentation.slides.length === 0) {
 				new Notice('No slide content found in this note.');
 				return;

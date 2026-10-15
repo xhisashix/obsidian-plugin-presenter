@@ -166,5 +166,19 @@ export class PresenterSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+
+		new Setting(containerEl).setName('Badges & labels').setHeading();
+
+		new Setting(containerEl)
+			.setName('Enable label badges')
+			.setDesc('Render `[label] text` syntax as styled accent badges in slides. Disable to keep raw square brackets.')
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.enableBadges)
+					.onChange(async (val) => {
+						this.plugin.settings.enableBadges = val;
+						await this.plugin.saveSettings();
+					})
+			);
 	}
 }
