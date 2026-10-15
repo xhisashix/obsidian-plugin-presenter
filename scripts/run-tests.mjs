@@ -21,6 +21,11 @@ const obsidianStubPlugin = {
 				export class Plugin {}
 				export class PluginSettingTab {}
 				export class Setting {}
+				export class Notice {}
+				export class MarkdownView {}
+				export class TFile {}
+				export class MarkdownRenderer { static render() {} }
+				export function setIcon() {}
 			`,
 			loader: 'js',
 		}));
@@ -29,7 +34,7 @@ const obsidianStubPlugin = {
 
 try {
 	await esbuild.build({
-		entryPoints: ['tests/parser.test.ts'],
+		entryPoints: ['tests/index.test.ts'],
 		bundle: true,
 		platform: 'node',
 		format: 'esm',

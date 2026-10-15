@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Slide Overflow Detection and Auto-fit (Plan B)**:
+  - Real-time slide body overflow measurement (`scrollHeight > clientHeight + 4px`) across the slide deck.
+  - Dynamic visual downscaling via `--presenter-body-scale` CSS variable, clamped with a strict 70% lower bound (`MIN_BODY_SCALE = 0.70`) to maintain readability.
+  - Frontmatter `fit` property (`fit: auto` / `fit: none` / `fit: true` / `fit: false`) and vault-wide toggle in **Settings → Layout & grid → Auto-fit overflowing slides**.
+  - Interactive "Slide overflow inspection" modal (`OverflowReportModal`) displaying overflow percentage, auto-fit scale badges, jump navigation, and one-click slide split.
+  - Candidate split heading detection (`findSplitHeadingInSlide`) identifying the second H3 heading (`###`) to cleanly split overloaded slides into 2 with standard `---`, fully undoable in the active editor.
+  - Warning button indicator (`⚠ N`) in both Preview Pane and fullscreen Presentation mode toolbars.
+  - Warning badges (`⚠`) on overflowing slides in Jump-to-Slide modal (`JumpToSlideModal`).
+  - Command palette command: `Presenter: Check slide overflow` (`check-overflow`).
+
+---
+
 ## [1.2.0] - 2026-10-12
 
 ### Added

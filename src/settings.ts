@@ -153,6 +153,18 @@ export class PresenterSettingTab extends PluginSettingTab {
 					})
 			);
 
+		new Setting(containerEl)
+			.setName('Auto-fit overflowing slides')
+			.setDesc('Automatically scale down typography and margins (down to 70%) for slides exceeding the card boundary (override with frontmatter `fit: auto`).')
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.autoFitOverflow)
+					.onChange(async (val) => {
+						this.plugin.settings.autoFitOverflow = val;
+						await this.plugin.saveSettings();
+					})
+			);
+
 		new Setting(containerEl).setName('Speaker notes & handouts').setHeading();
 
 		new Setting(containerEl)

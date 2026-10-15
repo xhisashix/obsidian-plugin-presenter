@@ -11,6 +11,7 @@ export interface PresenterSettings {
 	defaultColumnStyle: ColumnStyle;
 	showNotes: boolean;
 	enableBadges: boolean;
+	autoFitOverflow: boolean;
 }
 
 export const DEFAULT_SETTINGS: PresenterSettings = {
@@ -24,6 +25,7 @@ export const DEFAULT_SETTINGS: PresenterSettings = {
 	defaultColumnStyle: 'card',
 	showNotes: false,
 	enableBadges: true,
+	autoFitOverflow: false,
 };
 
 export interface SlideFrontmatter {
@@ -36,6 +38,7 @@ export interface SlideFrontmatter {
 	aspectRatio?: '16:9' | '4:3';
 	theme?: string;
 	columnStyle?: ColumnStyle;
+	fit?: 'auto' | 'none' | boolean;
 }
 
 export type SlideType = 'cover' | 'content';
@@ -61,4 +64,16 @@ export interface PresentationData {
 export interface ParseOptions {
 	defaultColumnStyle?: ColumnStyle;
 	enableBadges?: boolean;
+}
+
+export interface SlideOverflowInfo {
+	slideIndex: number;
+	title: string;
+	isOverflowing: boolean;
+	overflowRatio: number; // e.g. 1.15 for +15%
+	fittedScale: number;   // 0.70 to 1.00
+	canSplitByHeading: boolean;
+	splitHeadingTitle?: string;
+	splitLineOffset?: number; // 0-indexed line relative to slide start
+	absoluteSplitLine?: number; // absolute line in source note
 }

@@ -4,14 +4,18 @@ import {
 	Menu,
 	Modal,
 	Notice,
+	TFile,
 	setIcon,
 } from 'obsidian';
 import type {
 	PresentationData,
 	PresenterSettings,
+	SlideOverflowInfo,
 } from '../types';
 import { JumpToSlideModal } from './jumpModal';
 import { renderSlide, renderSlideNotes } from './slideRenderer';
+import { checkPresentationOverflow } from './overflow';
+import { OverflowReportModal } from './overflowReportModal';
 
 export class PresenterModal extends Modal {
 	presentation: PresentationData;
@@ -22,6 +26,8 @@ export class PresenterModal extends Modal {
 	private stageEl!: HTMLElement;
 	private progressBarEl!: HTMLElement;
 	private counterButtonEl!: HTMLElement;
+	private overflowBtn!: HTMLElement;
+	private overflowReports: SlideOverflowInfo[] = [];
 	private notesBtn!: HTMLButtonElement;
 	private notesDrawerEl!: HTMLElement;
 	private notesContentEl!: HTMLElement;
@@ -84,6 +90,9 @@ export class PresenterModal extends Modal {
 
 		// Render Initial Slide
 		await this.showSlide(this.currentIndex);
+
+		// Run background overflow inspection across slides
+		void this.runOverflowCheck();
 	}
 
 	private buildNotesDrawer(parentEl: HTMLElement) {
@@ -136,6 +145,17 @@ export class PresenterModal extends Modal {
 		setIcon(nextBtn, 'chevron-right');
 		nextBtn.onclick = () => {
 			void this.nextSlide();
+		};
+
+		// Slide overflow inspection button
+		this.overflowBtn = toolbarEl.createEl('button', {
+			cls: 'presenter-toolbar-overflow-btn is-hidden',
+			attr: { 'aria-label': 'Slide overflow inspection' },
+		});
+		setIcon(this.overflowBtn, 'alert-triangle');
+		this.overflowBtn.createSpan({ cls: 'presenter-toolbar-overflow-count', text: '0' });
+		this.overflowBtn.onclick = () => {
+			this.openOverflowReport();
 		};
 
 		// Separator
@@ -411,9 +431,62 @@ export class PresenterModal extends Modal {
 	}
 
 	private promptJump() {
-		new JumpToSlideModal(this.app, this.presentation.slides.length, (index) => {
-			void this.showSlide(index);
-		}).open();
+		const overflowingIndices = new Set(
+			this.overflowReports.filter((r) => r.isOverflowing).map((r) => r.slideIndex)
+		);
+		new JumpToSlideModal(
+			this.app,
+			this.presentation.slides.length,
+			(index) => {
+				void this.showSlide(index);
+			},
+			overflowingIndices
+		).open();
+	}
+
+	private async runOverflowCheck() {
+		try {
+			const reports = await checkPresentationOverflow(
+				this.app,
+				this.presentation,
+				this.settings,
+				this.sourcePath,
+				this.component
+			);
+			this.overflowReports = reports;
+			this.updateOverflowBtn(reports);
+		} catch (err) {
+			console.error('Failed to check slide overflow:', err);
+		}
+	}
+
+	private updateOverflowBtn(reports: SlideOverflowInfo[]) {
+		const overflowing = reports.filter((r) => r.isOverflowing);
+		if (overflowing.length > 0) {
+			this.overflowBtn.removeClass('is-hidden');
+			const countSpan = this.overflowBtn.querySelector('.presenter-toolbar-overflow-count');
+			if (countSpan) {
+				countSpan.setText(String(overflowing.length));
+			}
+			this.overflowBtn.setAttribute(
+				'aria-label',
+				`${overflowing.length} slide(s) overflow card boundaries. Click to inspect.`
+			);
+		} else {
+			this.overflowBtn.addClass('is-hidden');
+		}
+	}
+
+	private openOverflowReport() {
+		const file = this.app.vault.getAbstractFileByPath(this.sourcePath);
+		new OverflowReportModal(
+			this.app,
+			this.overflowReports,
+			file instanceof TFile ? file : null,
+			(slideIndex) => {
+				void this.showSlide(slideIndex);
+			}
+		).open();
 	}
 
 	private toggleFullscreen() {

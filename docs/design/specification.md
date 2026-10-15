@@ -60,7 +60,9 @@ accentColor: "#e11d48"
 | `logo` | Default logo | string | 空文字 | Vault内画像パス (`attachments/logo.png`) または外部URL |
 | `aspectRatio` | Aspect ratio | `"16:9"` \| `"4:3"` | `"16:9"` | スライドの画面アスペクト比 |
 | `columnStyle` | Default column style | `"card"` \| `"plain"` | `"card"` | カラムレイアウトの基本スタイル |
+| `fit` (または `presenter-fit`) | Auto-fit overflowing slides | `"auto"` \| `"none"` \| boolean | `false` | カード枠からはみ出たスライドの文字・余白を自動縮小（下限70%）するか |
 | - | Show notes by default | boolean | `false` | プレゼン開始時に発表者ノートドロワーをデフォルト展開するか |
+| - | Enable label badges | boolean | `true` | `[重要]` などの角括弧ラベルを視覚的バッジとして自動装飾するか |
 
 ### 3.3 設定の優先度 (Priority Rule)
 
@@ -280,4 +282,43 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
   2. **📄 配布資料（ハンドアウト）表示モード**: スライドカードと詳細解説（`> [!note]`）が縦スクロールで1ページずつ整然と並ぶ、Webレポート/ドキュメント形式。
 - **印刷最適化**:
   受取手がブラウザ上で印刷（`Cmd + P`）を実行した場合も、A4用紙1枚につき「スライド ＋ 詳細解説」が綺麗に収まるプリントスタイルを内蔵。
+
+---
+
+## 10. スライドはみ出し検知と自動フィット仕様 (Slide Overflow Detection & Auto-fit)
+
+スライド内に文章やリスト、カラムを詰め込みすぎた結果、スライドカードの境界枠を縦方向にはみ出してしまうケースを自動検知し、安全にフィットまたは分割案内を行う機能です。
+
+### 10.1 はみ出し検知ロジック (`calculateOverflow`)
+- **計測対象**:
+  スライド本文エリア（`.presenter-slide-body`）。
+- **判定条件**:
+  `scrollHeight > clientHeight + 4px`（4pxのサブピクセル誤差許容バッファ）。
+- **計測環境**:
+  全スライドの一括計測は、画面描画を阻害しない非表示のオフスクリーン計測コンテナ（`.presenter-measure-container`）で高速レンダリング（通常ノート20枚でも約30ms）して実行。
+
+### 10.2 自動フィット (Auto-fit)
+- **CSS変数駆動**:
+  `.presenter-slide-body` に `--presenter-body-scale` を付与し、フォントサイズ・行間・見出し上下マージン・カラムのパディングを一律に比率計算。
+- **縮小下限（70%制限）**:
+  視認性と可読性を担保するため、縮小率は `0.70`（70%）でクランプ（下限クリッピング）。
+- **設定優先度**:
+  Frontmatter `fit: auto` / `fit: none` が最優先、未指定時はプラグイン設定 `autoFitOverflow`（デフォルト: `false`）を適用。
+
+### 10.3 スライド分割判定 (`findSplitHeadingInSlide`)
+- **判定基準**:
+  スライド内のMarkdownテキストを走査し、**2つ目のH3見出し（`###`）** を検出した場合に分割可能と判定。
+- **安全性**:
+  コードブロック（```）内の見出しはCommonMarkフェンストラッカーにより厳密に除外。
+- **実行動作**:
+  インスペクションモーダルの「**Split slide**」押下時、2つ目のH3見出しの直前に `\n---\n\n` を挿入。
+  エディタが開いている場合はエディタ履歴経由で挿入されるため、ユーザーは `Cmd + Z`（Undo）で即座に元に戻せます。
+
+### 10.4 UI/UXインジケーター
+- **ツールバー警告ボタン**:
+  プレビュー画面および全画面プレゼン画面のツールバーに `⚠ N` バッジを表示。クリックで詳細一覧モーダル（`OverflowReportModal`）が展開。
+- **スライドジャンプ画面連携**:
+  `JumpToSlideModal` 内の候補一覧で、はみ出しが発生しているスライドのタイトルの横に `⚠` バッジを付与。
+- **コマンドパレット**:
+  `Presenter: Check slide overflow`（`check-overflow`）からいつでも即時検査が可能。
 
