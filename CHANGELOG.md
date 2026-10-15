@@ -5,11 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.2.0] - 2026-10-15
 
 ### Added
 
-- **Slide Overflow Detection and Auto-fit (Plan B)**:
+- **Slide Overflow Detection and Auto-fit**:
   - Real-time slide body overflow measurement (`scrollHeight > clientHeight + 4px`) across the slide deck.
   - Dynamic visual downscaling via `--presenter-body-scale` CSS variable, clamped with a strict 70% lower bound (`MIN_BODY_SCALE = 0.70`) to maintain readability.
   - Frontmatter `fit` property (`fit: auto` / `fit: none` / `fit: true` / `fit: false`) and vault-wide toggle in **Settings → Layout & grid → Auto-fit overflowing slides**.
@@ -18,13 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Warning button indicator (`⚠ N`) in both Preview Pane and fullscreen Presentation mode toolbars.
   - Warning badges (`⚠`) on overflowing slides in Jump-to-Slide modal (`JumpToSlideModal`).
   - Command palette command: `Presenter: Check slide overflow` (`check-overflow`).
-
----
-
-## [1.2.0] - 2026-10-12
-
-### Added
-
 - **Standard Markdown Compatibility**:
   - Multi-column layouts using standard-compliant HTML comment directives (`<!-- columns 2 -->`, `<!-- columns 2 plain -->`, `<!-- column -->`, `<!-- /columns -->`), leaving raw markdown completely clean and natural in GitHub, VS Code, and Obsidian default reader.
   - Heading-based automatic column partitioning: sibling headings within a `<!-- columns -->` region automatically format into columns without needing explicit column breaks.
@@ -35,6 +28,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Column Layout Quick Insertion & Hotkey Commands**:
   - Quick picker command (`Presenter: Insert column layout...`) to choose and insert any multi-column layout or column break from a single hotkey.
   - Direct insertion commands for 2/3/4 columns, `card`/`plain` variants, and `<!-- column -->` breaks—each bindable in **Settings → Hotkeys**, supporting both empty-line cursor placement and selection wrapping.
+- **Theme-Coordinated Table Design**:
+  - Styled table headers with translucent accent color background and prominent accent bottom border.
+  - Coordinated alternating zebra striping, cell borders, and typography using subtle main color opacity.
+  - Rounded table corners and refined soft drop-shadow for a clean card-like feel.
+  - Fully synchronized styling across presentation view and standalone HTML exports.
+
+### Changed
+
+- Updated plugin ID and package identifier to `markdown-presenter`.
 
 ### Removed
 
