@@ -428,19 +428,53 @@ export async function exportPresentationToHtml(
 
 		.presenter-slide-body table {
 			width: 100%;
-			border-collapse: collapse;
+			border-collapse: separate;
+			border-spacing: 0;
 			margin-bottom: 16px;
+			border-radius: 8px;
+			overflow: hidden;
+			border: 1px solid color-mix(in srgb, var(--presenter-main-color) 16%, transparent);
+			box-shadow: 0 2px 8px color-mix(in srgb, var(--presenter-main-color) 4%, transparent);
 		}
 
 		.presenter-slide-body th, .presenter-slide-body td {
-			border: 1px solid rgba(0, 0, 0, 0.15);
-			padding: 10px 14px;
+			padding: 10px 16px;
 			text-align: left;
 		}
 
 		.presenter-slide-body th {
-			background: rgba(0, 0, 0, 0.05);
+			background: color-mix(in srgb, var(--presenter-accent-color) 12%, transparent);
+			color: var(--presenter-main-color);
 			font-weight: 700;
+			border-bottom: 2px solid var(--presenter-accent-color);
+			border-right: 1px solid color-mix(in srgb, var(--presenter-main-color) 12%, transparent);
+		}
+
+		.presenter-slide-body th:last-child {
+			border-right: none;
+		}
+
+		.presenter-slide-body td {
+			border-bottom: 1px solid color-mix(in srgb, var(--presenter-main-color) 10%, transparent);
+			border-right: 1px solid color-mix(in srgb, var(--presenter-main-color) 10%, transparent);
+			color: var(--presenter-main-color);
+		}
+
+		.presenter-slide-body td:last-child {
+			border-right: none;
+		}
+
+		.presenter-slide-body tr:last-child td {
+			border-bottom: none;
+		}
+
+		.presenter-slide-body tbody tr:nth-child(even) {
+			background: color-mix(in srgb, var(--presenter-main-color) 3.5%, transparent);
+		}
+
+		.presenter-slide-body tbody tr:hover {
+			background: color-mix(in srgb, var(--presenter-accent-color) 6%, transparent);
+			transition: background-color 0.15s ease;
 		}
 
 		/* Badge */
