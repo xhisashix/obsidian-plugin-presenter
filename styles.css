@@ -124,12 +124,13 @@
 
 /* 4. Slide Content / Body */
 .presenter-slide-body {
+	--presenter-body-scale: 1;
 	flex: 1;
 	display: flex;
 	flex-direction: column;
 	overflow-y: auto;
 	overflow-x: hidden;
-	line-height: 1.6;
+	line-height: calc(1.6 * var(--presenter-body-scale, 1));
 }
 
 /* Typography Inside Slides */
@@ -141,45 +142,45 @@
 }
 
 .presenter-slide-body h1 {
-	font-size: 48px;
+	font-size: calc(48px * var(--presenter-body-scale, 1));
 	font-weight: 800;
 	line-height: 1.2;
-	margin: 0 0 20px 0;
+	margin: 0 0 calc(20px * var(--presenter-body-scale, 1)) 0;
 	color: var(--presenter-accent-color);
 }
 
 .presenter-slide-body h2 {
-	font-size: 36px;
+	font-size: calc(36px * var(--presenter-body-scale, 1));
 	font-weight: 700;
 	line-height: 1.25;
-	margin: 0 0 24px 0;
-	padding-bottom: 12px;
+	margin: 0 0 calc(24px * var(--presenter-body-scale, 1)) 0;
+	padding-bottom: calc(12px * var(--presenter-body-scale, 1));
 	border-bottom: 4px solid var(--presenter-accent-color);
 }
 
 .presenter-slide-body h3 {
-	font-size: 24px;
+	font-size: calc(24px * var(--presenter-body-scale, 1));
 	font-weight: 600;
-	margin: 18px 0 10px 0;
+	margin: calc(18px * var(--presenter-body-scale, 1)) 0 calc(10px * var(--presenter-body-scale, 1)) 0;
 }
 
 .presenter-slide-body h4 {
-	font-size: 20px;
+	font-size: calc(20px * var(--presenter-body-scale, 1));
 	font-weight: 600;
-	margin: 14px 0 6px 0;
+	margin: calc(14px * var(--presenter-body-scale, 1)) 0 calc(6px * var(--presenter-body-scale, 1)) 0;
 }
 
 .presenter-slide-body p,
 .presenter-slide-body li {
-	font-size: 20px;
-	line-height: 1.6;
-	margin: 8px 0;
+	font-size: calc(20px * var(--presenter-body-scale, 1));
+	line-height: calc(1.6 * var(--presenter-body-scale, 1));
+	margin: calc(8px * var(--presenter-body-scale, 1)) 0;
 }
 
 .presenter-slide-body ul,
 .presenter-slide-body ol {
-	padding-left: 28px;
-	margin: 12px 0;
+	padding-left: calc(28px * var(--presenter-body-scale, 1));
+	margin: calc(12px * var(--presenter-body-scale, 1)) 0;
 }
 
 .presenter-slide-body li::marker {
@@ -193,46 +194,46 @@
 
 .presenter-slide-body blockquote {
 	border-left: 5px solid var(--presenter-accent-color);
-	padding: 10px 20px;
+	padding: calc(10px * var(--presenter-body-scale, 1)) calc(20px * var(--presenter-body-scale, 1));
 	background: rgba(120, 120, 120, 0.06);
 	border-radius: 0 8px 8px 0;
-	margin: 16px 0;
-	font-size: 20px;
+	margin: calc(16px * var(--presenter-body-scale, 1)) 0;
+	font-size: calc(20px * var(--presenter-body-scale, 1));
 	font-style: italic;
 }
 
 .presenter-slide-body table {
 	width: 100%;
 	border-collapse: collapse;
-	font-size: 18px;
-	margin: 16px 0;
+	font-size: calc(18px * var(--presenter-body-scale, 1));
+	margin: calc(16px * var(--presenter-body-scale, 1)) 0;
 }
 
 .presenter-slide-body th {
 	background: rgba(120, 120, 120, 0.08);
 	font-weight: 600;
-	padding: 10px 14px;
+	padding: calc(10px * var(--presenter-body-scale, 1)) calc(14px * var(--presenter-body-scale, 1));
 	border: 1px solid rgba(120, 120, 120, 0.2);
 }
 
 .presenter-slide-body td {
-	padding: 10px 14px;
+	padding: calc(10px * var(--presenter-body-scale, 1)) calc(14px * var(--presenter-body-scale, 1));
 	border: 1px solid rgba(120, 120, 120, 0.15);
 }
 
 .presenter-slide-body img {
 	max-width: 100%;
-	max-height: 380px;
+	max-height: calc(380px * var(--presenter-body-scale, 1));
 	object-fit: contain;
 	border-radius: 8px;
-	margin: 8px 0;
+	margin: calc(8px * var(--presenter-body-scale, 1)) 0;
 }
 
 .presenter-slide-body pre {
 	border-radius: 8px;
-	font-size: 16px;
-	margin: 16px 0;
-	padding: 14px 18px;
+	font-size: calc(16px * var(--presenter-body-scale, 1));
+	margin: calc(16px * var(--presenter-body-scale, 1)) 0;
+	padding: calc(14px * var(--presenter-body-scale, 1)) calc(18px * var(--presenter-body-scale, 1));
 }
 
 /* Cover Slide Specific Layout */
@@ -259,9 +260,9 @@
 /* 5. Multi-Column Grid Layout */
 .presenter-cols {
 	display: grid;
-	gap: 28px;
+	gap: calc(28px * var(--presenter-body-scale, 1));
 	width: 100%;
-	margin: 16px 0;
+	margin: calc(16px * var(--presenter-body-scale, 1)) 0;
 	align-items: stretch;
 }
 
@@ -283,7 +284,7 @@
 	background: rgba(120, 120, 120, 0.04);
 	border: 1px solid rgba(120, 120, 120, 0.12);
 	border-radius: 10px;
-	padding: 22px 26px;
+	padding: calc(22px * var(--presenter-body-scale, 1)) calc(26px * var(--presenter-body-scale, 1));
 	box-sizing: border-box;
 }
 
@@ -756,5 +757,136 @@ h4 .presenter-badge {
 	font-style: italic;
 	font-size: 13px;
 }
+
+/* 10. Column Layout Quick Picker Modal */
+.presenter-column-suggestion {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 2px 0;
+}
+
+.presenter-column-suggestion-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	font-weight: 500;
+}
+
+.presenter-column-suggestion-code {
+	font-size: 12px;
+	padding: 2px 6px;
+	border-radius: 4px;
+	background: var(--background-modifier-hover);
+	color: var(--text-muted);
+}
+
+.presenter-column-suggestion-desc {
+	font-size: 12px;
+	margin: 0;
+}
+
+/* 11. Slide Overflow Badges & Report Modal */
+.presenter-toolbar-overflow-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	background: rgba(239, 68, 68, 0.15);
+	color: #ef4444;
+	border: 1px solid rgba(239, 68, 68, 0.35);
+	font-size: 11px;
+	font-weight: 700;
+	padding: 2px 7px;
+	border-radius: 12px;
+	cursor: pointer;
+	line-height: 1.4;
+	transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.presenter-toolbar-overflow-btn:hover {
+	background: rgba(239, 68, 68, 0.25);
+	color: #dc2626;
+	transform: scale(1.05);
+}
+
+.presenter-toolbar-overflow-btn svg {
+	width: 12px;
+	height: 12px;
+}
+
+.presenter-overflow-report-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin-top: 16px;
+}
+
+.presenter-overflow-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 16px;
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 8px;
+	gap: 16px;
+}
+
+.presenter-overflow-item-info {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	flex: 1;
+}
+
+.presenter-overflow-item-title {
+	font-weight: 600;
+	font-size: 14px;
+}
+
+.presenter-overflow-item-meta {
+	font-size: 12px;
+	color: var(--text-muted);
+}
+
+.presenter-overflow-item-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.presenter-overflow-ratio-badge {
+	color: #ef4444;
+	font-weight: 600;
+	font-size: 12px;
+	background: rgba(239, 68, 68, 0.12);
+	padding: 2px 6px;
+	border-radius: 4px;
+}
+
+.presenter-autofitted-badge {
+	color: #0284c7;
+	font-weight: 600;
+	font-size: 12px;
+	background: rgba(2, 132, 199, 0.12);
+	padding: 2px 6px;
+	border-radius: 4px;
+}
+
+.presenter-measure-container {
+	position: fixed !important;
+	left: -99999px !important;
+	top: -99999px !important;
+	width: 1280px !important;
+	height: 720px !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
+	contain: strict !important;
+	overflow: hidden !important;
+	z-index: -9999 !important;
+}
+
+
 
 
