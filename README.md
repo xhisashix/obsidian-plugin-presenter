@@ -1,343 +1,322 @@
+[English](README.md) | [日本語](README_ja.md)
+
 # Obsidian Presenter
 
-Obsidian上でMarkdownノートから直接美しいスライド資料をプレビュー・プレゼンテーションできるプラグインです。
+A presentation plugin for Obsidian that turns your Markdown notes directly into clean, styled slides with live preview and high-quality export.
 
-AI（LLM）で生成したMarkdownノートの文章構成（`# H1` を表紙、`## H2` を各スライドの区切り）を崩さずにそのまま活かし、直感的なフロントマター配色設定、マルチカラム（2カラム・3カラム）表示、そして高精細なPDFエクスポートを可能にします。
-
----
-
-## 主な特徴 (Features)
-
-- **リアルタイムプレビュー (Split Pane Preview)**:
-  - エディタの隣にスライドプレビューを表示し、執筆しながらレイアウトやデザインを即時確認。
-  - カーソル位置に自動追従して該当スライドを表示（ピン留め固定も可能）。
-  - 入力中は250msのデバウンスで滑らかなタイピング体験を維持。
-- **自然な文章構造によるスライド化**:
-  - `# H1`: プレゼンテーション全体の「表紙スライド」
-  - `## H2`: 各スライドの「タイトル（改スライド）」
-  - `### H3` / `#### H4`: スライド内の小見出し・セクション
-  - （`---` による明示的なスライド分割もサポート）
-- **柔軟なデザイン・カラー設定 (Settings & Frontmatter)**:
-  - プラグイン設定画面（Settingsタブ）で基本配色やヘッダーをあらかじめ設定可能。
-  - フロントマターなし（ゼロ記述）ですぐにスライド化でき、ノートごとに上書きしたい項目のみ記述できます。
-- **マルチカラム（グリッドレイアウト）**:
-  - 標準Markdown互換のHTMLコメント記法（`<!-- columns 2 -->` や `<!-- columns 3 -->`）で、横並びのレイアウトを素早く構築。
-  - Obsidian以外のMarkdownビューア（GitHubやVS Code等）ではコメントが非表示になり、普通の文書として違和感なく読めます。
-  - 背景色・枠線ありの「カードスタイル」と、背景なしの「プレーンスタイル（`<!-- columns 2 plain -->`）」を自在に選択可能。
-- **ラベル／バッジ自動装飾**:
-  - `[重要]` や `[STEP 1]` のように記述するだけで、アクセントカラーが適用されたバッジとして自動装飾。
-- **ObsidianネイティブのMarkdown完全対応**:
-  - 表（テーブル）、コードブロック、画像、数式、Callout、リストなどをそのまま美しく描画。
-- **ヘッダー・フッター・ロゴ表示**:
-  - スライド上部にタイトルやロゴ、下部に著作権やページ番号（`X / Y`）を表示。
-- **発表者ノート & カンペ表示 (Speaker Notes)**:
-  - Obsidian標準Callout `> [!note]` を記述すると、スライド大画面からは自動で非表示になり、発表者カンペ（`N` キーまたはツールバーでトグル）として手元確認可能。
-- **配布用ハンドアウト (SlideDoc) 印刷**:
-  - 印刷ボタンから「Print handout with notes」を選択すると、A4用紙1枚につき「スライド ＋ 詳細解説」が綺麗にレイアウトされた非エンジニア向けの配布資料を出力。
-- **単一HTMLエクスポート (ポータブル配布ファイル)**:
-  - コマンド「Export presentation as standalone HTML」で、Obsidian不要・ブラウザだけで動く単一の自己完結HTMLを出力。
-  - 受取手はブラウザ上で **[ 🖥 スライド表示 ]** と **[ 📄 配布資料（解説付き）表示 ]** をワンクリックで切り替え可能。
-- **PDFエクスポート (印刷機能)**:
-  - `Cmd + P` またはツールバーの印刷ボタンから、高品質なスライドPDF / ハンドアウトPDFを出力可能。
-- **スライドはみ出し検知 & 自動フィット (Overflow Detection & Auto-fit)**:
-  - スライドカードの枠線からはみ出してしまう長文をリアルタイムに検知し、ツールバーに警告バッジ（`⚠ N`）を表示。
-  - プラグイン設定（**Layout & grid → Auto-fit overflowing slides**）またはフロントマター（`fit: auto`）を有効にすると、フォントサイズ・行間・余白をカード枠内に収まるよう自動縮小（下限70%まで視認性を担保）。
-  - 70%縮小でも収まらない場合は、スライド内の2つ目のH3見出し（`###`）の前でワンクリック分割（Undo可能）できるインスペクションモーダルを提供。
-- **レスポンシブ拡大縮小**:
-  - 16:9 または 4:3 の比率を保ちながら、ウィンドウや画面サイズに合わせて自動スケーリング。
+Keep your natural note-taking workflow and AI-generated Markdown structure (`# H1` as title slide, `## H2` as slide delimiter) intact. Featuring intuitive frontmatter theming, multi-column grid layouts, speaker notes, standalone portable HTML export, and slide overflow auto-fit.
 
 ---
 
-## インストール方法 (Installation)
+## Features
 
-### 手動インストール (Manual Installation)
+- **Live Split-Pane Preview**:
+  - View rendered slides right beside your editor in real time as you write.
+  - Automatically syncs and highlights the slide matching your editor cursor position (with a pin/unpin toggle).
+  - Smooth typing experience powered by a 250ms debounced renderer.
+- **Natural Markdown Structure**:
+  - `# H1`: Presentation title slide.
+  - `## H2`: New slide title and delimiter.
+  - `### H3` / `#### H4`: Subsections and column headers within slides.
+  - (Explicit slide delimiters using horizontal rules `---` are also supported).
+- **Flexible Styling & Color Themes (Settings & Frontmatter)**:
+  - Configure default color palettes, headers, footers, and logos in the plugin settings.
+  - Zero-configuration required: notes convert to slides instantly, and any property can be overridden per note via frontmatter.
+- **Multi-Column Grid Layouts**:
+  - Uses standard Markdown-compatible HTML comments (`<!-- columns 2 -->`, `<!-- columns 3 -->`) for cross-platform compatibility.
+  - Comments are invisible in external Markdown viewers (such as GitHub or VS Code), keeping your raw text clean and legible.
+  - Choose between **Card style** (rounded border, background highlight) and **Plain style** (`<!-- columns 2 plain -->`, seamless & transparent).
+- **Automatic Labels & Badges**:
+  - Writing `[IMPORTANT]`, `[NOTE]`, or `[STEP 1]` automatically formats text into a visually distinct accent badge.
+- **Full Obsidian Markdown Support**:
+  - Clean rendering of tables, code blocks, images, LaTeX math formulas, Callouts, checklists, and lists.
+- **Header, Footer & Logo Display**:
+  - Customizable header titles, logos, copyright notices, and page numbers (`X / Y`).
+- **Speaker Notes**:
+  - Standard Obsidian callouts (`> [!note]`) are automatically excluded from the main projection slides and kept as speaker notes.
+  - Toggle speaker notes on/off during a presentation using the toolbar or the `N` key.
+- **Handout (SlideDoc) Printing**:
+  - Select "Print handout with notes" to produce clean, executive-ready A4 handouts featuring the slide view alongside detailed explanations.
+- **Standalone Portable HTML Export**:
+  - Export self-contained, single-file HTML presentations (`<note-name>-presentation.html`) via the command palette.
+  - Recipients need only a web browser (no Obsidian or internet connection required) and can switch between **[ 🖥 Slide View ]** and **[ 📄 Handout Document View ]** with a single click.
+- **High-Quality PDF Export**:
+  - Press `Cmd + P` (Mac) or `Ctrl + P` (Windows) inside presentation mode to export high-resolution slide or handout PDFs.
+- **Slide Overflow Detection & Auto-fit**:
+  - Detects overflowing content in real time and displays an alert badge (`⚠ N`) on the toolbar.
+  - Auto-fit compresses font size, line height, and padding down to 70% to keep content inside the card frame without losing legibility.
+  - For long slides exceeding 70% reduction, the inspector modal provides a one-click **Split slide** button to cleanly divide the slide at heading boundaries (undoable via `Cmd + Z`).
+- **Responsive Aspect Ratio**:
+  - Automatically scales to fit any screen resolution while maintaining standard 16:9 or 4:3 aspect ratios.
 
-1. 最新のリリースファイル（`main.js`, `manifest.json`, `styles.css`）をダウンロードします。
-2. Obsidian の Vault 内に以下のフォルダを作成します：
+---
 
+## Installation
+
+### From Obsidian Community Plugins
+*(Available once approved)*
+1. Open **Settings → Community plugins** in Obsidian.
+2. Turn off **Restricted mode**.
+3. Click **Browse** and search for **Presenter**.
+4. Click **Install**, then **Enable**.
+
+### Manual Installation
+1. Download the latest release assets (`main.js`, `manifest.json`, `styles.css`) from GitHub Releases.
+2. Create the plugin folder inside your vault:
    ```bash
    <Vault>/.obsidian/plugins/markdown-presenter/
    ```
-
-3. 作成したフォルダに `main.js`, `manifest.json`, `styles.css` を配置します。
-4. Obsidian の **設定 → コミュニティプラグイン** を開き、プラグイン一覧を再読み込みして「Presenter」を有効化します。
+3. Copy `main.js`, `manifest.json`, and `styles.css` into that folder.
+4. In Obsidian, go to **Settings → Community plugins**, click **Reload plugins**, and enable **Presenter**.
 
 ---
 
-## 使い方 (Usage)
+## Usage
 
-### 1. スライドノートを書く
+### 1. Write Slide Notes
 
-フロントマターは省略可能（ゼロ設定）です。ノート固有でヘッダーや配色を変えたい場合のみ、必要な項目を数行記述します。
+Frontmatter configuration is completely optional. Add frontmatter only when you want to customize settings for a specific presentation.
 
 ```markdown
 ---
-# 必要な項目のみ上書き指定可能（未指定時は設定画面のデフォルトが適用されます）
-header: "2026年度 提案資料"
+# Optional overrides (defaults from Settings tab are used if omitted)
+header: "Q4 Strategy Pitch"
 accentColor: "#38bdf8"
 ---
 
-# 新規事業提案書
-AIを活用したナレッジワークの革新
+# New Business Proposal
+Innovating Knowledge Work with AI
 
-発表者: 山田 太郎
-日付: 2026-09-27
+Speaker: Jane Doe
+Date: 2026-10-15
 
-## 背景と課題
+## Background & Challenges
 
-AIツールの普及により情報量は増加していますが、社内共有の形式化に時間がかかっています。
+While generative AI tools increase information bandwidth, sharing structured knowledge still takes too long.
 
-- スライド作成のオーバーヘッド
-- デザイン調整による時間の浪費
-- 情報の鮮度低下
+- High presentation deck creation overhead
+- Time wasted adjusting formatting and slide layouts
+- Knowledge quickly becoming outdated
 
-## 提案するソリューション
+## Proposed Solution
 
 <!-- columns 2 -->
-### Markdownドリブン
-- 普段のメモがそのままスライド化
-- AI生成のアウトラインを直接活用
+### Markdown-Driven
+- Regular notes transform directly into slides
+- AI-generated outlines ready for presentation
 
-### 高速プレビュー & PDF
-- ワンクリックでプレゼン表示
-- 印刷から商談用PDFを一発出力
+### Rapid Preview & PDF
+- Instant real-time preview
+- One-click PDF generation for executive review
 <!-- /columns -->
 
-## まとめ
+## Summary
 
-Markdownによるスライド作成で、思考からプレゼンまでのリードタイムをゼロにします。
+Bridge the gap between thought and presentation with zero friction.
 ```
 
-### 2. リアルタイムプレビューを表示する
+### 2. Open Live Slide Preview
 
-編集しながら横でスライドプレビューを確認できます。
-
-- **エディタタブヘッダー**: ノート右上の「TV」アイコンをクリック
-- **コマンドパレット**: `Cmd + P` (Mac) / `Ctrl + P` (Win) を押し、「`Presenter: Open slide preview`」または「`Presenter: Toggle slide preview`」を実行
-- **リボンアイコン**: 左サイドバーの「TV」アイコンをクリック
+Keep a live slide preview open side-by-side as you write:
+- **Editor Tab Header**: Click the **TV** icon in the top-right header of your note.
+- **Command Palette**: Run `Presenter: Open slide preview` or `Presenter: Toggle slide preview`.
+- **Ribbon Icon**: Click the **TV** icon in the left ribbon bar.
 
 > [!TIP]
-> - **カーソル追従**: エディタでカーソルを置いている行のスライドが自動表示されます。プレビュー上部の「ピン留めボタン（`locate`）」を押すと追従を一時停止し、現在表示中のスライドを固定できます。
-> - **全画面移行**: プレビュー上部の「プレゼンテーション開始ボタン」を押すと、プレビュー中のスライド位置から即座に全画面プレゼンテーションへ移行できます。
+> - **Cursor Sync**: The preview automatically scrolls to the slide where your cursor is positioned. Click the pin icon in the preview header to pause auto-sync and inspect a specific slide.
+> - **Launch Fullscreen**: Click the "Start presentation" button in the preview header to immediately switch to full-screen mode at the current slide.
 
-### 3. プレゼンテーションを開始する (全画面)
+### 3. Start Presentation (Fullscreen)
 
-- **リボンアイコン**: 左サイドバーのプロジェクター画面アイコンをクリック
-- **コマンドパレット**: `Cmd + P` (Mac) / `Ctrl + P` (Win) を押し、「`Presenter: Start presentation`」を実行
-
----
-
-## ショートカットキー一覧 (Keyboard Shortcuts)
-
-| 操作                 | キー                                         |
-| :------------------- | :------------------------------------------- |
-| **次のスライド**     | `→` / `↓` / `Space` / `PageDown` / `L` / `J` |
-| **前のスライド**     | `←` / `↑` / `PageUp` / `H` / `K`             |
-| **最初のスライドへ** | `Home`                                       |
-| **最後のスライドへ** | `End`                                        |
-| **全画面切り替え**   | `F`                                          |
-| **ノート表示切替**   | `N`                                          |
-| **印刷 / PDF出力**   | `P`                                          |
-| **終了**             | `Escape`                                     |
+- **Ribbon Icon**: Click the projector screen icon in the left ribbon.
+- **Command Palette**: Run `Presenter: Start presentation`.
 
 ---
 
-## カラム（グリッドレイアウト）の書き方
+## Keyboard Shortcuts
 
-### 1. 基本記法（HTMLコメントディレクティブ）
+| Action | Keys |
+| :--- | :--- |
+| **Next Slide** | `→` / `↓` / `Space` / `PageDown` / `L` / `J` |
+| **Previous Slide** | `←` / `↑` / `PageUp` / `H` / `K` |
+| **First Slide** | `Home` |
+| **Last Slide** | `End` |
+| **Toggle Fullscreen** | `F` |
+| **Toggle Speaker Notes** | `N` |
+| **Print / PDF Export** | `P` |
+| **Exit Presentation** | `Escape` |
 
-Obsidian Presenter では、標準Markdownの仕様を崩さないよう **HTMLコメント（`<!-- columns N -->`）** を使ってマルチカラムを指定します。
-Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメントが非表示になり、見出しが縦に並ぶ通常のドキュメントとしてそのまま読めます。
+---
 
-#### 2カラムの記述例
+## Multi-Column Grid Layouts
+
+### 1. Basic Syntax (HTML Comment Directives)
+
+Presenter uses standard HTML comments (`<!-- columns N -->`) to specify multi-column layouts so your notes stay 100% compliant with CommonMark. In other editors (GitHub, VS Code), these comments remain invisible and your headings render as standard sections.
+
+#### 2-Column Example
 ```markdown
 <!-- columns 2 -->
 
-### 左カラム
-左カラムの内容（リスト、画像、テキストなど）
+### Left Column
+Content for the left side (lists, images, text)
 
-### 右カラム
-右カラムの内容
+### Right Column
+Content for the right side
 
 <!-- /columns -->
 ```
 
-見出し（H3など）を並べるだけで自動的に各カラムに分割されます。
-見出しを伴わない任意の文章を区切りたい場合は、`<!-- column -->` を挟むことも可能です：
+Headings (such as H3) automatically define column boundaries. If you wish to split paragraphs without headings, insert `<!-- column -->`:
 
 ```markdown
 <!-- columns 2 -->
-左カラムの任意のテキスト
+Content for left column
 <!-- column -->
-右カラムの任意のテキスト
+Content for right column
 <!-- /columns -->
 ```
 
-3カラムの場合は `<!-- columns 3 -->` を使用します。
+Use `<!-- columns 3 -->` or `<!-- columns 4 -->` for 3 or 4 columns.
 
-### 2. カラムの背景色スタイル（Card vs Plain）
+### 2. Column Styles: Card vs Plain
 
-カラムには、枠で囲む**カードスタイル（既定）**と、背景色・枠線のない**プレーンスタイル**の2種類があります。
-
-| スタイル | 表示イメージ | 適用方法 |
+| Style | Appearance | Usage |
 | :--- | :--- | :--- |
-| **Card（既定）** | 薄い背景色、角丸ボーダー、内側余白がついたカード風レイアウト | `<!-- columns 2 -->` または `<!-- columns 2 card -->` |
-| **Plain** | 背景色なし（透明）、ボーダーなし、内側余白 `0` のシンプルな段組みレイアウト | `<!-- columns 2 plain -->` または `<!-- columns 3 plain -->` |
+| **Card (Default)** | Subtle background tint, rounded border, and comfortable padding | `<!-- columns 2 -->` or `<!-- columns 2 card -->` |
+| **Plain** | Transparent background, borderless, zero internal padding | `<!-- columns 2 plain -->` or `<!-- columns 3 plain -->` |
 
-#### ブロック個別指定の例（プレーンスタイル）
+#### Example: Plain Style
 ```markdown
 <!-- columns 2 plain -->
 
-### 自由度の高いテキスト配置
-スライド背景と同化し、余白のみで美しく並列配置されます。
+### Minimalist Layout
+Blends directly into the slide background without borders.
 
-### 右カラム
-余分な枠線や背景色を排したい時に最適です。
+### Clean Data Comparison
+Ideal for clean side-by-side lists and image comparisons.
 
 <!-- /columns -->
 ```
 
-#### スライド全体またはVault全体での設定
-- **特定ノート全体でプレーンを標準化**: フロントマターに `columnStyle: plain` を指定
-- **Vault全体でプレーンを標準化**: Obsidianの **設定 → Presenter → Default column style** で `Plain (transparent & borderless)` を選択
+#### Setting Global or Note Defaults
+- **Per-note default**: Add `columnStyle: plain` to the frontmatter.
+- **Global vault default**: Go to **Settings → Presenter → Default column style** and select `Plain (transparent & borderless)`.
 
-### 3. ホットキー・コマンドによるクイック挿入
+### 3. Quick Insertion Commands
 
-カラムの開始・終了コメントを手入力する手間を省くため、コマンドパレット（`Cmd + P` / `Ctrl + P`）および **設定 → ホットキー** に割り当て可能な挿入コマンドを用意しています。
+Insert column directives quickly using the Command Palette (`Cmd + P` / `Ctrl + P`) or by binding hotkeys:
 
-| コマンド名 | 挙動 |
-| :--- | :--- |
-| `Presenter: Insert column layout...` | カラム数・スタイル（2/3/4カラム、card/plain、区切り）を一覧から選べるクイックピッカーを表示 |
-| `Presenter: Insert 2-column layout` | `<!-- columns 2 -->` ... `<!-- /columns -->` を即座に挿入 |
-| `Presenter: Insert 3-column layout` | `<!-- columns 3 -->` ... `<!-- /columns -->` を即座に挿入 |
-| `Presenter: Insert 4-column layout` | `<!-- columns 4 -->` ... `<!-- /columns -->` を即座に挿入 |
-| `Presenter: Insert 2-column card layout` | `<!-- columns 2 card -->` ... `<!-- /columns -->` を挿入 |
-| `Presenter: Insert 2-column plain layout` | `<!-- columns 2 plain -->` ... `<!-- /columns -->` を挿入 |
-| `Presenter: Insert 3-column card layout` | `<!-- columns 3 card -->` ... `<!-- /columns -->` を挿入 |
-| `Presenter: Insert 3-column plain layout` | `<!-- columns 3 plain -->` ... `<!-- /columns -->` を挿入 |
-| `Presenter: Insert column break` | 明示的な区切り `<!-- column -->` を挿入 |
+- `Presenter: Insert column layout...` (Interactive modal picker)
+- `Presenter: Insert 2-column layout`
+- `Presenter: Insert 3-column layout`
+- `Presenter: Insert 4-column layout`
+- `Presenter: Insert 2-column plain layout`
+- `Presenter: Insert column break` (`<!-- column -->`)
 
 > [!TIP]
-> - **未選択時**: 開始・終了コメントを挿入し、真ん中の空行に自動でカーソルが移動します。
-> - **テキスト選択時**: 選択中の見出しやリストの前後を自動的に `<!-- columns N -->` と `<!-- /columns -->` で囲みます。
+> If text is currently selected, running an insert command automatically wraps the selected block in `<!-- columns N -->` and `<!-- /columns -->`.
 
 ---
 
-## ラベル／バッジ記法 (Labels & Badges)
+## Labels & Badges
 
-`[xxx] テキスト` の形式で記述すると、アクセントカラーが反映された視覚的なバッジ（ラベル）として自動的に装飾されます。
+Writing `[label] text` automatically styles the bracketed label with an accent color badge:
 
 ```markdown
-- [重要] 締切は来週水曜日までとなります
-- [課題] プレゼン資料作成の効率化
-- [STEP 1] 要件定義と構成の策定
+- [IMPORTANT] Deadline is next Wednesday
+- [CHALLENGE] Reducing slide creation time
+- [STEP 1] Requirements definition and outline
 ```
 
-見出しや段落、リスト項目内など、任意の場所で使用できます。
-※ 通常のMarkdownリンク `[テキスト](URL)` や内部リンク `[[ノート]]`、タスクチェックボックス `- [ ]` は通常通り処理され、誤判定されることはありません。
+Regular Markdown links `[Title](url)`, internal wikilinks `[[Note]]`, and task checkboxes `- [ ]` remain unaffected.
 
 ---
 
-## 発表者ノート & 資料配布（非エンジニア向け連携）
+## Speaker Notes & Distribution
 
-標準Markdownを崩さずに、「プレゼン投影して話す」と「非エンジニア向けに詳細資料を配る」を両立できます。
+Balance live stage presentations with easy document distribution for non-technical stakeholders:
 
-### 1. 発表者ノート・補足解説の書き方
-
-Obsidian標準のCallout記法（`> [!note]`）を書くだけです。
+### 1. Writing Speaker Notes
+Use standard Obsidian callout syntax `> [!note]`:
 
 ```markdown
-## 提案するソリューション
+## Core Architecture
 
-- **Markdownドリブン**: 普段のメモがそのまま資料化
-- **高速プレビュー**: 執筆しながらリアルタイム確認
-- **ワンクリック配布**: 非エンジニアにも見やすく共有
+- Microservices backend
+- Event-driven message queue
 
-> [!note] 補足・背景解説
-> ここに書いた文章は、発表本番の大画面スライドからは自動で隠れ、発表者の手元カンペになります。
-> 一方で、後述のHTMLエクスポートやハンドアウト印刷時には、スライド直下に「詳細解説」として自動展開されます。
+> [!note] Speaker Note & Explanation
+> This text is automatically hidden on the big presentation screen and visible only in speaker notes (`N` key).
+> During HTML export or handout printing, it expands beneath the slide as detailed explanatory reading material.
 ```
 
-- **プレゼン投影中**:
-  - 大画面上はスッキリした要点スライドのみが表示されます。
-  - ツールバーの「📝 ノート」ボタン、またはキーボードの `N` キーで、画面下部に手元カンペ（Speaker notes）をいつでも展開できます。
+### 2. Standalone HTML Export
+Export your presentation as a single self-contained HTML file:
+- Run `Presenter: Export presentation as standalone HTML` from the Command Palette.
+- The exported `<note-name>-presentation.html` contains all scripts and styles inline—no external servers or dependencies required.
+- Recipients simply double-click to view, with a toggle in the top-right corner to switch between **[ 🖥 Slide Mode ]** and **[ 📄 Handout Document Mode ]**.
 
-### 2. 非エンジニア向け単一HTMLエクスポート
-
-Obsidianを使っていない同僚やクライアントへ資料を渡す場合、単一の自己完結HTMLとして出力できます。
-
-- コマンドパレットから「`Presenter: Export presentation as standalone HTML`」を実行します。
-- ノートと同じ場所に `<ノート名>-presentation.html` が出力され、自動でダウンロードされます。
-- **相手はブラウザでダブルクリックするだけ**で開くことができ、右上の切り替えスイッチで：
-  - **[ 🖥 スライド表示 ]**: 矢印キーでめくれる全画面プレゼン
-  - **[ 📄 配布資料（詳細解説）表示 ]**: スライドと詳細解説が縦スクロールで通読できるドキュメント
-  を相手の好みに合わせて自由に切り替えて読めます（外部サーバー不要・完全オフライン対応）。
-
-### 3. ハンドアウト（SlideDoc）印刷・PDF出力
-
-- プレゼン画面の「🖨 印刷」ボタンから「**Print handout with notes**」を選択します。
-- A4用紙1ページにつき「スライド（要点） ＋ その詳細解説」がセットになった、報告書形式の高品質PDFを出力できます。
+### 3. Handout (SlideDoc) Print & PDF
+- Press `P` or click the Print icon in presentation mode and choose **Print handout with notes**.
+- Generates an executive A4 PDF report with slide cards on top and detailed speaker notes below.
 
 ---
 
-## スライドはみ出し検知と自動フィット (Overflow & Auto-fit)
+## Slide Overflow Detection & Auto-fit
 
-スライドに文章やリストを書きすぎてカード枠からはみ出してしまった場合、本番投影時に文字が切れたりスクロールバーが出たりするトラブルを防ぐ機能です。
+Prevents content overflow and cut-off text during presentations.
 
-### 1. はみ出しの自動検知と警告バッジ
-- プレビュー画面やプレゼン画面のツールバーに、はみ出しが発生しているスライド件数（`⚠ N`）がリアルタイムに表示されます。
-- スライドジャンプ画面（スライドアラート一覧）でも、該当スライドの横に `⚠` バッジが表示され、問題のあるスライドへ一発でジャンプできます。
-- 警告ボタンをクリックすると、「**Slide overflow inspection**」モーダルが開き、各スライドのはみ出し率（例: `+20% overflow`）や対処アクションを確認できます。
+### 1. Alert Badges & Inspector Modal
+- A badge (`⚠ N`) appears on the toolbar whenever slides exceed their visible card bounds.
+- Clicking the badge opens the **Slide overflow inspection** modal showing exact overflow percentages (`+20% overflow`) and quick action buttons.
 
-### 2. 自動フィット (Auto-fit)
-文字量に応じて、CSSのフォントサイズや行間、余白を自動でスケールダウン（下限70%まで）してカード内に収めます。
-- **プラグイン全体で有効化**: **設定 → Layout & grid → Auto-fit overflowing slides** をONにします。
-- **ノート個別で指定**: フロントマターに `fit: auto`（または `fit: none`）を記述します。
+### 2. Auto-fit
+Automatically scales down CSS font size, line height, and padding (clamped down to 70% to ensure readability).
+- **Vault-wide setting**: Enable **Settings → Layout & grid → Auto-fit overflowing slides**.
+- **Per-note setting**: Add `fit: auto` to frontmatter.
 
 ```markdown
 ---
-fit: auto # このノート内のあふれたスライドを自動で最大70%まで縮小フィット
+fit: auto
 ---
 ```
 
-> [!NOTE]
-> スライド縮小の下限は **70%（0.70）** にクランプされています。文字が小さくなりすぎてプレゼンで読めなくなることを防止します。
-
-### 3. スライドのワンクリック分割 (Split slide)
-文章量が多すぎて70%縮小でも収まらない場合、スライド内に複数のH3見出し（`###`）が存在すれば、インスペクションモーダルの「**Split slide**」ボタンから、2つ目のH3見出し直前に `---` を自動挿入して2枚のスライドへ綺麗に分割できます（エディタの `Cmd + Z` でいつでも元に戻せます）。
-
-コマンドパレットから「`Presenter: Check slide overflow`」を実行することでも、いつでも検査モーダルを呼び出せます。
+### 3. One-Click Slide Splitting
+For large slides that still overflow at 70% reduction, click **Split slide** inside the inspection modal to automatically insert a `---` break before the second `###` heading.
 
 ---
 
-## 設計書ドキュメント (Design Documents)
+## Design Documents
 
-本プラグインの内部構造や詳細仕様については、以下の設計書をご参照ください：
-
-- [システムアーキテクチャ設計書 (architecture.md)](docs/design/architecture.md)
-- [機能仕様書 (specification.md)](docs/design/specification.md)
-- [UI/UX・スタイリング設計書 (ui-ux.md)](docs/design/ui-ux.md)
+For architecture details, specifications, and UI/UX design:
+- [System Architecture (architecture.md)](docs/design/architecture.md)
+- [Functional Specification (specification.md)](docs/design/specification.md)
+- [UI/UX & Styling Specification (ui-ux.md)](docs/design/ui-ux.md)
 
 ---
 
-## 開発・ビルド (Development)
+## Development
 
 ```bash
-# 依存関係のインストール
+# Install dependencies
 npm install
 
-# 開発用ビルド (watch mode)
+# Watch mode
 npm run dev
 
-# 本番ビルド (型チェック & バンドル)
+# Production build (type-check & bundle)
 npm run build
 
-# リンター実行
+# Run linter
 npm run lint
+
+# Run test suite
+npm test
 ```
 
 ---
 
-## ライセンス (License)
+## License
 
-MIT License
+[MIT License](LICENSE) © 2026 xhisashix
