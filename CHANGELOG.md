@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-10-18
+
+### Added
+
+- **Declarative Settings Search API (`getSettingDefinitions`)**:
+  - Implemented `getSettingDefinitions()` in `PresenterSettingTab` following the Obsidian declarative settings API.
+  - Enables full searchability of all plugin configuration options (Theme, Layout, Badges, Slide Preview, Notes, Standalone HTML Export) within Obsidian's global settings search bar (Obsidian 1.13.0+).
+- **English Documentation & Dedicated Japanese Guide**:
+  - `README.md` is now fully provided in English, aligning with Obsidian Community Plugin submission standards.
+  - Complete Japanese documentation moved to `README_ja.md` with cross-references for Japanese-speaking users.
+
+---
+
 ## [1.2.0] - 2026-10-15
 
 ### Added
