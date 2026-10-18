@@ -9,6 +9,140 @@ export class PresenterSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
+	getSettingDefinitions() {
+		return [
+			{
+				type: 'group',
+				heading: 'Slide text & branding',
+				items: [
+					{
+						name: 'Default header',
+						desc: 'Header text displayed at the top of slides (override with frontmatter `header`).',
+						control: {
+							type: 'text',
+							key: 'defaultHeader',
+							placeholder: 'Company or presentation title',
+						},
+					},
+					{
+						name: 'Default footer',
+						desc: 'Footer text displayed at the bottom of slides (override with frontmatter `footer`).',
+						control: {
+							type: 'text',
+							key: 'defaultFooter',
+							placeholder: 'Confidential - all rights reserved',
+						},
+					},
+					{
+						name: 'Default logo',
+						desc: 'Path to logo image within vault or URL (override with frontmatter `logo`).',
+						control: {
+							type: 'text',
+							key: 'defaultLogo',
+							placeholder: 'Attachments/logo.png',
+						},
+					},
+				],
+			},
+			{
+				type: 'group',
+				heading: 'Color palette',
+				items: [
+					{
+						name: 'Default base color (background)',
+						desc: 'Default background color for slides (override with frontmatter `baseColor`).',
+						control: {
+							type: 'color',
+							key: 'defaultBaseColor',
+						},
+					},
+					{
+						name: 'Default main color (text)',
+						desc: 'Default text and heading color for slides (override with frontmatter `mainColor`).',
+						control: {
+							type: 'color',
+							key: 'defaultMainColor',
+						},
+					},
+					{
+						name: 'Default accent color',
+						desc: 'Color for highlights, list markers, borders, and emphasis (override with frontmatter `accentColor`).',
+						control: {
+							type: 'color',
+							key: 'defaultAccentColor',
+						},
+					},
+				],
+			},
+			{
+				type: 'group',
+				heading: 'Layout & grid',
+				items: [
+					{
+						name: 'Aspect ratio',
+						desc: 'Slide aspect ratio: 16:9 widescreen or 4:3 standard (override with frontmatter `aspectRatio`).',
+						control: {
+							type: 'dropdown',
+							key: 'aspectRatio',
+							options: {
+								'16:9': '16:9 (widescreen)',
+								'4:3': '4:3 (standard)',
+							},
+						},
+					},
+					{
+						name: 'Default column style',
+						desc: 'Default style for multi-column layouts (override with frontmatter `columnStyle` or block keyword).',
+						control: {
+							type: 'dropdown',
+							key: 'defaultColumnStyle',
+							options: {
+								card: 'Card (background & border)',
+								plain: 'Plain (transparent & borderless)',
+							},
+						},
+					},
+					{
+						name: 'Auto-fit overflowing slides',
+						desc: 'Automatically scale down typography and margins (down to 70%) for slides exceeding the card boundary (override with frontmatter `fit: auto`).',
+						control: {
+							type: 'toggle',
+							key: 'autoFitOverflow',
+						},
+					},
+				],
+			},
+			{
+				type: 'group',
+				heading: 'Speaker notes & handouts',
+				items: [
+					{
+						name: 'Show notes by default',
+						desc: 'Display presenter notes panel (`> [!note]`) by default during presentations.',
+						control: {
+							type: 'toggle',
+							key: 'showNotes',
+						},
+					},
+				],
+			},
+			{
+				type: 'group',
+				heading: 'Badges & labels',
+				items: [
+					{
+						name: 'Enable label badges',
+						desc: 'Render `[label] text` syntax as styled accent badges in slides. Disable to keep raw square brackets.',
+						control: {
+							type: 'toggle',
+							key: 'enableBadges',
+						},
+					},
+				],
+			},
+		];
+	}
+
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
