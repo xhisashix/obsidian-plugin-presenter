@@ -14,6 +14,7 @@ import {
 	calculateOverflow,
 	isAutoFitEnabled,
 } from './overflow';
+import { getSlideDimensions } from './stageHelpers';
 
 export interface RenderSlideOptions {
 	app: App;
@@ -77,9 +78,7 @@ export async function renderSlide(
 	const logoUrl = resolveLogoUrl(app, logoInput, sourcePath);
 
 	const aspectRatio = config.aspectRatio || settings.aspectRatio || '16:9';
-	const targetRatio = aspectRatio === '4:3' ? 4 / 3 : 16 / 9;
-	const baseWidth = 1280;
-	const baseHeight = baseWidth / targetRatio;
+	const { width: baseWidth, height: baseHeight } = getSlideDimensions(aspectRatio);
 
 	const slideCardEl = targetEl.createDiv({
 		cls: `presenter-slide-card presenter-slide-${slide.type}`,
