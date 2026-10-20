@@ -317,7 +317,7 @@ export async function exportPresentationToHtml(
 			color: var(--presenter-main-color);
 			box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
 			border-radius: 12px;
-			padding: 44px 64px;
+			padding: 28px 48px;
 			display: flex;
 			flex-direction: column;
 			overflow: hidden;
@@ -337,13 +337,19 @@ export async function exportPresentationToHtml(
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			min-height: 36px;
-			margin-bottom: 24px;
+			min-height: 22px;
+			margin-bottom: 10px;
+			border-bottom: 1px solid rgba(120, 120, 120, 0.15);
+			padding-bottom: 4px;
 			flex-shrink: 0;
 		}
 
+		.presenter-slide-header:empty {
+			display: none;
+		}
+
 		.presenter-header-title {
-			font-size: 15px;
+			font-size: 13px;
 			font-weight: 600;
 			letter-spacing: 0.05em;
 			text-transform: uppercase;
@@ -352,8 +358,8 @@ export async function exportPresentationToHtml(
 		}
 
 		.presenter-logo-image {
-			max-height: 36px;
-			max-width: 150px;
+			max-height: 20px;
+			max-width: 120px;
 			object-fit: contain;
 		}
 
@@ -381,12 +387,12 @@ export async function exportPresentationToHtml(
 		}
 
 		.presenter-slide-content h2 {
-			font-size: 34px;
+			font-size: 32px;
 			font-weight: 700;
-			margin-bottom: 24px;
+			margin-bottom: 14px;
 			color: var(--presenter-main-color);
-			border-bottom: 2px solid var(--presenter-accent-color);
-			padding-bottom: 8px;
+			border-bottom: 3px solid var(--presenter-accent-color);
+			padding-bottom: 6px;
 		}
 
 		.presenter-slide-content h3 {
@@ -397,16 +403,40 @@ export async function exportPresentationToHtml(
 		}
 
 		.presenter-slide-body p {
-			margin-bottom: 14px;
+			margin-bottom: 6px;
+			margin-top: 4px;
 		}
 
 		.presenter-slide-body ul, .presenter-slide-body ol {
-			margin-left: 28px;
-			margin-bottom: 16px;
+			padding-left: 24px;
+			padding-inline-start: 24px;
+			margin-left: 0;
+			margin-top: 3px;
+			margin-bottom: 5px;
 		}
 
 		.presenter-slide-body li {
-			margin-bottom: 10px;
+			margin-bottom: 2px;
+			line-height: 1.45;
+		}
+
+		.presenter-slide-body li > ul, .presenter-slide-body li > ol {
+			padding-left: 16px;
+			padding-inline-start: 16px;
+			margin-left: 0;
+			margin-top: 0;
+			margin-bottom: 0;
+		}
+
+		.presenter-slide-body li > ul > li, .presenter-slide-body li > ol > li {
+			margin-bottom: 1px;
+		}
+
+		.presenter-col h3 + ul,
+		.presenter-col h3 + ol,
+		.presenter-slide-body h3 + ul,
+		.presenter-slide-body h3 + ol {
+			margin-top: 2px;
 		}
 
 		.presenter-slide-body pre {
@@ -426,6 +456,146 @@ export async function exportPresentationToHtml(
 			font-size: 0.9em;
 		}
 
+		/* Mermaid Diagrams */
+		.presenter-slide-body .block-language-mermaid,
+		.presenter-slide-body .mermaid {
+			display: flex;
+			justify-content: flex-start;
+			align-items: center;
+			text-align: left;
+			width: 100%;
+			margin: 12px 0;
+			overflow: visible;
+			line-height: normal;
+		}
+
+		.presenter-slide-body .block-language-mermaid svg,
+		.presenter-slide-body .mermaid svg {
+			margin-left: 0;
+			margin-right: auto;
+			max-width: 100%;
+			max-height: 500px;
+			height: auto;
+			overflow: visible;
+			filter: none;
+		}
+
+		/* Ensure Mermaid foreignObject does not clip node labels */
+		.presenter-slide-body .block-language-mermaid foreignObject,
+		.presenter-slide-body .mermaid foreignObject {
+			overflow: visible;
+		}
+
+		.presenter-slide-body .block-language-mermaid g.edgePaths path.path,
+		.presenter-slide-body .block-language-mermaid g.edgePaths path,
+		.presenter-slide-body .mermaid g.edgePaths path.path,
+		.presenter-slide-body .mermaid g.edgePaths path {
+			stroke: var(--presenter-main-color);
+			stroke-width: 2px;
+			stroke-opacity: 0.85;
+		}
+
+		.presenter-slide-body .block-language-mermaid marker path,
+		.presenter-slide-body .block-language-mermaid marker polygon,
+		.presenter-slide-body .mermaid marker path,
+		.presenter-slide-body .mermaid marker polygon {
+			fill: var(--presenter-main-color);
+			stroke: var(--presenter-main-color);
+		}
+
+		.presenter-slide-body .block-language-mermaid g.edgeLabels rect,
+		.presenter-slide-body .block-language-mermaid g.edgeLabel rect,
+		.presenter-slide-body .block-language-mermaid .edgeLabel .label rect,
+		.presenter-slide-body .mermaid g.edgeLabels rect,
+		.presenter-slide-body .mermaid g.edgeLabel rect,
+		.presenter-slide-body .mermaid .edgeLabel .label rect {
+			fill: var(--presenter-base-color, #ffffff);
+			fill-opacity: 1;
+			opacity: 1;
+			stroke: color-mix(in srgb, var(--presenter-main-color) 25%, transparent);
+			stroke-width: 1px;
+			rx: 4px;
+			ry: 4px;
+		}
+
+		.presenter-slide-body .block-language-mermaid .edgeLabel,
+		.presenter-slide-body .block-language-mermaid g.edgeLabels .edgeLabel,
+		.presenter-slide-body .block-language-mermaid g.edgeLabels foreignObject div,
+		.presenter-slide-body .block-language-mermaid g.edgeLabels text,
+		.presenter-slide-body .block-language-mermaid g.edgeLabels span,
+		.presenter-slide-body .mermaid .edgeLabel,
+		.presenter-slide-body .mermaid g.edgeLabels .edgeLabel,
+		.presenter-slide-body .mermaid g.edgeLabels foreignObject div,
+		.presenter-slide-body .mermaid g.edgeLabels text,
+		.presenter-slide-body .mermaid g.edgeLabels span {
+			background-color: var(--presenter-base-color, #ffffff);
+			opacity: 1;
+			color: var(--presenter-main-color);
+			fill: var(--presenter-main-color);
+			font-family: inherit;
+			border-radius: 4px;
+		}
+
+		.presenter-slide-body .block-language-mermaid line.messageLine0,
+		.presenter-slide-body .block-language-mermaid line.messageLine1,
+		.presenter-slide-body .block-language-mermaid .messageLine0,
+		.presenter-slide-body .block-language-mermaid .messageLine1,
+		.presenter-slide-body .mermaid line.messageLine0,
+		.presenter-slide-body .mermaid line.messageLine1,
+		.presenter-slide-body .mermaid .messageLine0,
+		.presenter-slide-body .mermaid .messageLine1 {
+			stroke: var(--presenter-main-color);
+			stroke-width: 1.5px;
+			stroke-opacity: 0.85;
+		}
+
+		.presenter-slide-body .block-language-mermaid #arrowhead path,
+		.presenter-slide-body .block-language-mermaid .arrowheadPath,
+		.presenter-slide-body .mermaid #arrowhead path,
+		.presenter-slide-body .mermaid .arrowheadPath {
+			fill: var(--presenter-main-color);
+			stroke: var(--presenter-main-color);
+		}
+
+		.presenter-slide-body .block-language-mermaid text.messageText,
+		.presenter-slide-body .block-language-mermaid .messageText,
+		.presenter-slide-body .mermaid text.messageText,
+		.presenter-slide-body .mermaid .messageText {
+			fill: var(--presenter-main-color);
+			stroke: none;
+			font-size: 13px;
+			font-weight: 500;
+			text-align: center;
+		}
+
+		.presenter-slide-body .block-language-mermaid line.actor-line,
+		.presenter-slide-body .mermaid line.actor-line {
+			stroke: color-mix(in srgb, var(--presenter-main-color) 35%, transparent);
+			stroke-width: 1.5px;
+		}
+
+		.presenter-slide-body .block-language-mermaid .sequenceNumber,
+		.presenter-slide-body .mermaid .sequenceNumber {
+			fill: #ffffff;
+			font-weight: 700;
+			font-size: 11px;
+		}
+
+		.presenter-slide-body .block-language-mermaid .loopLine,
+		.presenter-slide-body .mermaid .loopLine {
+			stroke: color-mix(in srgb, var(--presenter-main-color) 40%, transparent);
+		}
+
+		.presenter-slide-body .block-language-mermaid .labelBox,
+		.presenter-slide-body .mermaid .labelBox {
+			fill: var(--presenter-main-color);
+		}
+
+		.presenter-slide-body .block-language-mermaid .labelText text,
+		.presenter-slide-body .mermaid .labelText text {
+			fill: #ffffff;
+		}
+
 		.presenter-slide-body table {
 			width: 100%;
 			border-collapse: separate;
@@ -435,6 +605,7 @@ export async function exportPresentationToHtml(
 			overflow: hidden;
 			border: 1px solid color-mix(in srgb, var(--presenter-main-color) 16%, transparent);
 			box-shadow: 0 2px 8px color-mix(in srgb, var(--presenter-main-color) 4%, transparent);
+			background-color: transparent;
 		}
 
 		.presenter-slide-body th, .presenter-slide-body td {
@@ -443,9 +614,11 @@ export async function exportPresentationToHtml(
 		}
 
 		.presenter-slide-body th {
-			background: color-mix(in srgb, var(--presenter-accent-color) 12%, transparent);
+			background: color-mix(in srgb, var(--presenter-main-color) 6%, transparent);
 			color: var(--presenter-main-color);
 			font-weight: 700;
+			border-top: none;
+			border-left: none;
 			border-bottom: 2px solid var(--presenter-accent-color);
 			border-right: 1px solid color-mix(in srgb, var(--presenter-main-color) 12%, transparent);
 		}
@@ -455,6 +628,8 @@ export async function exportPresentationToHtml(
 		}
 
 		.presenter-slide-body td {
+			border-top: none;
+			border-left: none;
 			border-bottom: 1px solid color-mix(in srgb, var(--presenter-main-color) 10%, transparent);
 			border-right: 1px solid color-mix(in srgb, var(--presenter-main-color) 10%, transparent);
 			color: var(--presenter-main-color);
@@ -468,12 +643,19 @@ export async function exportPresentationToHtml(
 			border-bottom: none;
 		}
 
-		.presenter-slide-body tbody tr:nth-child(even) {
-			background: color-mix(in srgb, var(--presenter-main-color) 3.5%, transparent);
+		.presenter-slide-body tbody tr:nth-child(odd),
+		.presenter-slide-body tbody tr:nth-child(odd) td {
+			background-color: var(--presenter-base-color, #ffffff);
 		}
 
-		.presenter-slide-body tbody tr:hover {
-			background: color-mix(in srgb, var(--presenter-accent-color) 6%, transparent);
+		.presenter-slide-body tbody tr:nth-child(even),
+		.presenter-slide-body tbody tr:nth-child(even) td {
+			background-color: color-mix(in srgb, var(--presenter-main-color) 2.5%, var(--presenter-base-color, #ffffff));
+		}
+
+		.presenter-slide-body tbody tr:hover,
+		.presenter-slide-body tbody tr:hover td {
+			background-color: color-mix(in srgb, var(--presenter-accent-color) 6%, var(--presenter-base-color, #ffffff));
 			transition: background-color 0.15s ease;
 		}
 
@@ -514,9 +696,11 @@ export async function exportPresentationToHtml(
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			margin-top: 24px;
-			min-height: 28px;
-			font-size: 13px;
+			margin-top: auto;
+			min-height: 20px;
+			padding-top: 6px;
+			border-top: 1px solid rgba(120, 120, 120, 0.15);
+			font-size: 12px;
 			opacity: 0.6;
 			flex-shrink: 0;
 		}
@@ -775,10 +959,11 @@ export async function exportPresentationToHtml(
 				.map((slide, idx) => {
 					return `
 			<div class="slide-card presenter-slide-${slide.type}${idx === 0 ? ' active' : ''}" id="slide-${idx}">
+				${(headerText || inlineLogoHtml) ? `
 				<div class="presenter-slide-header">
 					<div class="presenter-header-title">${escapeHtml(headerText)}</div>
 					${inlineLogoHtml}
-				</div>
+				</div>` : ''}
 				<div class="presenter-slide-body">
 					${slide.bodyHtml}
 				</div>
