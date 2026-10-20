@@ -93,6 +93,12 @@
 	--table-row-alt-background: color-mix(in srgb, var(--presenter-main-color) 2.5%, transparent);
 	--table-row-background-hover: color-mix(in srgb, var(--presenter-accent-color) 6%, transparent);
 
+	/* Obsidian List CSS Variables Override */
+	--list-indent: 24px;
+	--list-indent-editing: 24px;
+	--list-spacing: 2px;
+	--list-item-spacing: 2px;
+
 	background-color: var(--presenter-base-color);
 	color: var(--presenter-main-color);
 	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
@@ -190,19 +196,73 @@
 	margin: calc(14px * var(--presenter-body-scale, 1)) 0 calc(6px * var(--presenter-body-scale, 1)) 0;
 }
 
-.presenter-slide-body p,
+.presenter-slide-card .presenter-slide-body.markdown-rendered p,
+.presenter-slide-card .presenter-slide-body p,
+.presenter-slide-body.markdown-rendered p,
+.presenter-slide-body p {
+	font-size: calc(20px * var(--presenter-body-scale, 1));
+	line-height: calc(1.5 * var(--presenter-body-scale, 1));
+	margin: calc(4px * var(--presenter-body-scale, 1)) 0;
+	margin-block-start: calc(4px * var(--presenter-body-scale, 1));
+	margin-block-end: calc(4px * var(--presenter-body-scale, 1));
+}
+
+.presenter-slide-card .presenter-slide-body.markdown-rendered li,
+.presenter-slide-card .presenter-slide-body li,
+.presenter-slide-body.markdown-rendered li,
 .presenter-slide-body li {
 	font-size: calc(20px * var(--presenter-body-scale, 1));
-	line-height: calc(1.6 * var(--presenter-body-scale, 1));
-	margin: calc(8px * var(--presenter-body-scale, 1)) 0;
+	line-height: calc(1.45 * var(--presenter-body-scale, 1));
+	margin: calc(2px * var(--presenter-body-scale, 1)) 0;
+	margin-block-start: calc(2px * var(--presenter-body-scale, 1));
+	margin-block-end: calc(2px * var(--presenter-body-scale, 1));
 }
 
+.presenter-slide-card .presenter-slide-body.markdown-rendered ul,
+.presenter-slide-card .presenter-slide-body.markdown-rendered ol,
+.presenter-slide-card .presenter-slide-body ul,
+.presenter-slide-card .presenter-slide-body ol,
+.presenter-slide-body.markdown-rendered ul,
+.presenter-slide-body.markdown-rendered ol,
 .presenter-slide-body ul,
 .presenter-slide-body ol {
-	padding-left: calc(28px * var(--presenter-body-scale, 1));
-	margin: calc(12px * var(--presenter-body-scale, 1)) 0;
+	padding-left: calc(24px * var(--presenter-body-scale, 1));
+	padding-inline-start: calc(24px * var(--presenter-body-scale, 1));
+	margin: calc(3px * var(--presenter-body-scale, 1)) 0 calc(5px * var(--presenter-body-scale, 1)) 0;
+	margin-block-start: calc(3px * var(--presenter-body-scale, 1));
+	margin-block-end: calc(5px * var(--presenter-body-scale, 1));
 }
 
+.presenter-slide-card .presenter-slide-body.markdown-rendered li > ul,
+.presenter-slide-card .presenter-slide-body.markdown-rendered li > ol,
+.presenter-slide-card .presenter-slide-body li > ul,
+.presenter-slide-card .presenter-slide-body li > ol,
+.presenter-slide-body.markdown-rendered li > ul,
+.presenter-slide-body.markdown-rendered li > ol,
+.presenter-slide-body li > ul,
+.presenter-slide-body li > ol {
+	padding-left: calc(16px * var(--presenter-body-scale, 1));
+	padding-inline-start: calc(16px * var(--presenter-body-scale, 1));
+	margin: 0;
+	margin-block-start: 0;
+	margin-block-end: 0;
+}
+
+.presenter-slide-card .presenter-slide-body.markdown-rendered li > ul > li,
+.presenter-slide-card .presenter-slide-body.markdown-rendered li > ol > li,
+.presenter-slide-card .presenter-slide-body li > ul > li,
+.presenter-slide-card .presenter-slide-body li > ol > li,
+.presenter-slide-body.markdown-rendered li > ul > li,
+.presenter-slide-body.markdown-rendered li > ol > li,
+.presenter-slide-body li > ul > li,
+.presenter-slide-body li > ol > li {
+	margin: calc(1px * var(--presenter-body-scale, 1)) 0;
+	margin-block-start: calc(1px * var(--presenter-body-scale, 1));
+	margin-block-end: calc(1px * var(--presenter-body-scale, 1));
+}
+
+.presenter-slide-card .presenter-slide-body.markdown-rendered li::marker,
+.presenter-slide-card .presenter-slide-body li::marker,
 .presenter-slide-body li::marker {
 	color: var(--presenter-accent-color);
 }
@@ -400,6 +460,14 @@
 
 .presenter-col > :first-child {
 	margin-top: 0;
+}
+
+.presenter-col h3 + ul,
+.presenter-col h3 + ol,
+.presenter-slide-body h3 + ul,
+.presenter-slide-body h3 + ol {
+	margin-top: calc(2px * var(--presenter-body-scale, 1));
+	margin-block-start: calc(2px * var(--presenter-body-scale, 1));
 }
 
 .presenter-col > :last-child {

@@ -403,16 +403,40 @@ export async function exportPresentationToHtml(
 		}
 
 		.presenter-slide-body p {
-			margin-bottom: 14px;
+			margin-bottom: 6px;
+			margin-top: 4px;
 		}
 
 		.presenter-slide-body ul, .presenter-slide-body ol {
-			margin-left: 28px;
-			margin-bottom: 16px;
+			padding-left: 24px;
+			padding-inline-start: 24px;
+			margin-left: 0;
+			margin-top: 3px;
+			margin-bottom: 5px;
 		}
 
 		.presenter-slide-body li {
-			margin-bottom: 10px;
+			margin-bottom: 2px;
+			line-height: 1.45;
+		}
+
+		.presenter-slide-body li > ul, .presenter-slide-body li > ol {
+			padding-left: 16px;
+			padding-inline-start: 16px;
+			margin-left: 0;
+			margin-top: 0;
+			margin-bottom: 0;
+		}
+
+		.presenter-slide-body li > ul > li, .presenter-slide-body li > ol > li {
+			margin-bottom: 1px;
+		}
+
+		.presenter-col h3 + ul,
+		.presenter-col h3 + ol,
+		.presenter-slide-body h3 + ul,
+		.presenter-slide-body h3 + ol {
+			margin-top: 2px;
 		}
 
 		.presenter-slide-body pre {
