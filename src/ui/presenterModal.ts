@@ -84,9 +84,8 @@ export class PresenterModal extends Modal {
 		// 4. Floating Navigation Toolbar
 		this.buildToolbar(contentEl);
 
-		// 5. Hidden Container for Multi-Page PDF Printing
+		// 5. Hidden Container for Multi-Page PDF Printing (populated on-demand when printing)
 		this.printContainerEl = contentEl.createDiv({ cls: 'presenter-print-container' });
-		void this.preparePrintSlides('slides');
 
 		// 6. Setup Keyboard Navigation
 		this.setupKeyEvents();
@@ -268,9 +267,19 @@ export class PresenterModal extends Modal {
 	}
 
 	private async printPresentation(mode: 'slides' | 'handout') {
-		new Notice(`Preparing ${mode === 'handout' ? 'handouts with notes' : 'slides'} for printing...`);
-		await this.preparePrintSlides(mode);
-		window.print();
+		const notice = new Notice(
+			`Preparing ${mode === 'handout' ? 'handouts with notes' : 'slides'} for printing...`,
+			0
+		);
+		try {
+			await this.preparePrintSlides(mode);
+			notice.hide();
+			window.print();
+		} catch (err) {
+			notice.hide();
+			console.error('Failed to prepare slides for printing:', err);
+			new Notice('Failed to prepare slides for printing. Check console for details.');
+		}
 	}
 
 	private async preparePrintSlides(mode: 'slides' | 'handout' = 'slides') {
