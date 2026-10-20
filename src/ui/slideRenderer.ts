@@ -124,6 +124,10 @@ export async function renderSlide(
 		component
 	);
 
+	// Wait for asynchronous diagram blocks (such as Mermaid) to complete SVG rendering
+	// so that text measurements and node dimensions are accurate before scaling or auto-fit
+	await waitForEmbeddedDiagrams(bodyEl);
+
 	// Check and apply auto-fit if enabled
 	if (isAutoFitEnabled(config, settings)) {
 		const { isOverflowing, optimalScale } = calculateOverflow(bodyEl);
@@ -162,4 +166,29 @@ export async function renderSlideNotes(
 	const notesEl = targetEl.createDiv({ cls: 'presenter-notes-rendered markdown-rendered' });
 	await MarkdownRenderer.render(app, markdown, notesEl, sourcePath, component);
 	return notesEl;
+}
+
+/**
+ * Waits for asynchronous code block processors (like Mermaid diagrams) to finish inserting their SVGs
+ * into the DOM so that text bounding boxes are measured at unscaled 100% dimensions without distortion.
+ */
+export async function waitForEmbeddedDiagrams(container: HTMLElement, timeoutMs = 800): Promise<void> {
+	const mermaidBlocks = container.querySelectorAll('.block-language-mermaid');
+	if (mermaidBlocks.length === 0) return;
+
+	const startTime = Date.now();
+	while (Date.now() - startTime < timeoutMs) {
+		let allRendered = true;
+		for (const block of Array.from(mermaidBlocks)) {
+			if (!block.querySelector('svg')) {
+				allRendered = false;
+				break;
+			}
+		}
+		if (allRendered) {
+			await new Promise((resolve) => window.setTimeout(resolve, 30));
+			return;
+		}
+		await new Promise((resolve) => window.setTimeout(resolve, 30));
+	}
 }

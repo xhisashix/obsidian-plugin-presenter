@@ -456,6 +456,146 @@ export async function exportPresentationToHtml(
 			font-size: 0.9em;
 		}
 
+		/* Mermaid Diagrams */
+		.presenter-slide-body .block-language-mermaid,
+		.presenter-slide-body .mermaid {
+			display: flex;
+			justify-content: flex-start;
+			align-items: center;
+			text-align: left;
+			width: 100%;
+			margin: 12px 0;
+			overflow: visible;
+			line-height: normal;
+		}
+
+		.presenter-slide-body .block-language-mermaid svg,
+		.presenter-slide-body .mermaid svg {
+			margin-left: 0;
+			margin-right: auto;
+			max-width: 100%;
+			max-height: 500px;
+			height: auto;
+			overflow: visible;
+			filter: none;
+		}
+
+		/* Ensure Mermaid foreignObject does not clip node labels */
+		.presenter-slide-body .block-language-mermaid foreignObject,
+		.presenter-slide-body .mermaid foreignObject {
+			overflow: visible;
+		}
+
+		.presenter-slide-body .block-language-mermaid g.edgePaths path.path,
+		.presenter-slide-body .block-language-mermaid g.edgePaths path,
+		.presenter-slide-body .mermaid g.edgePaths path.path,
+		.presenter-slide-body .mermaid g.edgePaths path {
+			stroke: var(--presenter-main-color);
+			stroke-width: 2px;
+			stroke-opacity: 0.85;
+		}
+
+		.presenter-slide-body .block-language-mermaid marker path,
+		.presenter-slide-body .block-language-mermaid marker polygon,
+		.presenter-slide-body .mermaid marker path,
+		.presenter-slide-body .mermaid marker polygon {
+			fill: var(--presenter-main-color);
+			stroke: var(--presenter-main-color);
+		}
+
+		.presenter-slide-body .block-language-mermaid g.edgeLabels rect,
+		.presenter-slide-body .block-language-mermaid g.edgeLabel rect,
+		.presenter-slide-body .block-language-mermaid .edgeLabel .label rect,
+		.presenter-slide-body .mermaid g.edgeLabels rect,
+		.presenter-slide-body .mermaid g.edgeLabel rect,
+		.presenter-slide-body .mermaid .edgeLabel .label rect {
+			fill: var(--presenter-base-color, #ffffff);
+			fill-opacity: 1;
+			opacity: 1;
+			stroke: color-mix(in srgb, var(--presenter-main-color) 25%, transparent);
+			stroke-width: 1px;
+			rx: 4px;
+			ry: 4px;
+		}
+
+		.presenter-slide-body .block-language-mermaid .edgeLabel,
+		.presenter-slide-body .block-language-mermaid g.edgeLabels .edgeLabel,
+		.presenter-slide-body .block-language-mermaid g.edgeLabels foreignObject div,
+		.presenter-slide-body .block-language-mermaid g.edgeLabels text,
+		.presenter-slide-body .block-language-mermaid g.edgeLabels span,
+		.presenter-slide-body .mermaid .edgeLabel,
+		.presenter-slide-body .mermaid g.edgeLabels .edgeLabel,
+		.presenter-slide-body .mermaid g.edgeLabels foreignObject div,
+		.presenter-slide-body .mermaid g.edgeLabels text,
+		.presenter-slide-body .mermaid g.edgeLabels span {
+			background-color: var(--presenter-base-color, #ffffff);
+			opacity: 1;
+			color: var(--presenter-main-color);
+			fill: var(--presenter-main-color);
+			font-family: inherit;
+			border-radius: 4px;
+		}
+
+		.presenter-slide-body .block-language-mermaid line.messageLine0,
+		.presenter-slide-body .block-language-mermaid line.messageLine1,
+		.presenter-slide-body .block-language-mermaid .messageLine0,
+		.presenter-slide-body .block-language-mermaid .messageLine1,
+		.presenter-slide-body .mermaid line.messageLine0,
+		.presenter-slide-body .mermaid line.messageLine1,
+		.presenter-slide-body .mermaid .messageLine0,
+		.presenter-slide-body .mermaid .messageLine1 {
+			stroke: var(--presenter-main-color);
+			stroke-width: 1.5px;
+			stroke-opacity: 0.85;
+		}
+
+		.presenter-slide-body .block-language-mermaid #arrowhead path,
+		.presenter-slide-body .block-language-mermaid .arrowheadPath,
+		.presenter-slide-body .mermaid #arrowhead path,
+		.presenter-slide-body .mermaid .arrowheadPath {
+			fill: var(--presenter-main-color);
+			stroke: var(--presenter-main-color);
+		}
+
+		.presenter-slide-body .block-language-mermaid text.messageText,
+		.presenter-slide-body .block-language-mermaid .messageText,
+		.presenter-slide-body .mermaid text.messageText,
+		.presenter-slide-body .mermaid .messageText {
+			fill: var(--presenter-main-color);
+			stroke: none;
+			font-size: 13px;
+			font-weight: 500;
+			text-align: center;
+		}
+
+		.presenter-slide-body .block-language-mermaid line.actor-line,
+		.presenter-slide-body .mermaid line.actor-line {
+			stroke: color-mix(in srgb, var(--presenter-main-color) 35%, transparent);
+			stroke-width: 1.5px;
+		}
+
+		.presenter-slide-body .block-language-mermaid .sequenceNumber,
+		.presenter-slide-body .mermaid .sequenceNumber {
+			fill: #ffffff;
+			font-weight: 700;
+			font-size: 11px;
+		}
+
+		.presenter-slide-body .block-language-mermaid .loopLine,
+		.presenter-slide-body .mermaid .loopLine {
+			stroke: color-mix(in srgb, var(--presenter-main-color) 40%, transparent);
+		}
+
+		.presenter-slide-body .block-language-mermaid .labelBox,
+		.presenter-slide-body .mermaid .labelBox {
+			fill: var(--presenter-main-color);
+		}
+
+		.presenter-slide-body .block-language-mermaid .labelText text,
+		.presenter-slide-body .mermaid .labelText text {
+			fill: #ffffff;
+		}
+
 		.presenter-slide-body table {
 			width: 100%;
 			border-collapse: separate;

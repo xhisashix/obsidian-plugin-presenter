@@ -41,6 +41,7 @@ export class PresenterModal extends Modal {
 	private keyHandler!: (e: KeyboardEvent) => void;
 	private resizeObserver!: ResizeObserver;
 	private component: Component;
+	private isRenderingSlide = false;
 
 	constructor(
 		app: App,
@@ -211,15 +212,20 @@ export class PresenterModal extends Modal {
 		const slide = this.presentation.slides[index];
 		if (!slide) return;
 
-		await renderSlide(this.stageEl, {
-			app: this.app,
-			slide,
-			totalSlides: total,
-			config: this.presentation.frontmatter,
-			settings: this.settings,
-			sourcePath: this.sourcePath,
-			component: this.component,
-		});
+		this.isRenderingSlide = true;
+		try {
+			await renderSlide(this.stageEl, {
+				app: this.app,
+				slide,
+				totalSlides: total,
+				config: this.presentation.frontmatter,
+				settings: this.settings,
+				sourcePath: this.sourcePath,
+				component: this.component,
+			});
+		} finally {
+			this.isRenderingSlide = false;
+		}
 
 		// Update Speaker Notes
 		await this.updateNotesContent(slide);
@@ -376,6 +382,7 @@ export class PresenterModal extends Modal {
 	}
 
 	private applySlideScale() {
+		if (this.isRenderingSlide) return;
 		applyStageScale(this.stageEl, this.stageEl, {
 			aspectRatio: this.presentation.frontmatter.aspectRatio || this.settings.aspectRatio,
 			padding: 40,
