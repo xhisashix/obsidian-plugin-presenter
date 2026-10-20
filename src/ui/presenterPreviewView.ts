@@ -13,7 +13,10 @@ import {
 	VIEW_TYPE_PRESENTER_PREVIEW,
 } from '../types';
 import { renderSlide } from './slideRenderer';
-import { checkPresentationOverflow } from './overflow';
+import {
+	type SlideOverflowCache,
+	checkPresentationOverflow,
+} from './overflow';
 import {
 	applyStageScale,
 	createToolbarNavControls,
@@ -38,6 +41,7 @@ export class PresenterPreviewView extends ItemView {
 	private stageWrapperEl!: HTMLElement;
 	private overflowBtn!: HTMLElement;
 	private overflowReports: SlideOverflowInfo[] = [];
+	private overflowCache: SlideOverflowCache = new Map();
 
 	private resizeObserver!: ResizeObserver;
 	private component: Component;
@@ -262,7 +266,12 @@ export class PresenterPreviewView extends ItemView {
 
 	public async loadFile(file: TFile) {
 		if (file.extension !== 'md') return;
+		const fileChanged = this.currentFile?.path !== file.path;
 		this.currentFile = file;
+		if (fileChanged) {
+			this.cachedRawMarkdown = '';
+			this.overflowCache.clear();
+		}
 
 		try {
 			// Check if active view is editing this file for unsaved content
@@ -287,6 +296,17 @@ export class PresenterPreviewView extends ItemView {
 	private updatePresentation(content: string, cursorLine?: number) {
 		if (!this.currentFile) {
 			this.showEmptyState();
+			return;
+		}
+
+		// Skip expensive re-parsing and re-rendering if raw markdown content has not changed
+		if (this.cachedRawMarkdown === content && this.presentation) {
+			if (this.followCursor && cursorLine !== undefined) {
+				const targetIndex = getSlideIndexAtLine(this.presentation.slides, cursorLine);
+				if (targetIndex !== this.currentIndex) {
+					void this.showSlide(targetIndex);
+				}
+			}
 			return;
 		}
 
@@ -317,6 +337,8 @@ export class PresenterPreviewView extends ItemView {
 
 	private showEmptyState() {
 		this.presentation = null;
+		this.cachedRawMarkdown = '';
+		this.overflowCache.clear();
 		this.stageEl.empty();
 		this.stageEl.addClass('is-hidden');
 		this.emptyMessageEl.removeClass('is-hidden');
@@ -403,7 +425,8 @@ export class PresenterPreviewView extends ItemView {
 				this.presentation,
 				this.plugin.settings,
 				this.currentFile.path,
-				this.component
+				this.component,
+				this.overflowCache
 			);
 			this.overflowReports = reports;
 			updateOverflowButton(this.overflowBtn, reports);
@@ -437,6 +460,7 @@ export class PresenterPreviewView extends ItemView {
 		if (this.resizeObserver) {
 			this.resizeObserver.disconnect();
 		}
+		this.overflowCache.clear();
 		this.component.unload();
 		this.contentEl.empty();
 	}
