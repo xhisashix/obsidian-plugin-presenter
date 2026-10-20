@@ -317,7 +317,7 @@ export async function exportPresentationToHtml(
 			color: var(--presenter-main-color);
 			box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
 			border-radius: 12px;
-			padding: 44px 64px;
+			padding: 28px 48px;
 			display: flex;
 			flex-direction: column;
 			overflow: hidden;
@@ -337,13 +337,19 @@ export async function exportPresentationToHtml(
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			min-height: 36px;
-			margin-bottom: 24px;
+			min-height: 22px;
+			margin-bottom: 10px;
+			border-bottom: 1px solid rgba(120, 120, 120, 0.15);
+			padding-bottom: 4px;
 			flex-shrink: 0;
 		}
 
+		.presenter-slide-header:empty {
+			display: none;
+		}
+
 		.presenter-header-title {
-			font-size: 15px;
+			font-size: 13px;
 			font-weight: 600;
 			letter-spacing: 0.05em;
 			text-transform: uppercase;
@@ -352,8 +358,8 @@ export async function exportPresentationToHtml(
 		}
 
 		.presenter-logo-image {
-			max-height: 36px;
-			max-width: 150px;
+			max-height: 20px;
+			max-width: 120px;
 			object-fit: contain;
 		}
 
@@ -381,12 +387,12 @@ export async function exportPresentationToHtml(
 		}
 
 		.presenter-slide-content h2 {
-			font-size: 34px;
+			font-size: 32px;
 			font-weight: 700;
-			margin-bottom: 24px;
+			margin-bottom: 14px;
 			color: var(--presenter-main-color);
-			border-bottom: 2px solid var(--presenter-accent-color);
-			padding-bottom: 8px;
+			border-bottom: 3px solid var(--presenter-accent-color);
+			padding-bottom: 6px;
 		}
 
 		.presenter-slide-content h3 {
@@ -526,9 +532,11 @@ export async function exportPresentationToHtml(
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			margin-top: 24px;
-			min-height: 28px;
-			font-size: 13px;
+			margin-top: auto;
+			min-height: 20px;
+			padding-top: 6px;
+			border-top: 1px solid rgba(120, 120, 120, 0.15);
+			font-size: 12px;
 			opacity: 0.6;
 			flex-shrink: 0;
 		}
@@ -787,10 +795,11 @@ export async function exportPresentationToHtml(
 				.map((slide, idx) => {
 					return `
 			<div class="slide-card presenter-slide-${slide.type}${idx === 0 ? ' active' : ''}" id="slide-${idx}">
+				${(headerText || inlineLogoHtml) ? `
 				<div class="presenter-slide-header">
 					<div class="presenter-header-title">${escapeHtml(headerText)}</div>
 					${inlineLogoHtml}
-				</div>
+				</div>` : ''}
 				<div class="presenter-slide-body">
 					${slide.bodyHtml}
 				</div>

@@ -92,20 +92,22 @@ export async function renderSlide(
 	slideCardEl.style.setProperty('--presenter-main-color', mainColor);
 	slideCardEl.style.setProperty('--presenter-accent-color', accentColor);
 
-	// 1. Header (Logo & Header Text)
-	const headerEl = slideCardEl.createDiv({ cls: 'presenter-slide-header' });
-	const headerTitleEl = headerEl.createDiv({ cls: 'presenter-header-title' });
-	if (headerText) {
-		headerTitleEl.setText(headerText);
-	}
+	// 1. Header (Logo & Header Text) - only render if present
+	if (headerText || logoUrl) {
+		const headerEl = slideCardEl.createDiv({ cls: 'presenter-slide-header' });
+		if (headerText) {
+			const headerTitleEl = headerEl.createDiv({ cls: 'presenter-header-title' });
+			headerTitleEl.setText(headerText);
+		}
 
-	if (logoUrl) {
-		const logoContainer = headerEl.createDiv({ cls: 'presenter-header-logo' });
-		const logoImg = logoContainer.createEl('img', {
-			cls: 'presenter-logo-image',
-			attr: { alt: 'Presentation Logo' },
-		});
-		logoImg.src = logoUrl;
+		if (logoUrl) {
+			const logoContainer = headerEl.createDiv({ cls: 'presenter-header-logo' });
+			const logoImg = logoContainer.createEl('img', {
+				cls: 'presenter-logo-image',
+				attr: { alt: 'Presentation Logo' },
+			});
+			logoImg.src = logoUrl;
+		}
 	}
 
 	// 2. Body / Content Area (Rendered via Obsidian MarkdownRenderer)

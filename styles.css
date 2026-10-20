@@ -97,7 +97,7 @@
 	color: var(--presenter-main-color);
 	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
 	border-radius: 12px;
-	padding: 44px 64px;
+	padding: 28px 48px;
 	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
@@ -113,13 +113,17 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	min-height: 38px;
-	margin-bottom: 20px;
+	min-height: 22px;
+	margin-bottom: 10px;
 	border-bottom: 1px solid rgba(120, 120, 120, 0.15);
-	padding-bottom: 8px;
-	font-size: 14px;
+	padding-bottom: 4px;
+	font-size: 13px;
 	color: var(--presenter-main-color);
 	opacity: 0.75;
+}
+
+.presenter-slide-header:empty {
+	display: none;
 }
 
 .presenter-header-title {
@@ -133,8 +137,8 @@
 }
 
 .presenter-logo-image {
-	max-height: 32px;
-	max-width: 150px;
+	max-height: 20px;
+	max-width: 120px;
 	object-fit: contain;
 }
 
@@ -158,20 +162,20 @@
 }
 
 .presenter-slide-body h1 {
-	font-size: calc(48px * var(--presenter-body-scale, 1));
+	font-size: calc(44px * var(--presenter-body-scale, 1));
 	font-weight: 800;
 	line-height: 1.2;
-	margin: 0 0 calc(20px * var(--presenter-body-scale, 1)) 0;
+	margin: 0 0 calc(16px * var(--presenter-body-scale, 1)) 0;
 	color: var(--presenter-accent-color);
 }
 
 .presenter-slide-body h2 {
-	font-size: calc(36px * var(--presenter-body-scale, 1));
+	font-size: calc(32px * var(--presenter-body-scale, 1));
 	font-weight: 700;
 	line-height: 1.25;
-	margin: 0 0 calc(24px * var(--presenter-body-scale, 1)) 0;
-	padding-bottom: calc(12px * var(--presenter-body-scale, 1));
-	border-bottom: 4px solid var(--presenter-accent-color);
+	margin: 0 0 calc(14px * var(--presenter-body-scale, 1)) 0;
+	padding-bottom: calc(6px * var(--presenter-body-scale, 1));
+	border-bottom: 3px solid var(--presenter-accent-color);
 }
 
 .presenter-slide-body h3 {
@@ -416,11 +420,11 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	min-height: 34px;
+	min-height: 20px;
 	margin-top: auto;
-	padding-top: 14px;
+	padding-top: 6px;
 	border-top: 1px solid rgba(120, 120, 120, 0.15);
-	font-size: 13px;
+	font-size: 12px;
 	color: var(--presenter-main-color);
 	opacity: 0.7;
 }
