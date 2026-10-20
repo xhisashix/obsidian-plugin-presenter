@@ -435,6 +435,7 @@ export async function exportPresentationToHtml(
 			overflow: hidden;
 			border: 1px solid color-mix(in srgb, var(--presenter-main-color) 16%, transparent);
 			box-shadow: 0 2px 8px color-mix(in srgb, var(--presenter-main-color) 4%, transparent);
+			background-color: transparent;
 		}
 
 		.presenter-slide-body th, .presenter-slide-body td {
@@ -443,9 +444,11 @@ export async function exportPresentationToHtml(
 		}
 
 		.presenter-slide-body th {
-			background: color-mix(in srgb, var(--presenter-accent-color) 12%, transparent);
+			background: color-mix(in srgb, var(--presenter-main-color) 6%, transparent);
 			color: var(--presenter-main-color);
 			font-weight: 700;
+			border-top: none;
+			border-left: none;
 			border-bottom: 2px solid var(--presenter-accent-color);
 			border-right: 1px solid color-mix(in srgb, var(--presenter-main-color) 12%, transparent);
 		}
@@ -455,6 +458,8 @@ export async function exportPresentationToHtml(
 		}
 
 		.presenter-slide-body td {
+			border-top: none;
+			border-left: none;
 			border-bottom: 1px solid color-mix(in srgb, var(--presenter-main-color) 10%, transparent);
 			border-right: 1px solid color-mix(in srgb, var(--presenter-main-color) 10%, transparent);
 			color: var(--presenter-main-color);
@@ -468,12 +473,19 @@ export async function exportPresentationToHtml(
 			border-bottom: none;
 		}
 
-		.presenter-slide-body tbody tr:nth-child(even) {
-			background: color-mix(in srgb, var(--presenter-main-color) 3.5%, transparent);
+		.presenter-slide-body tbody tr:nth-child(odd),
+		.presenter-slide-body tbody tr:nth-child(odd) td {
+			background-color: var(--presenter-base-color, #ffffff);
 		}
 
-		.presenter-slide-body tbody tr:hover {
-			background: color-mix(in srgb, var(--presenter-accent-color) 6%, transparent);
+		.presenter-slide-body tbody tr:nth-child(even),
+		.presenter-slide-body tbody tr:nth-child(even) td {
+			background-color: color-mix(in srgb, var(--presenter-main-color) 2.5%, var(--presenter-base-color, #ffffff));
+		}
+
+		.presenter-slide-body tbody tr:hover,
+		.presenter-slide-body tbody tr:hover td {
+			background-color: color-mix(in srgb, var(--presenter-accent-color) 6%, var(--presenter-base-color, #ffffff));
 			transition: background-color 0.15s ease;
 		}
 

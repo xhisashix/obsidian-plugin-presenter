@@ -77,6 +77,22 @@
 	--presenter-main-color: #1e293b;
 	--presenter-accent-color: #2563eb;
 
+	/* Obsidian Table CSS Variables Override (Neutralizes external theme variables) */
+	--table-background: transparent;
+	--table-border-width: 1px;
+	--table-border-color: color-mix(in srgb, var(--presenter-main-color) 16%, transparent);
+	--table-header-background: color-mix(in srgb, var(--presenter-main-color) 6%, transparent);
+	--table-header-background-hover: color-mix(in srgb, var(--presenter-main-color) 9%, transparent);
+	--table-header-color: var(--presenter-main-color);
+	--table-header-border-width: 2px;
+	--table-header-border-color: var(--presenter-accent-color);
+	--table-column-first-background: transparent;
+	--table-column-alt-background: transparent;
+	--table-text-color: var(--presenter-main-color);
+	--table-row-background: var(--presenter-base-color, #ffffff);
+	--table-row-alt-background: color-mix(in srgb, var(--presenter-main-color) 2.5%, transparent);
+	--table-row-background-hover: color-mix(in srgb, var(--presenter-accent-color) 6%, transparent);
+
 	background-color: var(--presenter-base-color);
 	color: var(--presenter-main-color);
 	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
@@ -202,6 +218,12 @@
 	font-style: italic;
 }
 
+/* --------------------------------------------------------------------------
+   Table Styles (Scoped strictly to override theme defaults without !important)
+   -------------------------------------------------------------------------- */
+.presenter-slide-card .presenter-slide-body.markdown-rendered table,
+.presenter-slide-card .presenter-slide-body table,
+.presenter-slide-body.markdown-rendered table,
 .presenter-slide-body table {
 	width: 100%;
 	border-collapse: separate;
@@ -212,43 +234,96 @@
 	overflow: hidden;
 	border: 1px solid color-mix(in srgb, var(--presenter-main-color) 16%, transparent);
 	box-shadow: 0 2px 8px color-mix(in srgb, var(--presenter-main-color) 4%, transparent);
+	background-color: transparent;
 }
 
-.presenter-slide-body th {
-	background: color-mix(in srgb, var(--presenter-accent-color) 12%, transparent);
+.presenter-slide-card .presenter-slide-body.markdown-rendered table thead th,
+.presenter-slide-card .presenter-slide-body.markdown-rendered table th,
+.presenter-slide-card .presenter-slide-body table thead th,
+.presenter-slide-card .presenter-slide-body table th,
+.presenter-slide-body.markdown-rendered table thead th,
+.presenter-slide-body table th {
+	background: color-mix(in srgb, var(--presenter-main-color) 6%, transparent);
+	background-color: color-mix(in srgb, var(--presenter-main-color) 6%, transparent);
 	color: var(--presenter-main-color);
 	font-weight: 700;
 	padding: calc(12px * var(--presenter-body-scale, 1)) calc(16px * var(--presenter-body-scale, 1));
+	border-top: none;
+	border-left: none;
 	border-bottom: 2px solid var(--presenter-accent-color);
 	border-right: 1px solid color-mix(in srgb, var(--presenter-main-color) 12%, transparent);
 	text-align: left;
 }
 
-.presenter-slide-body th:last-child {
+.presenter-slide-card .presenter-slide-body.markdown-rendered table thead th:last-child,
+.presenter-slide-card .presenter-slide-body.markdown-rendered table th:last-child,
+.presenter-slide-card .presenter-slide-body table th:last-child,
+.presenter-slide-body table th:last-child {
 	border-right: none;
 }
 
-.presenter-slide-body td {
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody td,
+.presenter-slide-card .presenter-slide-body.markdown-rendered table td,
+.presenter-slide-card .presenter-slide-body table tbody td,
+.presenter-slide-card .presenter-slide-body table td,
+.presenter-slide-body.markdown-rendered table tbody td,
+.presenter-slide-body table td {
 	padding: calc(10px * var(--presenter-body-scale, 1)) calc(16px * var(--presenter-body-scale, 1));
+	border-top: none;
+	border-left: none;
 	border-bottom: 1px solid color-mix(in srgb, var(--presenter-main-color) 10%, transparent);
 	border-right: 1px solid color-mix(in srgb, var(--presenter-main-color) 10%, transparent);
 	color: var(--presenter-main-color);
 }
 
-.presenter-slide-body td:last-child {
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody td:last-child,
+.presenter-slide-card .presenter-slide-body.markdown-rendered table td:last-child,
+.presenter-slide-card .presenter-slide-body table td:last-child,
+.presenter-slide-body table td:last-child {
 	border-right: none;
 }
 
-.presenter-slide-body tr:last-child td {
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody tr:last-child td,
+.presenter-slide-card .presenter-slide-body table tbody tr:last-child td,
+.presenter-slide-card .presenter-slide-body table tr:last-child td,
+.presenter-slide-body table tr:last-child td {
 	border-bottom: none;
 }
 
-.presenter-slide-body tbody tr:nth-child(even) {
-	background: color-mix(in srgb, var(--presenter-main-color) 3.5%, transparent);
+/* 奇数行: 白（カードベースカラー） */
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody tr:nth-child(odd),
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody tr:nth-child(odd) td,
+.presenter-slide-card .presenter-slide-body table tbody tr:nth-child(odd),
+.presenter-slide-card .presenter-slide-body table tbody tr:nth-child(odd) td,
+.presenter-slide-body.markdown-rendered table tbody tr:nth-child(odd),
+.presenter-slide-body.markdown-rendered table tbody tr:nth-child(odd) td,
+.presenter-slide-body table tbody tr:nth-child(odd),
+.presenter-slide-body table tbody tr:nth-child(odd) td {
+	background-color: var(--presenter-base-color, #ffffff);
 }
 
-.presenter-slide-body tbody tr:hover {
-	background: color-mix(in srgb, var(--presenter-accent-color) 6%, transparent);
+/* 偶数行: メインカラーを薄めた色（thの6%より薄い2.5%） */
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody tr:nth-child(even),
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody tr:nth-child(even) td,
+.presenter-slide-card .presenter-slide-body table tbody tr:nth-child(even),
+.presenter-slide-card .presenter-slide-body table tbody tr:nth-child(even) td,
+.presenter-slide-body.markdown-rendered table tbody tr:nth-child(even),
+.presenter-slide-body.markdown-rendered table tbody tr:nth-child(even) td,
+.presenter-slide-body table tbody tr:nth-child(even),
+.presenter-slide-body table tbody tr:nth-child(even) td {
+	background-color: color-mix(in srgb, var(--presenter-main-color) 2.5%, var(--presenter-base-color, #ffffff));
+}
+
+/* 行ホバー効果 */
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody tr:hover,
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody tr:hover td,
+.presenter-slide-card .presenter-slide-body table tbody tr:hover,
+.presenter-slide-card .presenter-slide-body table tbody tr:hover td,
+.presenter-slide-body.markdown-rendered table tbody tr:hover,
+.presenter-slide-body.markdown-rendered table tbody tr:hover td,
+.presenter-slide-body table tbody tr:hover,
+.presenter-slide-body table tbody tr:hover td {
+	background-color: color-mix(in srgb, var(--presenter-accent-color) 6%, var(--presenter-base-color, #ffffff));
 	transition: background-color 0.15s ease;
 }
 
