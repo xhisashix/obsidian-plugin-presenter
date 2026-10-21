@@ -23,6 +23,7 @@ const obsidianStubPlugin = {
 				export class Setting {}
 				export class Notice {}
 				export class MarkdownView {}
+				export class Component { load() {} unload() {} }
 				export class TFile {}
 				export class MarkdownRenderer { static render() {} }
 				export function setIcon() {}
