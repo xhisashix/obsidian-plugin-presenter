@@ -12,6 +12,18 @@ import { renderSlide } from './slideRenderer';
 export const MIN_BODY_SCALE = 0.70;
 export const OVERFLOW_TOLERANCE_PX = 4;
 
+export interface SlideOverflowMeasurement {
+	isOverflowing: boolean;
+	overflowRatio: number;
+	optimalScale: number;
+	fittedScale: number;
+	canSplit: boolean;
+	splitHeadingTitle?: string;
+	splitLineOffset?: number;
+}
+
+export type SlideOverflowCache = Map<string, SlideOverflowMeasurement>;
+
 /**
  * Determines whether auto-fitting is enabled based on note frontmatter or plugin settings.
  * Priority: frontmatter `fit` > plugin setting `autoFitOverflow`.
@@ -104,17 +116,17 @@ export function findSplitHeadingInSlide(markdown: string): {
 }
 
 /**
- * Checks a slide for overflow after rendering and creates a SlideOverflowInfo summary.
+ * Measures an individual slide's body element for overflow and returns raw measurement metrics.
  */
-export function assessSlideOverflow(
-	slide: { index: number; title: string; markdown: string; startLine?: number },
+export function measureSlideOverflow(
+	markdown: string,
 	bodyEl: HTMLElement,
 	autoFit: boolean
-): SlideOverflowInfo {
+): SlideOverflowMeasurement {
 	// First measure without scale applied (or reset scale to measure intrinsic overflow)
 	applyContentScale(bodyEl, 1.0);
 	const { isOverflowing, overflowRatio, optimalScale } = calculateOverflow(bodyEl);
-	const { canSplit, splitHeadingTitle, splitLineOffset } = findSplitHeadingInSlide(slide.markdown);
+	const { canSplit, splitHeadingTitle, splitLineOffset } = findSplitHeadingInSlide(markdown);
 
 	let effectiveOverflowing = isOverflowing;
 	let appliedScale = 1.0;
@@ -127,26 +139,87 @@ export function assessSlideOverflow(
 		appliedScale = optimalScale;
 	}
 
+	return {
+		isOverflowing: effectiveOverflowing,
+		overflowRatio,
+		optimalScale,
+		fittedScale: appliedScale,
+		canSplit,
+		splitHeadingTitle,
+		splitLineOffset,
+	};
+}
+
+/**
+ * Creates a SlideOverflowInfo result by combining a slide's positional metadata with measured metrics.
+ */
+export function createSlideOverflowInfo(
+	slide: { index: number; title: string; startLine?: number },
+	measurement: SlideOverflowMeasurement
+): SlideOverflowInfo {
 	const absoluteSplitLine =
-		canSplit && splitLineOffset !== undefined
-			? (slide.startLine ?? 0) + splitLineOffset
+		measurement.canSplit && measurement.splitLineOffset !== undefined
+			? (slide.startLine ?? 0) + measurement.splitLineOffset
 			: undefined;
 
 	return {
 		slideIndex: slide.index,
 		title: slide.title,
-		isOverflowing: effectiveOverflowing,
-		overflowRatio,
-		fittedScale: appliedScale,
-		canSplitByHeading: canSplit,
-		splitHeadingTitle,
-		splitLineOffset,
+		isOverflowing: measurement.isOverflowing,
+		overflowRatio: measurement.overflowRatio,
+		fittedScale: measurement.fittedScale,
+		canSplitByHeading: measurement.canSplit,
+		splitHeadingTitle: measurement.splitHeadingTitle,
+		splitLineOffset: measurement.splitLineOffset,
 		absoluteSplitLine,
 	};
 }
 
 /**
- * Renders and measures all slides of a presentation in an off-screen measurement container.
+ * Checks a slide for overflow after rendering and creates a SlideOverflowInfo summary.
+ */
+export function assessSlideOverflow(
+	slide: { index: number; title: string; markdown: string; startLine?: number },
+	bodyEl: HTMLElement,
+	autoFit: boolean
+): SlideOverflowInfo {
+	const measurement = measureSlideOverflow(slide.markdown, bodyEl, autoFit);
+	return createSlideOverflowInfo(slide, measurement);
+}
+
+/**
+ * Computes a unique cache key for a slide based on its content, per-slide frontmatter, and configuration.
+ */
+export function getSlideOverflowCacheKey(
+	slide: { markdown: string; frontmatter?: SlideFrontmatter },
+	configKey: string
+): string {
+	const fmKey = slide.frontmatter ? JSON.stringify(slide.frontmatter) : '';
+	return `${configKey}::${fmKey}::${slide.markdown}`;
+}
+
+/**
+ * Computes a configuration key reflecting presentation frontmatter and settings that affect layout and sizing.
+ */
+export function getPresentationConfigKey(
+	frontmatter?: SlideFrontmatter,
+	settings?: PresenterSettings,
+	sourcePath?: string
+): string {
+	const fit = isAutoFitEnabled(frontmatter, settings);
+	const theme = frontmatter?.theme ?? 'default';
+	const aspect = frontmatter?.aspectRatio ?? settings?.aspectRatio ?? '16:9';
+	const baseColor = frontmatter?.baseColor ?? settings?.defaultBaseColor ?? '';
+	const mainColor = frontmatter?.mainColor ?? settings?.defaultMainColor ?? '';
+	const accentColor = frontmatter?.accentColor ?? settings?.defaultAccentColor ?? '';
+	return `${theme}|${aspect}|${baseColor}|${mainColor}|${accentColor}|${fit ? 'fit' : 'nofit'}|${sourcePath ?? ''}`;
+}
+
+const MAX_OVERFLOW_CACHE_ENTRIES = 300;
+
+/**
+ * Renders and measures slides of a presentation in an off-screen measurement container.
+ * Supports differential caching to skip re-rendering slides whose content and configuration haven't changed.
  * Returns an array of overflow assessment results for each slide.
  */
 export async function checkPresentationOverflow(
@@ -154,41 +227,69 @@ export async function checkPresentationOverflow(
 	presentation: PresentationData,
 	settings: PresenterSettings,
 	sourcePath: string,
-	component: Component
+	component: Component,
+	cache?: SlideOverflowCache
 ): Promise<SlideOverflowInfo[]> {
 	if (!presentation || presentation.slides.length === 0) {
 		return [];
 	}
 
-	const doc = typeof activeDocument !== 'undefined' ? activeDocument : document;
-	const measureContainer = doc.body.createDiv({
-		cls: 'presenter-measure-container',
-	});
-
+	const configKey = getPresentationConfigKey(
+		presentation.frontmatter,
+		settings,
+		sourcePath
+	);
 	const autoFit = isAutoFitEnabled(presentation.frontmatter, settings);
 	const results: SlideOverflowInfo[] = [];
 
+	let measureContainer: HTMLElement | null = null;
+
 	try {
 		for (const slide of presentation.slides) {
-			measureContainer.empty();
-			const cardEl = await renderSlide(measureContainer, {
-				app,
-				slide,
-				totalSlides: presentation.slides.length,
-				config: presentation.frontmatter,
-				settings,
-				sourcePath,
-				component,
-			});
+			const cacheKey = cache ? getSlideOverflowCacheKey(slide, configKey) : null;
+			let measurement = cacheKey && cache ? cache.get(cacheKey) : undefined;
 
-			const bodyEl = cardEl.querySelector<HTMLElement>('.presenter-slide-body');
-			if (bodyEl) {
-				const info = assessSlideOverflow(slide, bodyEl, autoFit);
-				results.push(info);
+			if (!measurement) {
+				if (!measureContainer) {
+					const doc = typeof activeDocument !== 'undefined' ? activeDocument : document;
+					measureContainer = doc.body.createDiv({
+						cls: 'presenter-measure-container',
+					});
+				}
+				measureContainer.empty();
+				const cardEl = await renderSlide(measureContainer, {
+					app,
+					slide,
+					totalSlides: presentation.slides.length,
+					config: presentation.frontmatter,
+					settings,
+					sourcePath,
+					component,
+				});
+
+				const bodyEl = cardEl.querySelector<HTMLElement>('.presenter-slide-body');
+				if (bodyEl) {
+					measurement = measureSlideOverflow(slide.markdown, bodyEl, autoFit);
+					if (cacheKey && cache) {
+						if (cache.size >= MAX_OVERFLOW_CACHE_ENTRIES) {
+							const oldestKey = cache.keys().next().value;
+							if (oldestKey !== undefined) {
+								cache.delete(oldestKey);
+							}
+						}
+						cache.set(cacheKey, measurement);
+					}
+				}
+			}
+
+			if (measurement) {
+				results.push(createSlideOverflowInfo(slide, measurement));
 			}
 		}
 	} finally {
-		measureContainer.remove();
+		if (measureContainer) {
+			measureContainer.remove();
+		}
 	}
 
 	return results;
