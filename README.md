@@ -19,13 +19,27 @@ Keep your natural note-taking workflow and AI-generated Markdown structure (`# H
   - `## H2`: New slide title and delimiter.
   - `### H3` / `#### H4`: Subsections and column headers within slides.
   - (Explicit slide delimiters using horizontal rules `---` are also supported).
+- **Smart Slide Layouts & Auto-Inference**:
+  - Automatically identifies header-only slides as centered **Section Divider** slides.
+  - Formats single-blockquote slides as elegant **Quote / Big Statement** cards.
+  - Full override support with explicit directives (`<!-- slide: section -->`, `<!-- slide: quote -->`, `<!-- slide: content -->`) and configurable toggle in Settings or frontmatter (`smartLayouts: false`).
 - **Flexible Styling & Color Themes (Settings & Frontmatter)**:
   - Configure default color palettes, headers, footers, and logos in the plugin settings.
   - Zero-configuration required: notes convert to slides instantly, and any property can be overridden per note via frontmatter.
-- **Multi-Column Grid Layouts**:
+- **Multi-Column Grid Layouts & Ratio/Step Options**:
   - Uses standard Markdown-compatible HTML comments (`<!-- columns 2 -->`, `<!-- columns 3 -->`) for cross-platform compatibility.
-  - Comments are invisible in external Markdown viewers (such as GitHub or VS Code), keeping your raw text clean and legible.
-  - Choose between **Card style** (rounded border, background highlight) and **Plain style** (`<!-- columns 2 plain -->`, seamless & transparent).
+  - **Non-uniform column ratios**: Supports `<!-- columns 2:1 -->` (wide diagram on the left, explanation on the right) and `<!-- columns 1:2 -->`.
+  - **Step flow process**: Use `<!-- columns 3 step -->` to format items as progressive sequence cards (`STEP 01`, `STEP 02`...).
+  - Choose between **Card style** and **Plain style** (`<!-- columns 2 plain -->`).
+- **KPI Metrics & Styled Key Takeaway Callouts**:
+  - Standalone bold metrics like `**+140%**` or `**3.5x**` are automatically displayed with prominent accent typography.
+  - Callouts such as `> [!important]`, `> [!tip]`, and `> [!warning]` are styled as impactful conclusion summary cards.
+- **Slide Overview Grid (Slide Sorter)**:
+  - Press `G` or `O` (or click the grid icon on the toolbar) to view a bird's-eye thumbnail grid of all slides, enabling instant jump navigation during Q&A sessions.
+- **Clickable Image & Diagram Zoom (Lightbox)**:
+  - Click any image or Mermaid diagram during a presentation or in exported HTML to zoom in full-screen (`Escape` to close).
+- **One-Click Summary Copy for Sharing**:
+  - Run `Presenter: Copy summary for sharing` from the command palette to copy a structured outline with key takeaways to your clipboard for instant pasting into Slack, Teams, or email.
 - **Automatic Labels & Badges**:
   - Writing `[IMPORTANT]`, `[NOTE]`, or `[STEP 1]` automatically formats text into a visually distinct accent badge.
 - **Full Obsidian Markdown Support**:
@@ -40,6 +54,7 @@ Keep your natural note-taking workflow and AI-generated Markdown structure (`# H
 - **Standalone Portable HTML Export**:
   - Export self-contained, single-file HTML presentations (`<note-name>-presentation.html`) via the command palette.
   - Recipients need only a web browser (no Obsidian or internet connection required) and can switch between **[ 🖥 Slide View ]** and **[ 📄 Handout Document View ]** with a single click.
+  - Includes slide overview drawer (`G` key), `#slide-N` deep-link URL hash synchronization, and lightbox zoom.
 - **High-Quality PDF Export**:
   - Press `Cmd + P` (Mac) or `Ctrl + P` (Windows) inside presentation mode to export high-resolution slide or handout PDFs.
 - **Slide Overflow Detection & Auto-fit**:
@@ -142,8 +157,10 @@ Keep a live slide preview open side-by-side as you write:
 | **First Slide** | `Home` |
 | **Last Slide** | `End` |
 | **Toggle Fullscreen** | `F` |
+| **Slide Overview Grid** | `G` / `O` |
 | **Toggle Speaker Notes** | `N` |
 | **Print / PDF Export** | `P` |
+| **Zoom Image / Diagram** | Click image or Mermaid SVG (`Escape` to close) |
 | **Exit Presentation** | `Escape` |
 
 ---

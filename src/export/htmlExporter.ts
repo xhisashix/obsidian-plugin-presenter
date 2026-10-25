@@ -119,6 +119,24 @@ export async function exportPresentationToHtml(
 			// 1. Render slide markdown
 			const slideDiv = tempContainer.createDiv();
 			await MarkdownRenderer.render(app, slide.markdown, slideDiv, file.path, component);
+			// Wait for any async Mermaid diagram rendering
+			const mermaidEls = slideDiv.querySelectorAll('.mermaid');
+			if (mermaidEls.length > 0) {
+				await Promise.race([
+					new Promise((resolve) => window.setTimeout(resolve, 300)),
+					new Promise<void>((resolve) => {
+						const check = () => {
+							const svgs = slideDiv.querySelectorAll('.mermaid svg');
+							if (svgs.length === mermaidEls.length) {
+								resolve();
+							} else {
+								window.requestAnimationFrame(check);
+							}
+						};
+						check();
+					}),
+				]);
+			}
 			await inlineLocalImages(app, slideDiv, file.path);
 			const bodyHtml = slideDiv.innerHTML;
 
@@ -389,6 +407,97 @@ export async function exportPresentationToHtml(
 			padding-bottom: 8px;
 		}
 
+		/* Section Divider Slide */
+		.presenter-slide-section {
+			justify-content: center;
+			text-align: center;
+		}
+
+		.presenter-slide-section .presenter-slide-body {
+			justify-content: center;
+			align-items: center;
+			text-align: center;
+		}
+
+		.presenter-slide-section h2 {
+			font-size: 44px;
+			font-weight: 800;
+			margin-bottom: 16px;
+			color: var(--presenter-accent-color);
+			border-bottom: none;
+			padding-bottom: 0;
+		}
+
+		.presenter-slide-section p {
+			font-size: 22px;
+			opacity: 0.85;
+			max-width: 800px;
+			margin: 0 auto;
+		}
+
+		/* Quote Slide */
+		.presenter-slide-quote {
+			justify-content: center;
+			text-align: center;
+		}
+
+		.presenter-slide-quote .presenter-slide-body {
+			justify-content: center;
+			align-items: center;
+		}
+
+		.presenter-slide-quote blockquote {
+			border-left: none;
+			background: transparent;
+			padding: 0 40px;
+			font-size: 28px;
+			font-style: italic;
+			line-height: 1.5;
+			position: relative;
+			color: var(--presenter-main-color);
+		}
+
+		.presenter-slide-quote blockquote::before {
+			content: "“";
+			font-size: 72px;
+			line-height: 1;
+			color: var(--presenter-accent-color);
+			opacity: 0.4;
+			display: block;
+			margin-bottom: -24px;
+			font-family: Georgia, serif;
+		}
+
+		/* KPI Metric */
+		.presenter-kpi-value {
+			font-size: 44px;
+			font-weight: 800;
+			color: var(--presenter-accent-color);
+			line-height: 1.1;
+			margin: 12px 0;
+			letter-spacing: -0.02em;
+			text-align: center;
+		}
+
+		/* Callouts */
+		.presenter-slide-body .callout {
+			margin: 14px 0;
+			border-radius: 8px;
+			border-left: 4px solid var(--presenter-accent-color);
+			padding: 12px 16px;
+			background: rgba(0, 0, 0, 0.04);
+		}
+
+		.presenter-slide-body .callout-title {
+			font-weight: 700;
+			font-size: 16px;
+			margin-bottom: 4px;
+		}
+
+		.presenter-slide-body .callout-content {
+			font-size: 15px;
+		}
+
 		.presenter-slide-content h3 {
 			font-size: 24px;
 			font-weight: 600;
@@ -492,14 +601,25 @@ export async function exportPresentationToHtml(
 
 		/* Multi-column grid */
 		.presenter-cols {
-			display: flex;
+			display: grid;
 			gap: 20px;
 			width: 100%;
 			margin: 16px 0;
+			align-items: stretch;
 		}
 
+		.presenter-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+		.presenter-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+		.presenter-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+		.presenter-cols.presenter-cols-ratio-2-1 { grid-template-columns: 2fr 1fr; }
+		.presenter-cols.presenter-cols-ratio-1-2 { grid-template-columns: 1fr 2fr; }
+		.presenter-cols.presenter-cols-ratio-3-1 { grid-template-columns: 3fr 1fr; }
+		.presenter-cols.presenter-cols-ratio-1-3 { grid-template-columns: 1fr 3fr; }
+
 		.presenter-col {
-			flex: 1;
+			display: flex;
+			flex-direction: column;
 			min-width: 0;
 		}
 
@@ -508,6 +628,180 @@ export async function exportPresentationToHtml(
 			border: 1px solid rgba(0, 0, 0, 0.08);
 			border-radius: 8px;
 			padding: 20px;
+		}
+
+		.presenter-cols.presenter-cols-step {
+			counter-reset: presenter-step-counter;
+			position: relative;
+		}
+
+		.presenter-cols.presenter-cols-step .presenter-col {
+			counter-increment: presenter-step-counter;
+			position: relative;
+			padding-top: 36px;
+		}
+
+		.presenter-cols.presenter-cols-step .presenter-col::before {
+			content: "STEP " counter(presenter-step-counter, decimal-leading-zero);
+			position: absolute;
+			top: 10px;
+			left: 18px;
+			font-size: 11px;
+			font-weight: 800;
+			letter-spacing: 0.08em;
+			color: var(--presenter-accent-color);
+			background: rgba(0, 0, 0, 0.06);
+			padding: 2px 8px;
+			border-radius: 4px;
+		}
+
+		/* Lightbox & Overview */
+		.presenter-slide-body img, .presenter-slide-body .mermaid {
+			cursor: zoom-in;
+			transition: transform 0.15s ease;
+		}
+		.presenter-slide-body img:hover, .presenter-slide-body .mermaid:hover {
+			transform: scale(1.015);
+		}
+
+		.presenter-lightbox-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			background: rgba(8, 12, 20, 0.92);
+			backdrop-filter: blur(12px);
+			z-index: 2000;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: zoom-out;
+		}
+
+		.presenter-lightbox-content {
+			max-width: 90vw;
+			max-height: 90vh;
+			object-fit: contain;
+			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+			border-radius: 8px;
+			cursor: default;
+			background: #ffffff;
+			padding: 12px;
+			box-sizing: border-box;
+		}
+
+		.presenter-lightbox-close {
+			position: absolute;
+			top: 24px;
+			right: 24px;
+			color: #ffffff;
+			font-size: 24px;
+			cursor: pointer;
+			opacity: 0.75;
+			transition: opacity 0.15s;
+			width: 44px;
+			height: 44px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 50%;
+			background: rgba(255, 255, 255, 0.12);
+			border: none;
+		}
+
+		.presenter-overview-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			background: rgba(9, 13, 22, 0.96);
+			backdrop-filter: blur(16px);
+			z-index: 1500;
+			display: flex;
+			flex-direction: column;
+			padding: 36px 48px;
+			box-sizing: border-box;
+			overflow-y: auto;
+		}
+
+		.presenter-overview-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 28px;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+			padding-bottom: 16px;
+		}
+
+		.presenter-overview-title {
+			color: #ffffff;
+			font-size: 20px;
+			font-weight: 700;
+			display: flex;
+			align-items: center;
+			gap: 12px;
+		}
+
+		.presenter-overview-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+			gap: 20px;
+			width: 100%;
+		}
+
+		.presenter-overview-thumb {
+			background: #1e293b;
+			border: 2px solid transparent;
+			border-radius: 8px;
+			padding: 16px;
+			cursor: pointer;
+			transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+			display: flex;
+			flex-direction: column;
+			min-height: 140px;
+			position: relative;
+			box-sizing: border-box;
+		}
+
+		.presenter-overview-thumb:hover {
+			transform: translateY(-3px);
+			border-color: var(--presenter-accent-color);
+			box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+		}
+
+		.presenter-overview-thumb.is-active {
+			border-color: var(--presenter-accent-color);
+			box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.4);
+		}
+
+		.presenter-overview-thumb-badge {
+			font-size: 11px;
+			font-weight: 700;
+			color: #94a3b8;
+			margin-bottom: 8px;
+		}
+
+		.presenter-overview-thumb-title {
+			color: #f1f5f9;
+			font-size: 14px;
+			font-weight: 600;
+			line-height: 1.4;
+			flex: 1;
+		}
+
+		.presenter-overview-thumb.is-section {
+			background: rgba(56, 189, 248, 0.1);
+			border: 1px dashed rgba(56, 189, 248, 0.4);
+		}
+
+		.presenter-overview-thumb.is-section .presenter-overview-thumb-title {
+			color: var(--presenter-accent-color);
+			text-align: center;
+			display: flex;
+			align-items: center;
+			justify-content: center;
 		}
 
 		.presenter-slide-footer {
@@ -757,6 +1051,9 @@ export async function exportPresentationToHtml(
 					📄 配布資料（詳細解説）
 				</button>
 			</div>
+			<button id="btn-overview" class="btn-tool" title="Slide overview grid (G)">
+				📑 一覧 / 目次
+			</button>
 			<button id="btn-toggle-notes" class="btn-tool" title="Toggle speaker notes drawer (N)">
 				📝 ノート
 			</button>
@@ -846,6 +1143,43 @@ export async function exportPresentationToHtml(
 		</div>
 	</main>
 
+	<!-- Overview Grid Overlay -->
+	<div id="overview-overlay" class="presenter-overview-overlay" style="display: none;">
+		<div class="presenter-overview-header">
+			<div class="presenter-overview-title">
+				<span>📑 目次・スライド一覧</span>
+				<span class="presenter-overview-thumb-badge" style="font-size: 13px;">${totalSlides} slides</span>
+			</div>
+			<button id="btn-close-overview" class="presenter-lightbox-close">✕</button>
+		</div>
+		<div class="presenter-overview-grid">
+			${renderedSlides
+				.map((slide, idx) => {
+					const isSec = slide.type === 'section';
+					const typeLabel =
+						slide.type === 'cover'
+							? 'TITLE'
+							: isSec
+								? 'SECTION'
+								: slide.type === 'quote'
+									? 'QUOTE'
+									: `SLIDE ${idx + 1}`;
+					return `
+			<div class="presenter-overview-thumb${idx === 0 ? ' is-active' : ''}${isSec ? ' is-section' : ''}" data-index="${idx}">
+				<div class="presenter-overview-thumb-badge">${typeLabel}</div>
+				<div class="presenter-overview-thumb-title">${escapeHtml(slide.title || `Slide ${idx + 1}`)}</div>
+			</div>`;
+				})
+				.join('\n')}
+		</div>
+	</div>
+
+	<!-- Lightbox Overlay -->
+	<div id="lightbox-overlay" class="presenter-lightbox-overlay" style="display: none;">
+		<button id="btn-close-lightbox" class="presenter-lightbox-close">✕</button>
+		<div id="lightbox-container"></div>
+	</div>
+
 	<script>
 		(function() {
 			const total = ${totalSlides};
@@ -865,6 +1199,7 @@ export async function exportPresentationToHtml(
 			const btnModePresentation = document.getElementById('btn-mode-presentation');
 			const btnModeHandout = document.getElementById('btn-mode-handout');
 			const btnToggleNotes = document.getElementById('btn-toggle-notes');
+			const btnOverview = document.getElementById('btn-overview');
 			const btnPrint = document.getElementById('btn-print');
 			const btnPrev = document.getElementById('btn-prev');
 			const btnNext = document.getElementById('btn-next');
@@ -875,7 +1210,18 @@ export async function exportPresentationToHtml(
 			const notesContent = document.getElementById('notes-content');
 			const stageContainer = document.getElementById('stage-container');
 
-			function showSlide(index) {
+			const overviewOverlay = document.getElementById('overview-overlay');
+			const btnCloseOverview = document.getElementById('btn-close-overview');
+			const lightboxOverlay = document.getElementById('lightbox-overlay');
+			const btnCloseLightbox = document.getElementById('btn-close-lightbox');
+			const lightboxContainer = document.getElementById('lightbox-container');
+
+			function getHashIndex() {
+				const m = window.location.hash.match(/#slide-(\\d+)/);
+				return m ? Math.max(0, Math.min(total - 1, parseInt(m[1], 10) - 1)) : 0;
+			}
+
+			function showSlide(index, updateHash = true) {
 				if (index < 0 || index >= total) return;
 				currentIndex = index;
 
@@ -889,6 +1235,11 @@ export async function exportPresentationToHtml(
 							card.classList.remove('active');
 						}
 					}
+				}
+
+				// Update URL hash
+				if (updateHash) {
+					history.replaceState(null, '', '#slide-' + (index + 1));
 				}
 
 				// Update counter & progress
@@ -905,6 +1256,16 @@ export async function exportPresentationToHtml(
 					notesContent.innerHTML = '<span class="notes-empty">No notes for this slide.</span>';
 					btnToggleNotes.style.color = '';
 				}
+
+				// Update overview thumb active state
+				document.querySelectorAll('.presenter-overview-thumb').forEach((el) => {
+					const idx = parseInt(el.getAttribute('data-index'), 10);
+					if (idx === index) {
+						el.classList.add('is-active');
+					} else {
+						el.classList.remove('is-active');
+					}
+				});
 
 				applyScale();
 			}
@@ -929,6 +1290,47 @@ export async function exportPresentationToHtml(
 				setTimeout(applyScale, 50);
 			}
 
+			function toggleOverview() {
+				if (overviewOverlay.style.display === 'none') {
+					overviewOverlay.style.display = 'flex';
+				} else {
+					overviewOverlay.style.display = 'none';
+				}
+			}
+
+			function closeOverview() {
+				overviewOverlay.style.display = 'none';
+			}
+
+			function openLightbox(element) {
+				lightboxContainer.innerHTML = '';
+				if (element.tagName.toLowerCase() === 'img') {
+					const img = document.createElement('img');
+					img.src = element.src;
+					img.alt = element.alt || 'Zoomed diagram';
+					img.className = 'presenter-lightbox-content';
+					lightboxContainer.appendChild(img);
+				} else {
+					const wrapper = document.createElement('div');
+					wrapper.className = 'presenter-lightbox-content';
+					wrapper.innerHTML = element.outerHTML;
+					const svg = wrapper.querySelector('svg');
+					if (svg) {
+						svg.style.maxWidth = '85vw';
+						svg.style.maxHeight = '85vh';
+						svg.style.width = 'auto';
+						svg.style.height = 'auto';
+					}
+					lightboxContainer.appendChild(wrapper);
+				}
+				lightboxOverlay.style.display = 'flex';
+			}
+
+			function closeLightbox() {
+				lightboxOverlay.style.display = 'none';
+				lightboxContainer.innerHTML = '';
+			}
+
 			function setViewMode(mode) {
 				if (mode === 'presentation') {
 					presentationMode.style.display = 'flex';
@@ -936,6 +1338,7 @@ export async function exportPresentationToHtml(
 					btnModePresentation.classList.add('active');
 					btnModeHandout.classList.remove('active');
 					btnToggleNotes.style.display = '';
+					if (btnOverview) btnOverview.style.display = '';
 					applyScale();
 				} else {
 					presentationMode.style.display = 'none';
@@ -943,6 +1346,7 @@ export async function exportPresentationToHtml(
 					btnModePresentation.classList.remove('active');
 					btnModeHandout.classList.add('active');
 					btnToggleNotes.style.display = 'none';
+					if (btnOverview) btnOverview.style.display = 'none';
 				}
 			}
 
@@ -974,15 +1378,70 @@ export async function exportPresentationToHtml(
 			btnPrev.addEventListener('click', prevSlide);
 			btnNext.addEventListener('click', nextSlide);
 			btnToggleNotes.addEventListener('click', toggleNotes);
+			if (btnOverview) btnOverview.addEventListener('click', toggleOverview);
+			if (btnCloseOverview) btnCloseOverview.addEventListener('click', closeOverview);
+			if (btnCloseLightbox) btnCloseLightbox.addEventListener('click', closeLightbox);
+
+			overviewOverlay.addEventListener('click', (e) => {
+				if (e.target === overviewOverlay) closeOverview();
+			});
+
+			lightboxOverlay.addEventListener('click', (e) => {
+				if (e.target === lightboxOverlay) closeLightbox();
+			});
+
+			document.querySelectorAll('.presenter-overview-thumb').forEach((thumb) => {
+				thumb.addEventListener('click', () => {
+					const idx = parseInt(thumb.getAttribute('data-index'), 10);
+					closeOverview();
+					showSlide(idx);
+				});
+			});
+
+			// Image & Mermaid diagram click-to-zoom
+			document.querySelectorAll('.presenter-slide-body').forEach((body) => {
+				body.addEventListener('click', (e) => {
+					const target = e.target;
+					if (!target) return;
+					if (target.tagName.toLowerCase() === 'img') {
+						e.stopPropagation();
+						openLightbox(target);
+						return;
+					}
+					const mermaid = target.closest('.mermaid');
+					if (mermaid) {
+						const svg = mermaid.querySelector('svg');
+						if (svg) {
+							e.stopPropagation();
+							openLightbox(svg);
+						}
+					}
+				});
+			});
+
 			btnModePresentation.addEventListener('click', () => setViewMode('presentation'));
 			btnModeHandout.addEventListener('click', () => setViewMode('handout'));
 			btnFullscreen.addEventListener('click', toggleFullscreen);
 			btnPrint.addEventListener('click', () => window.print());
 
 			window.addEventListener('resize', applyScale);
+			window.addEventListener('hashchange', () => {
+				showSlide(getHashIndex(), false);
+			});
 
 			window.addEventListener('keydown', (e) => {
 				if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+				if (e.key === 'Escape') {
+					if (lightboxOverlay.style.display !== 'none') {
+						closeLightbox();
+						return;
+					}
+					if (overviewOverlay.style.display !== 'none') {
+						closeOverview();
+						return;
+					}
+				}
 
 				switch(e.key) {
 					case 'ArrowRight':
@@ -1015,6 +1474,13 @@ export async function exportPresentationToHtml(
 						e.preventDefault();
 						toggleFullscreen();
 						break;
+					case 'g':
+					case 'G':
+					case 'o':
+					case 'O':
+						e.preventDefault();
+						toggleOverview();
+						break;
 					case 'n':
 					case 'N':
 						e.preventDefault();
@@ -1031,7 +1497,7 @@ export async function exportPresentationToHtml(
 			});
 
 			// Initial Setup
-			showSlide(0);
+			showSlide(getHashIndex(), false);
 		})();
 	</script>
 </body>

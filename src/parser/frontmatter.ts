@@ -83,6 +83,15 @@ export function extractFrontmatter(content: string): {
 					frontmatter.fit = false;
 				}
 				break;
+			case 'smartLayouts':
+			case 'smart-layouts':
+			case 'smartSlideLayouts':
+				if (val === 'true') {
+					frontmatter.smartLayouts = true;
+				} else if (val === 'false') {
+					frontmatter.smartLayouts = false;
+				}
+				break;
 		}
 	}
 

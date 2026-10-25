@@ -1,28 +1,40 @@
 import type { Editor, Plugin } from 'obsidian';
-import type { ColumnStyle } from '../types';
+import type { ColumnRatio, ColumnStyle, ColumnVariant, SlideLayout } from '../types';
 import { ColumnPickerModal } from '../ui/columnPickerModal';
 
 /**
  * Formats the opening HTML comment directive for a multi-column region.
  */
-export function formatColumnsOpenDirective(count: number, style?: ColumnStyle): string {
-	return style ? `<!-- columns ${count} ${style} -->` : `<!-- columns ${count} -->`;
+export function formatColumnsOpenDirective(
+	count: number,
+	style?: ColumnStyle,
+	ratio?: ColumnRatio,
+	variant?: ColumnVariant
+): string {
+	const parts = ['<!-- columns', String(count)];
+	if (ratio) parts.push(ratio);
+	if (style) parts.push(style);
+	if (variant === 'step') parts.push('step');
+	parts.push('-->');
+	return parts.join(' ');
 }
 
 export const COLUMNS_CLOSE_DIRECTIVE = '<!-- /columns -->';
 export const COLUMN_BREAK_DIRECTIVE = '<!-- column -->';
 
 /**
- * Inserts a `<!-- columns N [style] --> ... <!-- /columns -->` block into the editor.
+ * Inserts a `<!-- columns N [ratio] [style] [step] --> ... <!-- /columns -->` block into the editor.
  * - If text is selected, wraps the selection with the opening and closing directives.
  * - If no text is selected, inserts the block and positions the cursor on the blank line inside.
  */
 export function insertColumnBlock(
 	editor: Editor,
 	count: number,
-	style?: ColumnStyle
+	style?: ColumnStyle,
+	ratio?: ColumnRatio,
+	variant?: ColumnVariant
 ): void {
-	const openTag = formatColumnsOpenDirective(count, style);
+	const openTag = formatColumnsOpenDirective(count, style, ratio, variant);
 	const closeTag = COLUMNS_CLOSE_DIRECTIVE;
 	const selection = editor.getSelection();
 
@@ -57,6 +69,30 @@ export function insertColumnBlock(
 	} else {
 		const snippet = `\n${openTag}\n\n${closeTag}`;
 		editor.replaceRange(snippet, {
+			line: cursor.line,
+			ch: currentLineText.length,
+		});
+		editor.setCursor({ line: cursor.line + 2, ch: 0 });
+	}
+}
+
+/**
+ * Inserts an explicit slide layout directive (e.g. `<!-- slide: section -->`).
+ */
+export function insertSlideDirective(editor: Editor, layout: SlideLayout): void {
+	const directive = `<!-- slide: ${layout} -->`;
+	const cursor = editor.getCursor();
+	const currentLineText = editor.getLine(cursor.line);
+
+	if (currentLineText.trim().length === 0) {
+		editor.replaceRange(
+			`${directive}\n`,
+			{ line: cursor.line, ch: 0 },
+			{ line: cursor.line, ch: currentLineText.length }
+		);
+		editor.setCursor({ line: cursor.line + 1, ch: 0 });
+	} else {
+		editor.replaceRange(`\n${directive}\n`, {
 			line: cursor.line,
 			ch: currentLineText.length,
 		});
@@ -109,10 +145,34 @@ export function registerColumnCommands(plugin: Plugin): void {
 	});
 
 	plugin.addCommand({
+		id: 'insert-columns-2-ratio-2-1',
+		name: 'Insert 2-column (2:1 wide left) layout',
+		editorCallback: (editor: Editor) => {
+			insertColumnBlock(editor, 2, undefined, '2:1');
+		},
+	});
+
+	plugin.addCommand({
+		id: 'insert-columns-2-ratio-1-2',
+		name: 'Insert 2-column (1:2 wide right) layout',
+		editorCallback: (editor: Editor) => {
+			insertColumnBlock(editor, 2, undefined, '1:2');
+		},
+	});
+
+	plugin.addCommand({
 		id: 'insert-columns-3',
 		name: 'Insert 3-column layout',
 		editorCallback: (editor: Editor) => {
 			insertColumnBlock(editor, 3);
+		},
+	});
+
+	plugin.addCommand({
+		id: 'insert-columns-3-step',
+		name: 'Insert 3-column step flow layout',
+		editorCallback: (editor: Editor) => {
+			insertColumnBlock(editor, 3, undefined, undefined, 'step');
 		},
 	});
 

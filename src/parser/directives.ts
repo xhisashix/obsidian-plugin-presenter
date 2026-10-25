@@ -1,19 +1,27 @@
-import type { ColumnStyle } from '../types';
+import type { ColumnRatio, ColumnStyle, ColumnVariant, SlideLayout } from '../types';
 
 /**
  * Presenter directives are written as single-line HTML comments so that they stay
  * invisible in every standard Markdown viewer (GitHub, VS Code, Obsidian reading view...).
  *
- *   <!-- columns [N] [card|plain] -->   start a column region
- *   <!-- column -->                     explicit column break
- *   <!-- /columns -->                   end a column region
+ *   <!-- columns [N] [ratio] [card|plain] [step] -->   start a column region
+ *   <!-- column -->                                     explicit column break
+ *   <!-- /columns -->                                   end a column region
+ *   <!-- slide: [section|quote|content|cover] -->       explicit slide layout override
  *
  * A `presenter:` namespace prefix is accepted as an alias, e.g. `<!-- presenter:columns -->`.
  */
 export type Directive =
-	| { kind: 'columns'; count?: number; style?: ColumnStyle }
+	| {
+			kind: 'columns';
+			count?: number;
+			style?: ColumnStyle;
+			ratio?: ColumnRatio;
+			variant?: ColumnVariant;
+	  }
 	| { kind: 'column' }
-	| { kind: 'end-columns' };
+	| { kind: 'end-columns' }
+	| { kind: 'slide'; layout: SlideLayout };
 
 /** Maximum number of grid columns supported by the stylesheet. */
 export const MAX_COLUMNS = 4;
@@ -40,14 +48,44 @@ export function parseDirective(line: string): Directive | null {
 		return args.length === 0 ? { kind: 'column' } : null;
 	}
 
+	if (name === 'slide') {
+		if (args.length !== 1) return null;
+		const target = args[0]!;
+		if (target === 'section' || target === 'lead' || target === 'divider') {
+			return { kind: 'slide', layout: 'section' };
+		}
+		if (target === 'quote' || target === 'statement' || target === 'center') {
+			return { kind: 'slide', layout: 'quote' };
+		}
+		if (target === 'content' || target === 'default' || target === 'normal') {
+			return { kind: 'slide', layout: 'content' };
+		}
+		if (target === 'cover') {
+			return { kind: 'slide', layout: 'cover' };
+		}
+		return null;
+	}
+
 	if (name === 'columns') {
-		const directive: { kind: 'columns'; count?: number; style?: ColumnStyle } = { kind: 'columns' };
+		const directive: {
+			kind: 'columns';
+			count?: number;
+			style?: ColumnStyle;
+			ratio?: ColumnRatio;
+			variant?: ColumnVariant;
+		} = { kind: 'columns' };
+
 		for (const token of args) {
 			if (/^\d+$/.test(token)) {
 				const count = Number(token);
 				if (count >= 1 && count <= MAX_COLUMNS) directive.count = count;
 			} else if (token === 'card' || token === 'plain') {
 				directive.style = token;
+			} else if (token === '2:1' || token === '1:2' || token === '3:1' || token === '1:3') {
+				directive.ratio = token;
+				if (!directive.count) directive.count = 2;
+			} else if (token === 'step' || token === 'steps') {
+				directive.variant = 'step';
 			} else {
 				// Unknown token: treat as an ordinary comment rather than guessing.
 				return null;
