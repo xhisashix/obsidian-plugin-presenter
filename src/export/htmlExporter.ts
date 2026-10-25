@@ -222,6 +222,9 @@ export async function exportPresentationToHtml(
 					📄 配布資料（詳細解説）
 				</button>
 			</div>
+			<button id="btn-overview" class="btn-tool" title="Slide overview grid (G)">
+				📑 一覧 / 目次
+			</button>
 			<button id="btn-toggle-notes" class="btn-tool" title="Toggle speaker notes drawer (N)">
 				📝 ノート
 			</button>

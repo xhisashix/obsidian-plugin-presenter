@@ -642,6 +642,98 @@
 	opacity: 0.85;
 }
 
+/* Section Divider Slide Layout */
+.presenter-slide-section {
+	justify-content: center;
+	text-align: center;
+	background: radial-gradient(circle at center, rgba(120, 120, 120, 0.04) 0%, transparent 70%), var(--presenter-base-color);
+}
+
+.presenter-slide-section .presenter-slide-body {
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+}
+
+.presenter-slide-section .presenter-slide-body h2 {
+	font-size: calc(46px * var(--presenter-body-scale, 1));
+	font-weight: 800;
+	border-bottom: none;
+	color: var(--presenter-accent-color);
+	margin-bottom: calc(16px * var(--presenter-body-scale, 1));
+}
+
+.presenter-slide-section .presenter-slide-body p {
+	font-size: calc(24px * var(--presenter-body-scale, 1));
+	opacity: 0.85;
+	max-width: 800px;
+	margin: 0 auto;
+}
+
+/* Quote / Big Statement Slide Layout */
+.presenter-slide-quote {
+	justify-content: center;
+	text-align: center;
+}
+
+.presenter-slide-quote .presenter-slide-body {
+	justify-content: center;
+	align-items: center;
+}
+
+.presenter-slide-quote .presenter-slide-body blockquote {
+	border-left: none;
+	background: transparent;
+	padding: 0 40px;
+	font-size: calc(28px * var(--presenter-body-scale, 1));
+	font-style: italic;
+	line-height: 1.5;
+	position: relative;
+	color: var(--presenter-main-color);
+}
+
+.presenter-slide-quote .presenter-slide-body blockquote::before {
+	content: "“";
+	font-size: 72px;
+	line-height: 1;
+	color: var(--presenter-accent-color);
+	opacity: 0.4;
+	display: block;
+	margin-bottom: -24px;
+	font-family: Georgia, serif;
+}
+
+/* KPI / Metric styling */
+.presenter-kpi-value {
+	font-size: calc(44px * var(--presenter-body-scale, 1));
+	font-weight: 800;
+	color: var(--presenter-accent-color);
+	line-height: 1.1;
+	margin: calc(10px * var(--presenter-body-scale, 1)) 0;
+	letter-spacing: -0.02em;
+	display: block;
+	text-align: center;
+}
+
+/* Enhanced Callouts in Slide Body */
+.presenter-slide-body .callout {
+	margin: calc(14px * var(--presenter-body-scale, 1)) 0;
+	border-radius: 8px;
+	border-left-width: 4px;
+	padding: calc(12px * var(--presenter-body-scale, 1)) calc(16px * var(--presenter-body-scale, 1));
+	background: rgba(120, 120, 120, 0.05);
+	box-sizing: border-box;
+}
+
+.presenter-slide-body .callout-title {
+	font-weight: 700;
+	font-size: calc(16px * var(--presenter-body-scale, 1));
+}
+
+.presenter-slide-body .callout-content {
+	font-size: calc(15px * var(--presenter-body-scale, 1));
+}
+
 /* 5. Multi-Column Grid Layout */
 .presenter-cols {
 	display: grid;
@@ -661,6 +753,49 @@
 
 .presenter-cols-4 {
 	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* Non-uniform column ratios */
+.presenter-cols.presenter-cols-ratio-2-1 {
+	grid-template-columns: 2fr 1fr;
+}
+
+.presenter-cols.presenter-cols-ratio-1-2 {
+	grid-template-columns: 1fr 2fr;
+}
+
+.presenter-cols.presenter-cols-ratio-3-1 {
+	grid-template-columns: 3fr 1fr;
+}
+
+.presenter-cols.presenter-cols-ratio-1-3 {
+	grid-template-columns: 1fr 3fr;
+}
+
+/* Step flow process layout */
+.presenter-cols.presenter-cols-step {
+	counter-reset: presenter-step-counter;
+	position: relative;
+}
+
+.presenter-cols.presenter-cols-step .presenter-col {
+	counter-increment: presenter-step-counter;
+	position: relative;
+	padding-top: calc(36px * var(--presenter-body-scale, 1));
+}
+
+.presenter-cols.presenter-cols-step .presenter-col::before {
+	content: "STEP " counter(presenter-step-counter, decimal-leading-zero);
+	position: absolute;
+	top: 10px;
+	left: 18px;
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	color: var(--presenter-accent-color);
+	background: rgba(120, 120, 120, 0.08);
+	padding: 2px 8px;
+	border-radius: 4px;
 }
 
 .presenter-col {
@@ -1278,6 +1413,180 @@ h4 .presenter-badge {
 	contain: strict !important;
 	overflow: hidden !important;
 	z-index: -9999 !important;
+}
+
+/* 12. Clickable Image & Mermaid Lightbox */
+.presenter-slide-body img,
+.presenter-slide-body .mermaid {
+	cursor: zoom-in;
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.presenter-slide-body img:hover,
+.presenter-slide-body .mermaid:hover {
+	transform: scale(1.015);
+}
+
+.presenter-lightbox-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background: rgba(8, 12, 20, 0.92);
+	backdrop-filter: blur(12px);
+	z-index: 2000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: zoom-out;
+}
+
+.presenter-lightbox-content {
+	max-width: 90vw;
+	max-height: 90vh;
+	object-fit: contain;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+	border-radius: 8px;
+	cursor: default;
+	background: #ffffff;
+	padding: 12px;
+	box-sizing: border-box;
+}
+
+.presenter-lightbox-svg-wrapper svg {
+	max-width: 85vw;
+	max-height: 85vh;
+	width: auto;
+	height: auto;
+}
+
+.presenter-lightbox-close {
+	position: absolute;
+	top: 24px;
+	right: 24px;
+	color: #ffffff;
+	font-size: 24px;
+	cursor: pointer;
+	opacity: 0.75;
+	transition: opacity 0.15s, background-color 0.15s;
+	width: 44px;
+	height: 44px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.12);
+}
+
+.presenter-lightbox-close:hover {
+	opacity: 1;
+	background: rgba(255, 255, 255, 0.25);
+}
+
+/* 13. Overview Grid (Slide Sorter) Modal */
+.presenter-overview-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background: rgba(9, 13, 22, 0.96);
+	backdrop-filter: blur(16px);
+	z-index: 1500;
+	display: flex;
+	flex-direction: column;
+	padding: 36px 48px;
+	box-sizing: border-box;
+	overflow-y: auto;
+}
+
+.presenter-overview-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 28px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+	padding-bottom: 16px;
+}
+
+.presenter-overview-title {
+	color: #ffffff;
+	font-size: 20px;
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.presenter-overview-count {
+	font-size: 13px;
+}
+
+.presenter-overview-close-btn {
+	position: relative !important;
+	top: 0 !important;
+	right: 0 !important;
+}
+
+.presenter-overview-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+	gap: 20px;
+	width: 100%;
+}
+
+.presenter-overview-thumb {
+	background: #1e293b;
+	border: 2px solid transparent;
+	border-radius: 8px;
+	padding: 16px;
+	cursor: pointer;
+	transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+	display: flex;
+	flex-direction: column;
+	min-height: 140px;
+	position: relative;
+	box-sizing: border-box;
+}
+
+.presenter-overview-thumb:hover {
+	transform: translateY(-3px);
+	border-color: var(--presenter-accent-color, #38bdf8);
+	box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+}
+
+.presenter-overview-thumb.is-active {
+	border-color: var(--presenter-accent-color, #38bdf8);
+	box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.4);
+}
+
+.presenter-overview-thumb-badge {
+	font-size: 11px;
+	font-weight: 700;
+	color: #94a3b8;
+	margin-bottom: 8px;
+}
+
+.presenter-overview-thumb-title {
+	color: #f1f5f9;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.4;
+	flex: 1;
+}
+
+.presenter-overview-thumb.is-section {
+	background: rgba(56, 189, 248, 0.1);
+	border: 1px dashed rgba(56, 189, 248, 0.4);
+}
+
+.presenter-overview-thumb.is-section .presenter-overview-thumb-title {
+	color: var(--presenter-accent-color, #38bdf8);
+	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 

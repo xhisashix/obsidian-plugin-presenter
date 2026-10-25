@@ -1,5 +1,9 @@
 import { type App, type Editor, SuggestModal } from 'obsidian';
-import { insertColumnBlock, insertColumnBreak } from '../commands/insertColumns';
+import {
+	insertColumnBlock,
+	insertColumnBreak,
+	insertSlideDirective,
+} from '../commands/insertColumns';
 
 export interface ColumnPreset {
 	id: string;
@@ -18,11 +22,32 @@ export const COLUMN_PRESETS: ColumnPreset[] = [
 		action: (editor) => insertColumnBlock(editor, 2),
 	},
 	{
+		id: 'cols-2-ratio-2-1',
+		label: '2 columns — 2:1 ratio (wide left)',
+		description: 'Two columns with left column twice as wide (great for diagram + text)',
+		syntaxPreview: '<!-- columns 2 2:1 -->',
+		action: (editor) => insertColumnBlock(editor, 2, undefined, '2:1'),
+	},
+	{
+		id: 'cols-2-ratio-1-2',
+		label: '2 columns — 1:2 ratio (wide right)',
+		description: 'Two columns with right column twice as wide',
+		syntaxPreview: '<!-- columns 2 1:2 -->',
+		action: (editor) => insertColumnBlock(editor, 2, undefined, '1:2'),
+	},
+	{
 		id: 'cols-3',
 		label: '3 columns (default style)',
 		description: 'Three equal columns using the note or plugin default style',
 		syntaxPreview: '<!-- columns 3 -->',
 		action: (editor) => insertColumnBlock(editor, 3),
+	},
+	{
+		id: 'cols-3-step',
+		label: '3 columns — step flow process',
+		description: 'Three step-by-step process cards (STEP 01, STEP 02, STEP 03)',
+		syntaxPreview: '<!-- columns 3 step -->',
+		action: (editor) => insertColumnBlock(editor, 3, undefined, undefined, 'step'),
 	},
 	{
 		id: 'cols-4',
@@ -65,6 +90,27 @@ export const COLUMN_PRESETS: ColumnPreset[] = [
 		description: 'Explicit separator between columns when not splitting by headings',
 		syntaxPreview: '<!-- column -->',
 		action: (editor) => insertColumnBreak(editor),
+	},
+	{
+		id: 'slide-section',
+		label: 'Slide layout: Section divider',
+		description: 'Explicitly mark current slide as an agenda/section divider card',
+		syntaxPreview: '<!-- slide: section -->',
+		action: (editor) => insertSlideDirective(editor, 'section'),
+	},
+	{
+		id: 'slide-quote',
+		label: 'Slide layout: Quote / Big statement',
+		description: 'Explicitly format current slide as a centered prominent quote card',
+		syntaxPreview: '<!-- slide: quote -->',
+		action: (editor) => insertSlideDirective(editor, 'quote'),
+	},
+	{
+		id: 'slide-content',
+		label: 'Slide layout: Normal content',
+		description: 'Explicitly keep normal slide layout (override auto-inference)',
+		syntaxPreview: '<!-- slide: content -->',
+		action: (editor) => insertSlideDirective(editor, 'content'),
 	},
 ];
 

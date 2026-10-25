@@ -1,11 +1,11 @@
-import type { ColumnStyle } from '../types';
+import type { ColumnRatio, ColumnStyle, ColumnVariant } from '../types';
 import { matchAtxHeading } from './blocks';
 import { parseDirective, MAX_COLUMNS } from './directives';
 import { FenceTracker } from './fence';
 
 /**
  * Preprocesses HTML comment column directives:
- *   <!-- columns [N] [card|plain] -->
+ *   <!-- columns [N] [ratio] [card|plain] [step] -->
  *   ...
  *   <!-- column --> (optional)
  *   ...
@@ -23,17 +23,27 @@ export function preprocessColumns(markdown: string, defaultColumnStyle: ColumnSt
 	let inColumns = false;
 	let currentCount: number | undefined;
 	let currentStyle: ColumnStyle = defaultColumnStyle;
+	let currentRatio: ColumnRatio | undefined;
+	let currentVariant: ColumnVariant | undefined;
 	let columnLines: string[] = [];
 
 	const flushColumns = () => {
 		if (!inColumns) return;
 		inColumns = false;
 
-		const rendered = renderColumnRegion(columnLines, currentCount, currentStyle);
+		const rendered = renderColumnRegion(
+			columnLines,
+			currentCount,
+			currentStyle,
+			currentRatio,
+			currentVariant
+		);
 		output.push(rendered);
 		columnLines = [];
 		currentCount = undefined;
 		currentStyle = defaultColumnStyle;
+		currentRatio = undefined;
+		currentVariant = undefined;
 	};
 
 	for (let i = 0; i < lines.length; i++) {
@@ -59,6 +69,8 @@ export function preprocessColumns(markdown: string, defaultColumnStyle: ColumnSt
 				inColumns = true;
 				currentCount = directive.count;
 				currentStyle = directive.style || defaultColumnStyle;
+				currentRatio = directive.ratio;
+				currentVariant = directive.variant;
 				continue;
 			} else if (directive.kind === 'end-columns') {
 				if (inColumns) {
@@ -101,7 +113,9 @@ export function preprocessColumns(markdown: string, defaultColumnStyle: ColumnSt
 function renderColumnRegion(
 	lines: string[],
 	specifiedCount: number | undefined,
-	style: ColumnStyle
+	style: ColumnStyle,
+	ratio?: ColumnRatio,
+	variant?: ColumnVariant
 ): string {
 	const hasExplicitBreaks = lines.some((l) => l === '<!-- presenter:column_break -->');
 	let cols: string[] = [];
@@ -176,9 +190,11 @@ function renderColumnRegion(
 	);
 
 	const styleClass = style === 'plain' ? ' presenter-cols-plain' : ' presenter-cols-card';
+	const ratioClass = ratio ? ` presenter-cols-ratio-${ratio.replace(':', '-')}` : '';
+	const variantClass = variant === 'step' ? ' presenter-cols-step' : '';
 	const colDivs = cols
 		.map((c) => `<div class="presenter-col">\n\n${c}\n\n</div>`)
 		.join('\n');
 
-	return `<div class="presenter-cols presenter-cols-${count}${styleClass}">\n${colDivs}\n</div>`;
+	return `<div class="presenter-cols presenter-cols-${count}${styleClass}${ratioClass}${variantClass}">\n${colDivs}\n</div>`;
 }
