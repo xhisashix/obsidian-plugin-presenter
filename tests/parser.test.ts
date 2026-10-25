@@ -572,7 +572,7 @@ Section overview
 	assert.ok(summary.includes('[重要]**: 締切は来週水曜日まで'));
 });
 
-void test('parsePresentation inherits H2 heading on continuation slides split by thematic breaks', () => {
+void test('parsePresentation inherits H2 heading with 1-1, 1-2, 1-N numbering on multi-slide sections', () => {
 	const markdown = `
 # Main Presentation
 
@@ -594,34 +594,48 @@ void test('parsePresentation inherits H2 heading on continuation slides split by
 
 ## 次のステップ
 - スケジュール
+
+## 課題と対応方針
+内容 1
+
+---
+
+内容 2
 `.trim();
 
 	const presentation = parsePresentation(markdown);
-	assert.equal(presentation.slides.length, 5);
+	assert.equal(presentation.slides.length, 7);
 
 	// Slide 0: Cover
 	assert.equal(presentation.slides[0]?.type, 'cover');
 	assert.equal(presentation.slides[0]?.title, 'Main Presentation');
 
-	// Slide 1: Original H2
-	assert.equal(presentation.slides[1]?.title, 'プロジェクトの進捗状況');
-	assert.ok(presentation.slides[1]?.markdown.includes('## プロジェクトの進捗状況'));
+	// Slide 1: 1st slide of 1st section -> 1-1
+	assert.equal(presentation.slides[1]?.title, 'プロジェクトの進捗状況 1-1');
+	assert.ok(presentation.slides[1]?.markdown.includes('## プロジェクトの進捗状況 1-1'));
 
-	// Slide 2: Continuation slide (inherits heading with default [続き] prefix badge)
-	assert.equal(presentation.slides[2]?.title, '[続き] プロジェクトの進捗状況');
-	assert.ok(presentation.slides[2]?.markdown.includes('presenter-badge'));
-	assert.ok(presentation.slides[2]?.markdown.includes('プロジェクトの進捗状況'));
+	// Slide 2: 2nd slide of 1st section -> 1-2
+	assert.equal(presentation.slides[2]?.title, 'プロジェクトの進捗状況 1-2');
+	assert.ok(presentation.slides[2]?.markdown.startsWith('## プロジェクトの進捗状況 1-2'));
 
-	// Slide 3: 2nd continuation slide (keeps base title without double prefix)
-	assert.equal(presentation.slides[3]?.title, '[続き] プロジェクトの進捗状況');
-	assert.ok(!presentation.slides[3]?.title.includes('[続き] [続き]'));
+	// Slide 3: 3rd slide of 1st section -> 1-3
+	assert.equal(presentation.slides[3]?.title, 'プロジェクトの進捗状況 1-3');
+	assert.ok(presentation.slides[3]?.markdown.startsWith('## プロジェクトの進捗状況 1-3'));
 
-	// Slide 4: New explicit H2 section
+	// Slide 4: Single-slide section (no continuation -> no 1-N numbering)
 	assert.equal(presentation.slides[4]?.title, '次のステップ');
 	assert.ok(presentation.slides[4]?.markdown.includes('## 次のステップ'));
+
+	// Slide 5: 1st slide of 3rd section (multi-slide) -> 3-1
+	assert.equal(presentation.slides[5]?.title, '課題と対応方針 3-1');
+	assert.ok(presentation.slides[5]?.markdown.includes('## 課題と対応方針 3-1'));
+
+	// Slide 6: 2nd slide of 3rd section (multi-slide) -> 3-2
+	assert.equal(presentation.slides[6]?.title, '課題と対応方針 3-2');
+	assert.ok(presentation.slides[6]?.markdown.startsWith('## 課題と対応方針 3-2'));
 });
 
-void test('parsePresentation allows disabling and customizing continuation heading inheritance', () => {
+void test('parsePresentation allows disabling continuation heading numbering', () => {
 	// Case 1: Disabled via options
 	const md1 = `
 # Cover
@@ -635,6 +649,7 @@ Part 1
 Part 2
 `.trim();
 	const pres1 = parsePresentation(md1, { inheritSlideHeadings: false });
+	assert.equal(pres1.slides[1]?.title, 'Section A');
 	assert.equal(pres1.slides[2]?.title, 'Slide 3');
 	assert.ok(!pres1.slides[2]?.markdown.includes('Section A'));
 
@@ -655,43 +670,8 @@ Part 1
 Part 2
 `.trim();
 	const pres2 = parsePresentation(md2);
+	assert.equal(pres2.slides[1]?.title, 'Section B');
 	assert.equal(pres2.slides[2]?.title, 'Slide 3');
-
-	// Case 3: Custom prefix via frontmatter
-	const md3 = `
----
-continuationPrefix: "[Cont.] "
----
-
-# Cover
-
-## Architecture
-
-Part 1
-
----
-
-Part 2
-`.trim();
-	const pres3 = parsePresentation(md3);
-	assert.equal(pres3.slides[2]?.title, '[Cont.] Architecture');
-	assert.ok(pres3.slides[2]?.markdown.includes('<span class="presenter-badge">Cont.</span> Architecture'));
-
-	// Case 4: Custom prefix via options
-	const md4 = `
-# Cover
-
-## Workflow
-
-Part 1
-
----
-
-Part 2
-`.trim();
-	const pres4 = parsePresentation(md4, { headingContinuationPrefix: '↳ ' });
-	assert.equal(pres4.slides[2]?.title, '↳ Workflow');
-	assert.ok(pres4.slides[2]?.markdown.startsWith('## ↳ Workflow'));
 });
 
 void test('parsePresentation does not inherit heading onto quotes or section dividers', () => {

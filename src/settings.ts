@@ -120,19 +120,10 @@ export class PresenterSettingTab extends PluginSettingTab {
 					},
 					{
 						name: 'Inherit section headings on split slides',
-						desc: 'Automatically repeat the preceding H2 heading on continuation slides split by `---` (override with frontmatter `inheritHeadings`).',
+						desc: 'Automatically repeat and number headings on continuation slides split by `---` as `Title 1-1, Title 1-2, ... Title 1-N` (override with frontmatter `inheritHeadings`).',
 						control: {
 							type: 'toggle',
 							key: 'inheritSlideHeadings',
-						},
-					},
-					{
-						name: 'Continuation heading prefix',
-						desc: 'Prefix added to inherited headings on continuation slides (override with frontmatter `continuationPrefix`). Rendered as an accent badge when using `[label]` format (e.g. `[続き] ` or `[Cont.] `).',
-						control: {
-							type: 'text',
-							key: 'headingContinuationPrefix',
-							placeholder: '[続き] ',
 						},
 					},
 				],
@@ -338,25 +329,12 @@ export class PresenterSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Inherit section headings on split slides')
-			.setDesc('Automatically repeat the preceding H2 heading on continuation slides split by `---` (override with frontmatter `inheritHeadings`).')
+			.setDesc('Automatically repeat and number headings on continuation slides split by `---` as `Title 1-1, Title 1-2, ... Title 1-N` (override with frontmatter `inheritHeadings`).')
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.inheritSlideHeadings)
 					.onChange(async (val) => {
 						this.plugin.settings.inheritSlideHeadings = val;
-						await this.plugin.saveSettings();
-					})
-			);
-
-		new Setting(containerEl)
-			.setName('Continuation heading prefix')
-			.setDesc('Prefix added to inherited headings on continuation slides (override with frontmatter `continuationPrefix`). Rendered as an accent badge when using `[label]` format (e.g. `[続き] ` or `[Cont.] `).')
-			.addText((text) =>
-				text
-					.setPlaceholder('[続き] ')
-					.setValue(this.plugin.settings.headingContinuationPrefix)
-					.onChange(async (val) => {
-						this.plugin.settings.headingContinuationPrefix = val;
 						await this.plugin.saveSettings();
 					})
 			);

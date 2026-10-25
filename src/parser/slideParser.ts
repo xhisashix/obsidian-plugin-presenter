@@ -41,10 +41,6 @@ export function parsePresentation(
 	const enableBadges: boolean = options.enableBadges ?? true;
 	const enableSmartLayouts: boolean = options.enableSmartLayouts ?? true;
 	const inheritSlideHeadings: boolean = options.inheritSlideHeadings ?? true;
-	const headingContinuationPrefix: string =
-		options.headingContinuationPrefix ??
-		(options.headingContinuationSuffix !== undefined ? '' : '[続き] ');
-	const headingContinuationSuffix: string = options.headingContinuationSuffix ?? '';
 
 	const { frontmatter, body, frontmatterLines } = extractFrontmatter(rawMarkdown);
 	const resolvedDefaultStyle: ColumnStyle = frontmatter.columnStyle || defaultStyle;
@@ -54,14 +50,6 @@ export function parsePresentation(
 		frontmatter.inheritHeadings !== undefined
 			? frontmatter.inheritHeadings
 			: inheritSlideHeadings;
-	const resolvedContinuationPrefix: string =
-		frontmatter.continuationPrefix !== undefined
-			? frontmatter.continuationPrefix
-			: headingContinuationPrefix;
-	const resolvedContinuationSuffix: string =
-		frontmatter.continuationSuffix !== undefined
-			? frontmatter.continuationSuffix
-			: headingContinuationSuffix;
 	const lines = body.split(/\r?\n/);
 
 	const rawSlides: RawSlide[] = [];
@@ -203,31 +191,83 @@ export function parsePresentation(
 		});
 	}
 
-	// Inherit H2 headings on continuation slides split by '---' when enabled
+	// Inherit and number H2 headings on continuation slides split by '---' when enabled
 	if (resolvedInheritHeadings) {
-		let currentBaseH2Title: string | null = null;
+		interface SectionGroup {
+			sectionIndex: number;
+			baseTitle: string;
+			slides: RawSlide[];
+		}
+
+		const sections: SectionGroup[] = [];
+		let currentSection: SectionGroup | null = null;
+		let sectionCounter = 0;
 
 		for (const slide of rawSlides) {
 			if (slide.type === 'cover') {
 				// Cover slide resets parent section
-				currentBaseH2Title = null;
+				currentSection = null;
+				continue;
+			}
+
+			// Check explicit layout
+			const explicitLayout = findExplicitSlideLayout(slide.lines);
+			const inferred = inferSlideLayout(slide.lines, slide.type, resolvedSmartLayouts);
+			const isSpecialLayout =
+				explicitLayout === 'quote' ||
+				explicitLayout === 'section' ||
+				inferred === 'quote' ||
+				inferred === 'section';
+
+			if (isSpecialLayout) {
+				currentSection = null;
 				continue;
 			}
 
 			if (slide.title) {
-				// Slide has an explicit H2 heading
-				currentBaseH2Title = slide.title;
-			} else if (currentBaseH2Title) {
-				// Continuation slide without its own heading
-				const explicitLayout = findExplicitSlideLayout(slide.lines);
-				if (!explicitLayout || explicitLayout === 'content') {
-					const inferred = inferSlideLayout(slide.lines, slide.type, resolvedSmartLayouts);
-					if (inferred === 'content') {
-						const continuedTitle = `${resolvedContinuationPrefix}${currentBaseH2Title}${resolvedContinuationSuffix}`;
-						slide.title = continuedTitle;
+				// Starts a new H2 section
+				sectionCounter++;
+				currentSection = {
+					sectionIndex: sectionCounter,
+					baseTitle: slide.title,
+					slides: [slide],
+				};
+				sections.push(currentSection);
+			} else if (currentSection) {
+				// Continuation slide belonging to current H2 section
+				currentSection.slides.push(slide);
+			}
+		}
 
-						// Prepend ## continuedTitle to slide lines so it renders in the presentation body
-						// Place after any opening slide directives (e.g. <!-- slide: content -->)
+		// Apply Title 1-1, Title 1-2, ... Title 1-N to multi-slide sections
+		for (const section of sections) {
+			if (section.slides.length > 1) {
+				section.slides.forEach((slide, idx) => {
+					const pageNum = idx + 1;
+					const numberedTitle = `${section.baseTitle} ${section.sectionIndex}-${pageNum}`;
+					slide.title = numberedTitle;
+
+					if (idx === 0) {
+						// Update 1st slide's existing H2 heading in lines
+						let replaced = false;
+						for (let l = 0; l < slide.lines.length; l++) {
+							const heading = matchAtxHeading(slide.lines[l]!);
+							if (heading && heading.level === 2 && heading.text === section.baseTitle) {
+								slide.lines[l] = `## ${numberedTitle}`;
+								replaced = true;
+								break;
+							}
+						}
+						if (!replaced) {
+							for (let l = 0; l < slide.lines.length; l++) {
+								if (slide.lines[l]!.trim() === section.baseTitle) {
+									slide.lines[l] = numberedTitle;
+									break;
+								}
+							}
+						}
+					} else {
+						// Continuation slide (idx >= 1): insert ## numberedTitle at top
 						let insertIdx = 0;
 						while (
 							insertIdx < slide.lines.length &&
@@ -236,9 +276,9 @@ export function parsePresentation(
 							insertIdx++;
 						}
 
-						slide.lines.splice(insertIdx, 0, `## ${continuedTitle}`, '');
+						slide.lines.splice(insertIdx, 0, `## ${numberedTitle}`, '');
 					}
-				}
+				});
 			}
 		}
 	}
