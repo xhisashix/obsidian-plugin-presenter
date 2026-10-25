@@ -127,12 +127,12 @@ export class PresenterSettingTab extends PluginSettingTab {
 						},
 					},
 					{
-						name: 'Continuation heading suffix',
-						desc: 'Suffix appended to inherited headings on continuation slides (override with frontmatter `continuationSuffix`).',
+						name: 'Continuation heading prefix',
+						desc: 'Prefix added to inherited headings on continuation slides (override with frontmatter `continuationPrefix`). Rendered as an accent badge when using `[label]` format (e.g. `[続き] ` or `[Cont.] `).',
 						control: {
 							type: 'text',
-							key: 'headingContinuationSuffix',
-							placeholder: ' (続き)',
+							key: 'headingContinuationPrefix',
+							placeholder: '[続き] ',
 						},
 					},
 				],
@@ -349,14 +349,14 @@ export class PresenterSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName('Continuation heading suffix')
-			.setDesc('Suffix appended to inherited headings on continuation slides (override with frontmatter `continuationSuffix`).')
+			.setName('Continuation heading prefix')
+			.setDesc('Prefix added to inherited headings on continuation slides (override with frontmatter `continuationPrefix`). Rendered as an accent badge when using `[label]` format (e.g. `[続き] ` or `[Cont.] `).')
 			.addText((text) =>
 				text
-					.setPlaceholder(' (続き)')
-					.setValue(this.plugin.settings.headingContinuationSuffix)
+					.setPlaceholder('[続き] ')
+					.setValue(this.plugin.settings.headingContinuationPrefix)
 					.onChange(async (val) => {
-						this.plugin.settings.headingContinuationSuffix = val;
+						this.plugin.settings.headingContinuationPrefix = val;
 						await this.plugin.saveSettings();
 					})
 			);

@@ -41,7 +41,10 @@ export function parsePresentation(
 	const enableBadges: boolean = options.enableBadges ?? true;
 	const enableSmartLayouts: boolean = options.enableSmartLayouts ?? true;
 	const inheritSlideHeadings: boolean = options.inheritSlideHeadings ?? true;
-	const headingContinuationSuffix: string = options.headingContinuationSuffix ?? ' (続き)';
+	const headingContinuationPrefix: string =
+		options.headingContinuationPrefix ??
+		(options.headingContinuationSuffix !== undefined ? '' : '[続き] ');
+	const headingContinuationSuffix: string = options.headingContinuationSuffix ?? '';
 
 	const { frontmatter, body, frontmatterLines } = extractFrontmatter(rawMarkdown);
 	const resolvedDefaultStyle: ColumnStyle = frontmatter.columnStyle || defaultStyle;
@@ -51,6 +54,10 @@ export function parsePresentation(
 		frontmatter.inheritHeadings !== undefined
 			? frontmatter.inheritHeadings
 			: inheritSlideHeadings;
+	const resolvedContinuationPrefix: string =
+		frontmatter.continuationPrefix !== undefined
+			? frontmatter.continuationPrefix
+			: headingContinuationPrefix;
 	const resolvedContinuationSuffix: string =
 		frontmatter.continuationSuffix !== undefined
 			? frontmatter.continuationSuffix
@@ -216,7 +223,7 @@ export function parsePresentation(
 				if (!explicitLayout || explicitLayout === 'content') {
 					const inferred = inferSlideLayout(slide.lines, slide.type, resolvedSmartLayouts);
 					if (inferred === 'content') {
-						const continuedTitle = `${currentBaseH2Title}${resolvedContinuationSuffix}`;
+						const continuedTitle = `${resolvedContinuationPrefix}${currentBaseH2Title}${resolvedContinuationSuffix}`;
 						slide.title = continuedTitle;
 
 						// Prepend ## continuedTitle to slide lines so it renders in the presentation body

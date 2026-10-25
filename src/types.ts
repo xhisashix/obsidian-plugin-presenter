@@ -19,7 +19,7 @@ export interface PresenterSettings {
 	autoFitOverflow: boolean;
 	enableSmartLayouts: boolean;
 	inheritSlideHeadings: boolean;
-	headingContinuationSuffix: string;
+	headingContinuationPrefix: string;
 }
 
 export const DEFAULT_SETTINGS: PresenterSettings = {
@@ -36,7 +36,7 @@ export const DEFAULT_SETTINGS: PresenterSettings = {
 	autoFitOverflow: false,
 	enableSmartLayouts: true,
 	inheritSlideHeadings: true,
-	headingContinuationSuffix: ' (続き)',
+	headingContinuationPrefix: '[続き] ',
 };
 
 export interface SlideFrontmatter {
@@ -52,6 +52,7 @@ export interface SlideFrontmatter {
 	fit?: 'auto' | 'none' | boolean;
 	smartLayouts?: boolean;
 	inheritHeadings?: boolean;
+	continuationPrefix?: string;
 	continuationSuffix?: string;
 }
 
@@ -79,6 +80,7 @@ export interface ParseOptions {
 	enableBadges?: boolean;
 	enableSmartLayouts?: boolean;
 	inheritSlideHeadings?: boolean;
+	headingContinuationPrefix?: string;
 	headingContinuationSuffix?: string;
 }
 

@@ -316,7 +316,7 @@ export class PresenterPreviewView extends ItemView {
 			enableBadges: this.plugin.settings.enableBadges,
 			enableSmartLayouts: this.plugin.settings.enableSmartLayouts,
 			inheritSlideHeadings: this.plugin.settings.inheritSlideHeadings,
-			headingContinuationSuffix: this.plugin.settings.headingContinuationSuffix,
+			headingContinuationPrefix: this.plugin.settings.headingContinuationPrefix,
 		});
 
 		if (this.presentation.slides.length === 0) {

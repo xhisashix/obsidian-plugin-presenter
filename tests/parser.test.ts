@@ -607,14 +607,14 @@ void test('parsePresentation inherits H2 heading on continuation slides split by
 	assert.equal(presentation.slides[1]?.title, 'プロジェクトの進捗状況');
 	assert.ok(presentation.slides[1]?.markdown.includes('## プロジェクトの進捗状況'));
 
-	// Slide 2: Continuation slide (inherits heading with default suffix)
-	assert.equal(presentation.slides[2]?.title, 'プロジェクトの進捗状況 (続き)');
-	assert.ok(presentation.slides[2]?.markdown.startsWith('## プロジェクトの進捗状況 (続き)'));
+	// Slide 2: Continuation slide (inherits heading with default [続き] prefix badge)
+	assert.equal(presentation.slides[2]?.title, '[続き] プロジェクトの進捗状況');
+	assert.ok(presentation.slides[2]?.markdown.includes('presenter-badge'));
+	assert.ok(presentation.slides[2]?.markdown.includes('プロジェクトの進捗状況'));
 
-	// Slide 3: 2nd continuation slide (keeps base title without double suffix)
-	assert.equal(presentation.slides[3]?.title, 'プロジェクトの進捗状況 (続き)');
-	assert.ok(presentation.slides[3]?.markdown.startsWith('## プロジェクトの進捗状況 (続き)'));
-	assert.ok(!presentation.slides[3]?.markdown.includes('(続き) (続き)'));
+	// Slide 3: 2nd continuation slide (keeps base title without double prefix)
+	assert.equal(presentation.slides[3]?.title, '[続き] プロジェクトの進捗状況');
+	assert.ok(!presentation.slides[3]?.title.includes('[続き] [続き]'));
 
 	// Slide 4: New explicit H2 section
 	assert.equal(presentation.slides[4]?.title, '次のステップ');
@@ -657,10 +657,10 @@ Part 2
 	const pres2 = parsePresentation(md2);
 	assert.equal(pres2.slides[2]?.title, 'Slide 3');
 
-	// Case 3: Custom suffix via frontmatter
+	// Case 3: Custom prefix via frontmatter
 	const md3 = `
 ---
-continuationSuffix: " (cont.)"
+continuationPrefix: "[Cont.] "
 ---
 
 # Cover
@@ -674,10 +674,10 @@ Part 1
 Part 2
 `.trim();
 	const pres3 = parsePresentation(md3);
-	assert.equal(pres3.slides[2]?.title, 'Architecture (cont.)');
-	assert.ok(pres3.slides[2]?.markdown.startsWith('## Architecture (cont.)'));
+	assert.equal(pres3.slides[2]?.title, '[Cont.] Architecture');
+	assert.ok(pres3.slides[2]?.markdown.includes('<span class="presenter-badge">Cont.</span> Architecture'));
 
-	// Case 4: Custom suffix via options
+	// Case 4: Custom prefix via options
 	const md4 = `
 # Cover
 
@@ -689,8 +689,9 @@ Part 1
 
 Part 2
 `.trim();
-	const pres4 = parsePresentation(md4, { headingContinuationSuffix: ' [Part 2]' });
-	assert.equal(pres4.slides[2]?.title, 'Workflow [Part 2]');
+	const pres4 = parsePresentation(md4, { headingContinuationPrefix: '↳ ' });
+	assert.equal(pres4.slides[2]?.title, '↳ Workflow');
+	assert.ok(pres4.slides[2]?.markdown.startsWith('## ↳ Workflow'));
 });
 
 void test('parsePresentation does not inherit heading onto quotes or section dividers', () => {

@@ -101,6 +101,11 @@ export function extractFrontmatter(content: string): {
 					frontmatter.inheritHeadings = false;
 				}
 				break;
+			case 'continuationPrefix':
+			case 'continuation-prefix':
+			case 'headingContinuationPrefix':
+				frontmatter.continuationPrefix = val;
+				break;
 			case 'continuationSuffix':
 			case 'continuation-suffix':
 			case 'headingContinuationSuffix':
