@@ -104,7 +104,7 @@ void test('resolveLogoDataUrl handles external URLs, data URLs, and vault files'
 	);
 });
 
-void test('getExportStyles generates CSS with provided colors and dimensions', () => {
+void test('getExportStyles generates CSS with provided colors, dimensions, and layout features', () => {
 	const css = getExportStyles({
 		baseColor: '#123456',
 		mainColor: '#abcdef',
@@ -118,6 +118,22 @@ void test('getExportStyles generates CSS with provided colors and dimensions', (
 	assert.match(css, /--presenter-accent-color:\s*#fe5722/);
 	assert.match(css, /--slide-width:\s*1920px/);
 	assert.match(css, /--slide-height:\s*1080px/);
+
+	// Verify step flow layout styling
+	assert.match(css, /\.presenter-cols\.presenter-cols-step/);
+	assert.match(css, /counter-reset:\s*presenter-step-counter/);
+	assert.match(css, /STEP\s*"\s*counter\(presenter-step-counter/);
+
+	// Verify column ratios and plain style
+	assert.match(css, /\.presenter-cols-ratio-2-1/);
+	assert.match(css, /\.presenter-cols-ratio-1-2/);
+	assert.match(css, /\.presenter-cols-plain/);
+
+	// Verify KPI, callout, and smart layouts
+	assert.match(css, /\.presenter-kpi-value/);
+	assert.match(css, /\.callout/);
+	assert.match(css, /\.presenter-slide-section/);
+	assert.match(css, /\.presenter-slide-quote/);
 });
 
 void test('getExportScript includes total slide count and client logic', () => {
