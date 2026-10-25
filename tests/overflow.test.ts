@@ -6,8 +6,14 @@ import {
 	applyContentScale,
 	assessSlideOverflow,
 	calculateOverflow,
+	createSlideOverflowInfo,
 	findSplitHeadingInSlide,
+	getPresentationConfigKey,
+	getSlideOverflowCacheKey,
 	isAutoFitEnabled,
+	measureSlideOverflow,
+	type SlideOverflowCache,
+	type SlideOverflowMeasurement,
 } from '../src/ui/overflow';
 import { extractFrontmatter } from '../src/parser/frontmatter';
 import { DEFAULT_SETTINGS, type PresenterSettings } from '../src/types';
@@ -196,4 +202,88 @@ void test('assessSlideOverflow computes absolute split line and auto-fit scale',
 	const infoFit = assessSlideOverflow(slide, mockFittingBodyEl, true);
 	assert.equal(infoFit.isOverflowing, false); // Successfully resolved by auto-fit!
 	assert.equal(infoFit.fittedScale, 0.83);
+});
+
+void test('measureSlideOverflow and createSlideOverflowInfo separate measurement from slide index', () => {
+	const styles = new Map<string, string>();
+	const classes = new Set<string>();
+
+	const mockBodyEl = {
+		scrollHeight: 600,
+		clientHeight: 500,
+		style: {
+			setProperty: (k: string, v: string) => styles.set(k, v),
+			removeProperty: (k: string) => styles.delete(k),
+		},
+		addClass: (cls: string) => classes.add(cls),
+		removeClass: (cls: string) => classes.delete(cls),
+	} as unknown as HTMLElement;
+
+	const markdown = '### Title 1\nContent 1\n### Title 2\nContent 2';
+	const measurement = measureSlideOverflow(markdown, mockBodyEl, false);
+
+	assert.equal(measurement.isOverflowing, true);
+	assert.equal(measurement.overflowRatio, 1.2);
+	assert.equal(measurement.fittedScale, 1.0);
+	assert.equal(measurement.canSplit, true);
+	assert.equal(measurement.splitHeadingTitle, 'Title 2');
+	assert.equal(measurement.splitLineOffset, 2);
+
+	// Reusing measurement for slide at line 10
+	const info1 = createSlideOverflowInfo(
+		{ index: 0, title: 'Slide 1', startLine: 10 },
+		measurement
+	);
+	assert.equal(info1.slideIndex, 0);
+	assert.equal(info1.absoluteSplitLine, 12); // 10 + 2
+
+	// Reusing same measurement when slide shifted to line 40
+	const info2 = createSlideOverflowInfo(
+		{ index: 3, title: 'Slide 4', startLine: 40 },
+		measurement
+	);
+	assert.equal(info2.slideIndex, 3);
+	assert.equal(info2.absoluteSplitLine, 42); // 40 + 2
+});
+
+void test('getPresentationConfigKey and getSlideOverflowCacheKey produce deterministic keys', () => {
+	const configKey1 = getPresentationConfigKey(
+		{ theme: 'dark', aspectRatio: '16:9', fit: 'auto' },
+		DEFAULT_SETTINGS,
+		'notes/sample.md'
+	);
+	const configKey2 = getPresentationConfigKey(
+		{ theme: 'dark', aspectRatio: '16:9', fit: true },
+		DEFAULT_SETTINGS,
+		'notes/sample.md'
+	);
+	assert.equal(configKey1, configKey2);
+
+	const slide1 = { markdown: '# Slide 1\nHello', frontmatter: { baseColor: '#ff0000' } };
+	const slide2 = { markdown: '# Slide 1\nHello', frontmatter: { baseColor: '#ff0000' } };
+	const slideDiff = { markdown: '# Slide 1\nHello', frontmatter: { baseColor: '#00ff00' } };
+
+	const key1 = getSlideOverflowCacheKey(slide1, configKey1);
+	const key2 = getSlideOverflowCacheKey(slide2, configKey1);
+	const keyDiff = getSlideOverflowCacheKey(slideDiff, configKey1);
+
+	assert.equal(key1, key2);
+	assert.notEqual(key1, keyDiff);
+});
+
+void test('SlideOverflowCache can store and retrieve cached measurements across runs', () => {
+	const cache: SlideOverflowCache = new Map();
+	const dummyMeasurement: SlideOverflowMeasurement = {
+		isOverflowing: false,
+		overflowRatio: 1.0,
+		optimalScale: 1.0,
+		fittedScale: 1.0,
+		canSplit: false,
+	};
+
+	const key = 'test-cache-key';
+	cache.set(key, dummyMeasurement);
+
+	assert.equal(cache.has(key), true);
+	assert.deepEqual(cache.get(key), dummyMeasurement);
 });

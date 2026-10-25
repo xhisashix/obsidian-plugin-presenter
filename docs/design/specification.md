@@ -61,6 +61,7 @@ accentColor: "#e11d48"
 | `aspectRatio` | Aspect ratio | `"16:9"` \| `"4:3"` | `"16:9"` | スライドの画面アスペクト比 |
 | `columnStyle` | Default column style | `"card"` \| `"plain"` | `"card"` | カラムレイアウトの基本スタイル |
 | `fit` (または `presenter-fit`) | Auto-fit overflowing slides | `"auto"` \| `"none"` \| boolean | `false` | カード枠からはみ出たスライドの文字・余白を自動縮小（下限70%）するか |
+| `smartLayouts` | Enable smart slide layouts | boolean | `true` | 見出しのみの中扉や引用スライド、KPI数値を自動推論してスタイリングするか |
 | - | Show notes by default | boolean | `false` | プレゼン開始時に発表者ノートドロワーをデフォルト展開するか |
 | - | Enable label badges | boolean | `true` | `[重要]` などの角括弧ラベルを視覚的バッジとして自動装飾するか |
 
@@ -321,4 +322,43 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
   `JumpToSlideModal` 内の候補一覧で、はみ出しが発生しているスライドのタイトルの横に `⚠` バッジを付与。
 - **コマンドパレット**:
   `Presenter: Check slide overflow`（`check-overflow`）からいつでも即時検査が可能。
+
+---
+
+## 11. スマートスライドレイアウト仕様 (Smart Slide Layouts Specification)
+
+### 11.1 優先順位ルール
+1. **最高優先（明示的指示子）**: スライド内に `<!-- slide: section -->`, `<!-- slide: quote -->`, `<!-- slide: content -->` がある場合、設定のON/OFFに関わらず強制適用。
+2. **自動推論（設定 `enableSmartLayouts: true` 時）**:
+   - `section`（中扉）: H2見出しのみで本文を持たないスライドを自動検知し、中央配置・アクセントタイトルの章扉デザインとして描画。
+   - `quote`（引用・ビッグメッセージ）: H2見出し＋単一の引用ブロック（`> ...`）で構成されるスライドを中央大文字の引用デザインとして描画。
+   - `KPIメトリクス`: 単独行の太字数値（`**+140%**`, `**3.5x**` 等）を自動検知し、`.presenter-kpi-value`（44pxアクセントカラー）で強調表示。
+3. **フォールバック**: 設定OFFかつ明示コメント未指定時は、すべてのスライドを標準の `content` レイアウトとして描画。
+
+---
+
+## 12. 非均等カラム比率 & ステップフロー仕様
+
+### 12.1 非均等カラム比率 (`<!-- columns 2:1 -->` 等)
+- `<!-- columns 2:1 -->`: 左カラム幅 2fr、右カラム幅 1fr の黄金比グリッドを生成（図＋解説に最適）。
+- `<!-- columns 1:2 -->`: 右カラムを広めに確保。
+- `card` / `plain` スタイルとも併用可能（例: `<!-- columns 2:1 plain -->`）。
+
+### 12.2 ステップフロー (`<!-- columns 3 step -->`)
+- `<!-- columns 3 step -->` または `<!-- columns 4 step -->`:
+- 各カラム上部に `STEP 01`, `STEP 02`... のアクセントインジケーターを自動生成し、手順やフェーズ進行を直感的に図解。
+
+---
+
+## 13. スライド俯瞰グリッド・Lightbox・サマリー共有仕様
+
+### 13.1 スライド俯瞰グリッド (Overview Grid / Slide Sorter)
+- プレゼン中に `G` または `O` キー、あるいはツールバーのグリッドボタンを押すと、全スライドのサムネイルカードを全画面一覧表示。
+- 章扉（`section`）はアクセント枠で区別され、クリックしたスライドへ即座に移動可能。
+
+### 13.2 クリック拡大 (Lightbox)
+- プレゼン中および配布HTML上で、画像（`<img>`）またはMermaid図（`.mermaid`）をクリックすると、画面中央に拡大表示。`Escape` または背景クリックで元のスライドに復帰。
+
+### 13.3 共有用エグゼクティブサマリーコピー (`Presenter: Copy summary for sharing`)
+- プレゼンタイトル、章・各スライド構成番号、および結論Callout（`> [!important]`）や重要バッジ（`[重要]`）を抽出した構造化テキストをクリップボードにコピー。Slackやメールでの共有を瞬時に行えます。
 

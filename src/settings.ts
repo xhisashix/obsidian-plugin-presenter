@@ -110,6 +110,14 @@ export class PresenterSettingTab extends PluginSettingTab {
 							key: 'autoFitOverflow',
 						},
 					},
+					{
+						name: 'Enable smart slide layouts',
+						desc: 'Automatically infer section divider and quote layouts from Markdown structure (override with frontmatter `smartLayouts` or `<!-- slide: [layout] -->`).',
+						control: {
+							type: 'toggle',
+							key: 'enableSmartLayouts',
+						},
+					},
 				],
 			},
 			{
@@ -295,6 +303,18 @@ export class PresenterSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.autoFitOverflow)
 					.onChange(async (val) => {
 						this.plugin.settings.autoFitOverflow = val;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName('Enable smart slide layouts')
+			.setDesc('Automatically infer section divider and quote layouts from Markdown structure (override with frontmatter `smartLayouts` or `<!-- slide: [layout] -->`).')
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.enableSmartLayouts)
+					.onChange(async (val) => {
+						this.plugin.settings.enableSmartLayouts = val;
 						await this.plugin.saveSettings();
 					})
 			);

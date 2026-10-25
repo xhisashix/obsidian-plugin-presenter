@@ -6,6 +6,7 @@ import {
 	type WorkspaceLeaf,
 } from 'obsidian';
 import { registerColumnCommands } from './commands/insertColumns';
+import { registerSummaryCommand } from './commands/exportSummary';
 import { exportPresentationToHtml } from './export/htmlExporter';
 import { parsePresentation } from './parser/slideParser';
 import { PresenterSettingTab } from './settings';
@@ -110,6 +111,9 @@ export default class PresenterPlugin extends Plugin {
 		// Register column insertion commands (for command palette & hotkeys)
 		registerColumnCommands(this);
 
+		// Register sharing summary export command
+		registerSummaryCommand(this);
+
 		// Register editor tab header action button
 		this.registerViewActions();
 
@@ -213,6 +217,7 @@ export default class PresenterPlugin extends Plugin {
 			const presentation = parsePresentation(content, {
 				defaultColumnStyle: this.settings.defaultColumnStyle,
 				enableBadges: this.settings.enableBadges,
+				enableSmartLayouts: this.settings.enableSmartLayouts,
 			});
 
 			if (presentation.slides.length === 0) {
@@ -269,6 +274,7 @@ export default class PresenterPlugin extends Plugin {
 			const presentation = parsePresentation(content, {
 				defaultColumnStyle: this.settings.defaultColumnStyle,
 				enableBadges: this.settings.enableBadges,
+				enableSmartLayouts: this.settings.enableSmartLayouts,
 			});
 			if (presentation.slides.length === 0) {
 				new Notice('No slide content found in this note.');
@@ -331,6 +337,7 @@ export default class PresenterPlugin extends Plugin {
 			const presentation = parsePresentation(content, {
 				defaultColumnStyle: this.settings.defaultColumnStyle,
 				enableBadges: this.settings.enableBadges,
+				enableSmartLayouts: this.settings.enableSmartLayouts,
 			});
 
 			if (presentation.slides.length === 0) {

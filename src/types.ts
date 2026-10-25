@@ -1,4 +1,9 @@
 export type ColumnStyle = 'card' | 'plain';
+export type ColumnRatio = '2:1' | '1:2' | '3:1' | '1:3';
+export type ColumnVariant = 'normal' | 'step';
+
+export type SlideLayout = 'cover' | 'content' | 'section' | 'quote';
+export type SlideType = SlideLayout;
 
 export interface PresenterSettings {
 	defaultBaseColor: string;
@@ -12,6 +17,7 @@ export interface PresenterSettings {
 	showNotes: boolean;
 	enableBadges: boolean;
 	autoFitOverflow: boolean;
+	enableSmartLayouts: boolean;
 }
 
 export const DEFAULT_SETTINGS: PresenterSettings = {
@@ -26,6 +32,7 @@ export const DEFAULT_SETTINGS: PresenterSettings = {
 	showNotes: false,
 	enableBadges: true,
 	autoFitOverflow: false,
+	enableSmartLayouts: true,
 };
 
 export interface SlideFrontmatter {
@@ -39,15 +46,15 @@ export interface SlideFrontmatter {
 	theme?: string;
 	columnStyle?: ColumnStyle;
 	fit?: 'auto' | 'none' | boolean;
+	smartLayouts?: boolean;
 }
-
-export type SlideType = 'cover' | 'content';
 
 export const VIEW_TYPE_PRESENTER_PREVIEW = 'presenter-preview-view';
 
 export interface SlideData {
 	index: number;
 	type: SlideType;
+	layout?: SlideLayout;
 	title: string;
 	markdown: string;
 	notes?: string;
@@ -64,6 +71,7 @@ export interface PresentationData {
 export interface ParseOptions {
 	defaultColumnStyle?: ColumnStyle;
 	enableBadges?: boolean;
+	enableSmartLayouts?: boolean;
 }
 
 export interface SlideOverflowInfo {

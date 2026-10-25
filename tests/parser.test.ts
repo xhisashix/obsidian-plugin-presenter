@@ -6,12 +6,18 @@ import {
 	insertColumnBlock,
 	insertColumnBreak,
 } from '../src/commands/insertColumns';
+import { extractPresentationSummary } from '../src/commands/exportSummary';
 import { FenceTracker } from '../src/parser/fence';
 import { parseDirective } from '../src/parser/directives';
 import { preprocessColumns } from '../src/parser/columns';
 import { preprocessBadges } from '../src/parser/badges';
 import { extractSlideNotes } from '../src/parser/notes';
-import { parsePresentation, getSlideIndexAtLine } from '../src/parser/slideParser';
+import {
+	parsePresentation,
+	getSlideIndexAtLine,
+	inferSlideLayout,
+	preprocessKpi,
+} from '../src/parser/slideParser';
 
 void test('FenceTracker tracks 3-backtick, 4-backtick, and tilde fences accurately', () => {
 	const tracker = new FenceTracker();
@@ -48,7 +54,7 @@ void test('FenceTracker tracks 3-backtick, 4-backtick, and tilde fences accurate
 	assert.equal(tracker.inFence, false);
 });
 
-void test('parseDirective handles columns, column, and end-columns', () => {
+void test('parseDirective handles columns, column, end-columns, ratios, steps, and slide layouts', () => {
 	assert.deepEqual(parseDirective('<!-- columns 2 card -->'), {
 		kind: 'columns',
 		count: 2,
@@ -59,6 +65,40 @@ void test('parseDirective handles columns, column, and end-columns', () => {
 		kind: 'columns',
 		count: 3,
 		style: 'plain',
+	});
+
+	assert.deepEqual(parseDirective('<!-- columns 2:1 plain -->'), {
+		kind: 'columns',
+		count: 2,
+		ratio: '2:1',
+		style: 'plain',
+	});
+
+	assert.deepEqual(parseDirective('<!-- columns 3 step card -->'), {
+		kind: 'columns',
+		count: 3,
+		variant: 'step',
+		style: 'card',
+	});
+
+	assert.deepEqual(parseDirective('<!-- slide: section -->'), {
+		kind: 'slide',
+		layout: 'section',
+	});
+
+	assert.deepEqual(parseDirective('<!-- slide: quote -->'), {
+		kind: 'slide',
+		layout: 'quote',
+	});
+
+	assert.deepEqual(parseDirective('<!-- slide: content -->'), {
+		kind: 'slide',
+		layout: 'content',
+	});
+
+	assert.deepEqual(parseDirective('<!-- slide lead -->'), {
+		kind: 'slide',
+		layout: 'section',
 	});
 
 	assert.deepEqual(parseDirective('<!-- presenter:columns -->'), {
@@ -119,6 +159,79 @@ Second text without heading
 	assert.ok(output.includes('<div class="presenter-cols presenter-cols-2 presenter-cols-plain">'));
 	assert.ok(output.includes('First text without heading'));
 	assert.ok(output.includes('Second text without heading'));
+});
+
+void test('preprocessColumns supports ratio and step variants', () => {
+	const markdown = `
+<!-- columns 2:1 plain -->
+### Left Wide
+Big diagram
+### Right Narrow
+Explanation
+<!-- /columns -->
+
+<!-- columns 3 step card -->
+### Step 1
+Start
+### Step 2
+Process
+### Step 3
+Finish
+<!-- /columns -->
+`.trim();
+
+	const output = preprocessColumns(markdown, 'card');
+	assert.ok(output.includes('presenter-cols-2 presenter-cols-plain presenter-cols-ratio-2-1'));
+	assert.ok(output.includes('presenter-cols-3 presenter-cols-card presenter-cols-step'));
+});
+
+void test('inferSlideLayout correctly identifies section dividers, quotes, and respects overrides', () => {
+	// 1. Section divider: H2 only
+	const sectionLines = ['## Section 1: Overview'];
+	assert.equal(inferSlideLayout(sectionLines, 'content', true), 'section');
+
+	// 2. Explicit section directive
+	const sectionExplicit = ['<!-- slide: section -->', '## Section 2: Architecture', 'Core architectural concepts.'];
+	assert.equal(inferSlideLayout(sectionExplicit, 'content', true), 'section');
+
+	// 3. Normal content: H2 + bullet points
+	const contentLines = ['## Features', '- Feature A', '- Feature B'];
+	assert.equal(inferSlideLayout(contentLines, 'content', true), 'content');
+
+	// 4. Quote slide: H2 + blockquote
+	const quoteLines = ['## Mission', '> To accelerate knowledge sharing across all teams.'];
+	assert.equal(inferSlideLayout(quoteLines, 'content', true), 'quote');
+
+	// 5. Explicit directive override
+	const explicitLines = ['<!-- slide: content -->', '## Section Only Title'];
+	assert.equal(inferSlideLayout(explicitLines, 'content', true), 'content');
+
+	const explicitQuote = ['<!-- slide: quote -->', '## Regular Heading', 'Some regular text'];
+	assert.equal(inferSlideLayout(explicitQuote, 'content', true), 'quote');
+
+	// 6. When smartLayouts is disabled, fallback to content
+	assert.equal(inferSlideLayout(sectionLines, 'content', false), 'content');
+});
+
+void test('preprocessKpi transforms bold metric lines into styled kpi blocks', () => {
+	const md = `
+## Metrics
+
+**+142%**
+YoY Revenue Growth
+
+**3.5x**
+Performance gain
+`.trim();
+
+	const output = preprocessKpi(md, true);
+	assert.ok(output.includes('<div class="presenter-kpi-value">+142%</div>'));
+	assert.ok(output.includes('<div class="presenter-kpi-value">3.5x</div>'));
+	assert.ok(output.includes('YoY Revenue Growth'));
+
+	// When disabled, raw text is untouched unless explicit <!-- kpi --> is used
+	const outputDisabled = preprocessKpi(md, false);
+	assert.ok(outputDisabled.includes('**+142%**'));
 });
 
 void test('preprocessColumns ignores legacy ::: syntax (does not convert them)', () => {
@@ -269,7 +382,7 @@ void test('sample-presentation.md parses correctly with all slides and columns i
 	const presentation = parsePresentation(content);
 
 	assert.equal(presentation.title, 'Obsidian Presenter');
-	assert.equal(presentation.slides.length, 9);
+	assert.equal(presentation.slides.length, 11);
 	assert.equal(presentation.slides[0]?.type, 'cover');
 
 	// Verify columns in slide 2
@@ -286,6 +399,17 @@ void test('sample-presentation.md parses correctly with all slides and columns i
 	const plainSlide = presentation.slides.find((s) => s.title === 'プレーンスタイル（背景色なし）のマルチカラム');
 	assert.ok(plainSlide);
 	assert.ok(plainSlide.markdown.includes('presenter-cols presenter-cols-2 presenter-cols-plain'));
+
+	// Verify 2:1 ratio and step in slide 7
+	const ratioSlide = presentation.slides.find((s) => s.title === '非均等カラム比率とステップフロー');
+	assert.ok(ratioSlide);
+	assert.ok(ratioSlide.markdown.includes('presenter-cols-ratio-2-1'));
+	assert.ok(ratioSlide.markdown.includes('presenter-cols-step'));
+
+	// Verify KPI in slide 8
+	const kpiSlide = presentation.slides.find((s) => s.title === 'KPI数値と重要サマリー');
+	assert.ok(kpiSlide);
+	assert.ok(kpiSlide.markdown.includes('presenter-kpi-value'));
 });
 
 void test('getSlideIndexAtLine maps line numbers correctly', () => {
@@ -408,5 +532,43 @@ void test('insertColumnBreak inserts <!-- column --> and advances cursor to next
 	insertColumnBreak(mockNonEmpty.editor);
 	assert.equal(mockNonEmpty.getDoc(), 'Left paragraph\n<!-- column -->\n');
 	assert.deepEqual(mockNonEmpty.getCursorPos(), { line: 2, ch: 0 });
+});
+
+void test('formatColumnsOpenDirective formats count, style, ratio, and step variant', () => {
+	assert.equal(formatColumnsOpenDirective(2), '<!-- columns 2 -->');
+	assert.equal(formatColumnsOpenDirective(2, 'card'), '<!-- columns 2 card -->');
+	assert.equal(formatColumnsOpenDirective(2, 'plain', '2:1'), '<!-- columns 2 2:1 plain -->');
+	assert.equal(formatColumnsOpenDirective(3, 'card', undefined, 'step'), '<!-- columns 3 card step -->');
+});
+
+void test('extractPresentationSummary produces structured outline with takeaways', () => {
+	const md = `
+# Q4 Strategy Pitch
+
+## Agenda
+Section overview
+
+## Section 1: Growth
+<!-- slide: section -->
+
+## Performance
+- Point 1
+> [!important] 30% reduction in lead time
+
+## Metrics
+- [重要] 締切は来週水曜日まで
+`.trim();
+
+	const presentation = parsePresentation(md);
+	const summary = extractPresentationSummary(presentation);
+
+	assert.ok(summary.includes('# Q4 Strategy Pitch'));
+	assert.ok(summary.includes('1. 【Cover】 Q4 Strategy Pitch'));
+	assert.ok(summary.includes('2. Agenda'));
+	assert.ok(summary.includes('3. 【Section】 Section 1: Growth'));
+	assert.ok(summary.includes('4. Performance'));
+	assert.ok(summary.includes('5. Metrics'));
+	assert.ok(summary.includes('30% reduction in lead time'));
+	assert.ok(summary.includes('[重要]**: 締切は来週水曜日まで'));
 });
 

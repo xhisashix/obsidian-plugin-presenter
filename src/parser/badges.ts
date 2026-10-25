@@ -55,6 +55,8 @@ export function preprocessBadges(markdown: string, enableBadges = true): string 
 					if (/^[\s\txX]$/.test(label)) return fullMatch;
 					// Skip footnote reference: starts with ^
 					if (label.startsWith('^')) return fullMatch;
+					// Skip Callout tags: starts with !
+					if (label.startsWith('!')) return fullMatch;
 					// Skip if this label matches an existing link definition in the document
 					if (definedLinkLabels.has(normalizeLabel(trimmedLabel))) return fullMatch;
 

@@ -12,10 +12,17 @@ import type {
 	PresenterSettings,
 	SlideOverflowInfo,
 } from '../types';
-import { JumpToSlideModal } from './jumpModal';
 import { renderSlide, renderSlideNotes } from './slideRenderer';
 import { checkPresentationOverflow } from './overflow';
-import { OverflowReportModal } from './overflowReportModal';
+import { attachLightboxListeners, LightboxOverlay } from './lightbox';
+import { OverviewGridModal } from './overviewGridModal';
+import {
+	applyStageScale,
+	createToolbarNavControls,
+	openSlideJumpModal,
+	openSlideOverflowModal,
+	updateOverflowButton,
+} from './stageHelpers';
 
 export class PresenterModal extends Modal {
 	presentation: PresentationData;
@@ -36,6 +43,8 @@ export class PresenterModal extends Modal {
 	private keyHandler!: (e: KeyboardEvent) => void;
 	private resizeObserver!: ResizeObserver;
 	private component: Component;
+	private lightbox = new LightboxOverlay();
+	private isRenderingSlide = false;
 
 	constructor(
 		app: App,
@@ -78,9 +87,8 @@ export class PresenterModal extends Modal {
 		// 4. Floating Navigation Toolbar
 		this.buildToolbar(contentEl);
 
-		// 5. Hidden Container for Multi-Page PDF Printing
+		// 5. Hidden Container for Multi-Page PDF Printing (populated on-demand when printing)
 		this.printContainerEl = contentEl.createDiv({ cls: 'presenter-print-container' });
-		void this.preparePrintSlides('slides');
 
 		// 6. Setup Keyboard Navigation
 		this.setupKeyEvents();
@@ -119,47 +127,22 @@ export class PresenterModal extends Modal {
 	private buildToolbar(parentEl: HTMLElement) {
 		const toolbarEl = parentEl.createDiv({ cls: 'presenter-toolbar' });
 
-		// Prev Button
-		const prevBtn = toolbarEl.createEl('button', {
-			cls: 'presenter-toolbar-btn',
-			attr: { 'aria-label': 'Previous slide (left arrow)' },
+		const { counterButtonEl, overflowBtn } = createToolbarNavControls(toolbarEl, {
+			initialCounterText: `1 / ${this.presentation.slides.length}`,
+			prevLabel: 'Previous slide (left arrow)',
+			nextLabel: 'Next slide (right arrow / space)',
+			counterLabel: 'Slide index',
+			onPrev: () => {
+				void this.prevSlide();
+			},
+			onNext: () => {
+				void this.nextSlide();
+			},
+			onJump: () => this.promptJump(),
+			onOverflowClick: () => this.openOverflowReport(),
 		});
-		setIcon(prevBtn, 'chevron-left');
-		prevBtn.onclick = () => {
-			void this.prevSlide();
-		};
-
-		// Slide Counter / Jump
-		this.counterButtonEl = toolbarEl.createEl('button', {
-			cls: 'presenter-toolbar-counter',
-			text: `1 / ${this.presentation.slides.length}`,
-			attr: { 'aria-label': 'Slide index' },
-		});
-		this.counterButtonEl.onclick = () => this.promptJump();
-
-		// Next Button
-		const nextBtn = toolbarEl.createEl('button', {
-			cls: 'presenter-toolbar-btn',
-			attr: { 'aria-label': 'Next slide (right arrow / space)' },
-		});
-		setIcon(nextBtn, 'chevron-right');
-		nextBtn.onclick = () => {
-			void this.nextSlide();
-		};
-
-		// Slide overflow inspection button
-		this.overflowBtn = toolbarEl.createEl('button', {
-			cls: 'presenter-toolbar-overflow-btn is-hidden',
-			attr: { 'aria-label': 'Slide overflow inspection' },
-		});
-		setIcon(this.overflowBtn, 'alert-triangle');
-		this.overflowBtn.createSpan({ cls: 'presenter-toolbar-overflow-count', text: '0' });
-		this.overflowBtn.onclick = () => {
-			this.openOverflowReport();
-		};
-
-		// Separator
-		toolbarEl.createDiv({ cls: 'presenter-toolbar-sep' });
+		this.counterButtonEl = counterButtonEl;
+		this.overflowBtn = overflowBtn;
 
 		// Speaker Notes Toggle
 		this.notesBtn = toolbarEl.createEl('button', {
@@ -168,6 +151,14 @@ export class PresenterModal extends Modal {
 		});
 		setIcon(this.notesBtn, 'file-text');
 		this.notesBtn.onclick = () => this.toggleNotes();
+
+		// Slide Overview Grid (Slide Sorter)
+		const overviewBtn = toolbarEl.createEl('button', {
+			cls: 'presenter-toolbar-btn',
+			attr: { 'aria-label': 'Slide overview grid (g)' },
+		});
+		setIcon(overviewBtn, 'layout-grid');
+		overviewBtn.onclick = () => this.openOverviewGrid();
 
 		// Fullscreen Toggle
 		const fsBtn = toolbarEl.createEl('button', {
@@ -231,15 +222,22 @@ export class PresenterModal extends Modal {
 		const slide = this.presentation.slides[index];
 		if (!slide) return;
 
-		await renderSlide(this.stageEl, {
-			app: this.app,
-			slide,
-			totalSlides: total,
-			config: this.presentation.frontmatter,
-			settings: this.settings,
-			sourcePath: this.sourcePath,
-			component: this.component,
-		});
+		this.isRenderingSlide = true;
+		try {
+			await renderSlide(this.stageEl, {
+				app: this.app,
+				slide,
+				totalSlides: total,
+				config: this.presentation.frontmatter,
+				settings: this.settings,
+				sourcePath: this.sourcePath,
+				component: this.component,
+			});
+		} finally {
+			this.isRenderingSlide = false;
+		}
+
+		attachLightboxListeners(this.stageEl, this.lightbox);
 
 		// Update Speaker Notes
 		await this.updateNotesContent(slide);
@@ -282,9 +280,19 @@ export class PresenterModal extends Modal {
 	}
 
 	private async printPresentation(mode: 'slides' | 'handout') {
-		new Notice(`Preparing ${mode === 'handout' ? 'handouts with notes' : 'slides'} for printing...`);
-		await this.preparePrintSlides(mode);
-		window.print();
+		const notice = new Notice(
+			`Preparing ${mode === 'handout' ? 'handouts with notes' : 'slides'} for printing...`,
+			0
+		);
+		try {
+			await this.preparePrintSlides(mode);
+			notice.hide();
+			window.print();
+		} catch (err) {
+			notice.hide();
+			console.error('Failed to prepare slides for printing:', err);
+			new Notice('Failed to prepare slides for printing. Check console for details.');
+		}
 	}
 
 	private async preparePrintSlides(mode: 'slides' | 'handout' = 'slides') {
@@ -370,6 +378,13 @@ export class PresenterModal extends Modal {
 					e.preventDefault();
 					this.toggleFullscreen();
 					break;
+				case 'g':
+				case 'G':
+				case 'o':
+				case 'O':
+					e.preventDefault();
+					this.openOverviewGrid();
+					break;
 				case 'n':
 				case 'N':
 					e.preventDefault();
@@ -396,26 +411,12 @@ export class PresenterModal extends Modal {
 	}
 
 	private applySlideScale() {
-		const cardEl = this.stageEl.querySelector<HTMLElement>('.presenter-slide-card');
-		if (!cardEl) return;
-
-		const stageWidth = this.stageEl.clientWidth - 40; // padding
-		const stageHeight = this.stageEl.clientHeight - 40;
-
-		const aspectRatio =
-			this.presentation.frontmatter.aspectRatio || this.settings.aspectRatio || '16:9';
-		const targetRatio = aspectRatio === '4:3' ? 4 / 3 : 16 / 9;
-
-		const baseWidth = 1280;
-		const baseHeight = baseWidth / targetRatio;
-
-		const scaleX = stageWidth / baseWidth;
-		const scaleY = stageHeight / baseHeight;
-		const scale = Math.min(scaleX, scaleY, 1.5); // cap at 1.5x
-
-		cardEl.style.width = `${baseWidth}px`;
-		cardEl.style.height = `${baseHeight}px`;
-		cardEl.style.transform = `scale(${Math.max(scale, 0.2)})`;
+		if (this.isRenderingSlide) return;
+		applyStageScale(this.stageEl, this.stageEl, {
+			aspectRatio: this.presentation.frontmatter.aspectRatio || this.settings.aspectRatio,
+			padding: 40,
+			minScale: 0.2,
+		});
 	}
 
 	private async nextSlide() {
@@ -431,17 +432,14 @@ export class PresenterModal extends Modal {
 	}
 
 	private promptJump() {
-		const overflowingIndices = new Set(
-			this.overflowReports.filter((r) => r.isOverflowing).map((r) => r.slideIndex)
-		);
-		new JumpToSlideModal(
+		openSlideJumpModal(
 			this.app,
 			this.presentation.slides.length,
+			this.overflowReports,
 			(index) => {
 				void this.showSlide(index);
-			},
-			overflowingIndices
-		).open();
+			}
+		);
 	}
 
 	private async runOverflowCheck() {
@@ -454,39 +452,22 @@ export class PresenterModal extends Modal {
 				this.component
 			);
 			this.overflowReports = reports;
-			this.updateOverflowBtn(reports);
+			updateOverflowButton(this.overflowBtn, reports);
 		} catch (err) {
 			console.error('Failed to check slide overflow:', err);
 		}
 	}
 
-	private updateOverflowBtn(reports: SlideOverflowInfo[]) {
-		const overflowing = reports.filter((r) => r.isOverflowing);
-		if (overflowing.length > 0) {
-			this.overflowBtn.removeClass('is-hidden');
-			const countSpan = this.overflowBtn.querySelector('.presenter-toolbar-overflow-count');
-			if (countSpan) {
-				countSpan.setText(String(overflowing.length));
-			}
-			this.overflowBtn.setAttribute(
-				'aria-label',
-				`${overflowing.length} slide(s) overflow card boundaries. Click to inspect.`
-			);
-		} else {
-			this.overflowBtn.addClass('is-hidden');
-		}
-	}
-
 	private openOverflowReport() {
 		const file = this.app.vault.getAbstractFileByPath(this.sourcePath);
-		new OverflowReportModal(
+		openSlideOverflowModal(
 			this.app,
 			this.overflowReports,
 			file instanceof TFile ? file : null,
 			(slideIndex) => {
 				void this.showSlide(slideIndex);
 			}
-		).open();
+		);
 	}
 
 	private toggleFullscreen() {
@@ -501,7 +482,18 @@ export class PresenterModal extends Modal {
 		}
 	}
 
+	private openOverviewGrid() {
+		new OverviewGridModal(
+			this.presentation.slides,
+			this.currentIndex,
+			(index) => {
+				void this.showSlide(index);
+			}
+		).open();
+	}
+
 	onClose() {
+		this.lightbox.close();
 		window.removeEventListener('keydown', this.keyHandler);
 		if (this.resizeObserver) {
 			this.resizeObserver.disconnect();

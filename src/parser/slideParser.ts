@@ -4,12 +4,14 @@ import { preprocessBadges } from './badges';
 import { preprocessColumns } from './columns';
 import { FenceTracker } from './fence';
 import { extractFrontmatter } from './frontmatter';
+import { inferSlideLayout, preprocessKpi } from './layoutInference';
 import { extractSlideNotes } from './notes';
 
 export { extractFrontmatter } from './frontmatter';
 export { preprocessColumns } from './columns';
 export { preprocessBadges } from './badges';
 export { extractSlideNotes } from './notes';
+export { inferSlideLayout, preprocessKpi, findExplicitSlideLayout } from './layoutInference';
 
 interface RawSlide {
 	type: SlideType;
@@ -37,9 +39,12 @@ export function parsePresentation(
 
 	const defaultStyle: ColumnStyle = options.defaultColumnStyle || 'card';
 	const enableBadges: boolean = options.enableBadges ?? true;
+	const enableSmartLayouts: boolean = options.enableSmartLayouts ?? true;
 
 	const { frontmatter, body, frontmatterLines } = extractFrontmatter(rawMarkdown);
 	const resolvedDefaultStyle: ColumnStyle = frontmatter.columnStyle || defaultStyle;
+	const resolvedSmartLayouts: boolean =
+		frontmatter.smartLayouts !== undefined ? frontmatter.smartLayouts : enableSmartLayouts;
 	const lines = body.split(/\r?\n/);
 
 	const rawSlides: RawSlide[] = [];
@@ -181,15 +186,18 @@ export function parsePresentation(
 		});
 	}
 
-	// Map to SlideData, extract notes, preprocess columns and badges
+	// Map to SlideData, extract notes, preprocess columns, kpi, and badges
 	const slides: SlideData[] = rawSlides.map((s, idx) => {
 		const { bodyLines, notesMarkdown } = extractSlideNotes(s.lines);
 		const columnProcessed = preprocessColumns(bodyLines.join('\n'), resolvedDefaultStyle);
-		const badgeProcessed = preprocessBadges(columnProcessed, enableBadges);
+		const kpiProcessed = preprocessKpi(columnProcessed, resolvedSmartLayouts);
+		const badgeProcessed = preprocessBadges(kpiProcessed, enableBadges);
+		const layout = inferSlideLayout(s.lines, s.type, resolvedSmartLayouts);
 
 		return {
 			index: idx,
-			type: s.type,
+			type: layout,
+			layout,
 			title: s.title || (s.type === 'cover' ? 'Title' : `Slide ${idx + 1}`),
 			markdown: badgeProcessed,
 			notes: notesMarkdown ? preprocessBadges(notesMarkdown, enableBadges) : undefined,

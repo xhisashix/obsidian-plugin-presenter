@@ -14,6 +14,7 @@ import {
 	calculateOverflow,
 	isAutoFitEnabled,
 } from './overflow';
+import { getSlideDimensions } from './stageHelpers';
 
 export interface RenderSlideOptions {
 	app: App;
@@ -77,9 +78,7 @@ export async function renderSlide(
 	const logoUrl = resolveLogoUrl(app, logoInput, sourcePath);
 
 	const aspectRatio = config.aspectRatio || settings.aspectRatio || '16:9';
-	const targetRatio = aspectRatio === '4:3' ? 4 / 3 : 16 / 9;
-	const baseWidth = 1280;
-	const baseHeight = baseWidth / targetRatio;
+	const { width: baseWidth, height: baseHeight } = getSlideDimensions(aspectRatio);
 
 	const slideCardEl = targetEl.createDiv({
 		cls: `presenter-slide-card presenter-slide-${slide.type}`,
@@ -93,20 +92,22 @@ export async function renderSlide(
 	slideCardEl.style.setProperty('--presenter-main-color', mainColor);
 	slideCardEl.style.setProperty('--presenter-accent-color', accentColor);
 
-	// 1. Header (Logo & Header Text)
-	const headerEl = slideCardEl.createDiv({ cls: 'presenter-slide-header' });
-	const headerTitleEl = headerEl.createDiv({ cls: 'presenter-header-title' });
-	if (headerText) {
-		headerTitleEl.setText(headerText);
-	}
+	// 1. Header (Logo & Header Text) - only render if present
+	if (headerText || logoUrl) {
+		const headerEl = slideCardEl.createDiv({ cls: 'presenter-slide-header' });
+		if (headerText) {
+			const headerTitleEl = headerEl.createDiv({ cls: 'presenter-header-title' });
+			headerTitleEl.setText(headerText);
+		}
 
-	if (logoUrl) {
-		const logoContainer = headerEl.createDiv({ cls: 'presenter-header-logo' });
-		const logoImg = logoContainer.createEl('img', {
-			cls: 'presenter-logo-image',
-			attr: { alt: 'Presentation Logo' },
-		});
-		logoImg.src = logoUrl;
+		if (logoUrl) {
+			const logoContainer = headerEl.createDiv({ cls: 'presenter-header-logo' });
+			const logoImg = logoContainer.createEl('img', {
+				cls: 'presenter-logo-image',
+				attr: { alt: 'Presentation Logo' },
+			});
+			logoImg.src = logoUrl;
+		}
 	}
 
 	// 2. Body / Content Area (Rendered via Obsidian MarkdownRenderer)
@@ -122,6 +123,10 @@ export async function renderSlide(
 		sourcePath,
 		component
 	);
+
+	// Wait for asynchronous diagram blocks (such as Mermaid) to complete SVG rendering
+	// so that text measurements and node dimensions are accurate before scaling or auto-fit
+	await waitForEmbeddedDiagrams(bodyEl);
 
 	// Check and apply auto-fit if enabled
 	if (isAutoFitEnabled(config, settings)) {
@@ -161,4 +166,29 @@ export async function renderSlideNotes(
 	const notesEl = targetEl.createDiv({ cls: 'presenter-notes-rendered markdown-rendered' });
 	await MarkdownRenderer.render(app, markdown, notesEl, sourcePath, component);
 	return notesEl;
+}
+
+/**
+ * Waits for asynchronous code block processors (like Mermaid diagrams) to finish inserting their SVGs
+ * into the DOM so that text bounding boxes are measured at unscaled 100% dimensions without distortion.
+ */
+export async function waitForEmbeddedDiagrams(container: HTMLElement, timeoutMs = 800): Promise<void> {
+	const mermaidBlocks = container.querySelectorAll('.block-language-mermaid');
+	if (mermaidBlocks.length === 0) return;
+
+	const startTime = Date.now();
+	while (Date.now() - startTime < timeoutMs) {
+		let allRendered = true;
+		for (const block of Array.from(mermaidBlocks)) {
+			if (!block.querySelector('svg')) {
+				allRendered = false;
+				break;
+			}
+		}
+		if (allRendered) {
+			await new Promise((resolve) => window.setTimeout(resolve, 30));
+			return;
+		}
+		await new Promise((resolve) => window.setTimeout(resolve, 30));
+	}
 }

@@ -77,11 +77,33 @@
 	--presenter-main-color: #1e293b;
 	--presenter-accent-color: #2563eb;
 
+	/* Obsidian Table CSS Variables Override (Neutralizes external theme variables) */
+	--table-background: transparent;
+	--table-border-width: 1px;
+	--table-border-color: color-mix(in srgb, var(--presenter-main-color) 16%, transparent);
+	--table-header-background: color-mix(in srgb, var(--presenter-main-color) 6%, transparent);
+	--table-header-background-hover: color-mix(in srgb, var(--presenter-main-color) 9%, transparent);
+	--table-header-color: var(--presenter-main-color);
+	--table-header-border-width: 2px;
+	--table-header-border-color: var(--presenter-accent-color);
+	--table-column-first-background: transparent;
+	--table-column-alt-background: transparent;
+	--table-text-color: var(--presenter-main-color);
+	--table-row-background: var(--presenter-base-color, #ffffff);
+	--table-row-alt-background: color-mix(in srgb, var(--presenter-main-color) 2.5%, transparent);
+	--table-row-background-hover: color-mix(in srgb, var(--presenter-accent-color) 6%, transparent);
+
+	/* Obsidian List CSS Variables Override */
+	--list-indent: 24px;
+	--list-indent-editing: 24px;
+	--list-spacing: 2px;
+	--list-item-spacing: 2px;
+
 	background-color: var(--presenter-base-color);
 	color: var(--presenter-main-color);
 	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
 	border-radius: 12px;
-	padding: 44px 64px;
+	padding: 28px 48px;
 	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
@@ -97,13 +119,17 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	min-height: 38px;
-	margin-bottom: 20px;
+	min-height: 22px;
+	margin-bottom: 10px;
 	border-bottom: 1px solid rgba(120, 120, 120, 0.15);
-	padding-bottom: 8px;
-	font-size: 14px;
+	padding-bottom: 4px;
+	font-size: 13px;
 	color: var(--presenter-main-color);
 	opacity: 0.75;
+}
+
+.presenter-slide-header:empty {
+	display: none;
 }
 
 .presenter-header-title {
@@ -117,8 +143,8 @@
 }
 
 .presenter-logo-image {
-	max-height: 32px;
-	max-width: 150px;
+	max-height: 20px;
+	max-width: 120px;
 	object-fit: contain;
 }
 
@@ -142,20 +168,20 @@
 }
 
 .presenter-slide-body h1 {
-	font-size: calc(48px * var(--presenter-body-scale, 1));
+	font-size: calc(44px * var(--presenter-body-scale, 1));
 	font-weight: 800;
 	line-height: 1.2;
-	margin: 0 0 calc(20px * var(--presenter-body-scale, 1)) 0;
+	margin: 0 0 calc(16px * var(--presenter-body-scale, 1)) 0;
 	color: var(--presenter-accent-color);
 }
 
 .presenter-slide-body h2 {
-	font-size: calc(36px * var(--presenter-body-scale, 1));
+	font-size: calc(32px * var(--presenter-body-scale, 1));
 	font-weight: 700;
 	line-height: 1.25;
-	margin: 0 0 calc(24px * var(--presenter-body-scale, 1)) 0;
-	padding-bottom: calc(12px * var(--presenter-body-scale, 1));
-	border-bottom: 4px solid var(--presenter-accent-color);
+	margin: 0 0 calc(14px * var(--presenter-body-scale, 1)) 0;
+	padding-bottom: calc(6px * var(--presenter-body-scale, 1));
+	border-bottom: 3px solid var(--presenter-accent-color);
 }
 
 .presenter-slide-body h3 {
@@ -170,19 +196,73 @@
 	margin: calc(14px * var(--presenter-body-scale, 1)) 0 calc(6px * var(--presenter-body-scale, 1)) 0;
 }
 
-.presenter-slide-body p,
+.presenter-slide-card .presenter-slide-body.markdown-rendered p,
+.presenter-slide-card .presenter-slide-body p,
+.presenter-slide-body.markdown-rendered p,
+.presenter-slide-body p {
+	font-size: calc(20px * var(--presenter-body-scale, 1));
+	line-height: calc(1.5 * var(--presenter-body-scale, 1));
+	margin: calc(4px * var(--presenter-body-scale, 1)) 0;
+	margin-block-start: calc(4px * var(--presenter-body-scale, 1));
+	margin-block-end: calc(4px * var(--presenter-body-scale, 1));
+}
+
+.presenter-slide-card .presenter-slide-body.markdown-rendered li,
+.presenter-slide-card .presenter-slide-body li,
+.presenter-slide-body.markdown-rendered li,
 .presenter-slide-body li {
 	font-size: calc(20px * var(--presenter-body-scale, 1));
-	line-height: calc(1.6 * var(--presenter-body-scale, 1));
-	margin: calc(8px * var(--presenter-body-scale, 1)) 0;
+	line-height: calc(1.45 * var(--presenter-body-scale, 1));
+	margin: calc(2px * var(--presenter-body-scale, 1)) 0;
+	margin-block-start: calc(2px * var(--presenter-body-scale, 1));
+	margin-block-end: calc(2px * var(--presenter-body-scale, 1));
 }
 
+.presenter-slide-card .presenter-slide-body.markdown-rendered ul,
+.presenter-slide-card .presenter-slide-body.markdown-rendered ol,
+.presenter-slide-card .presenter-slide-body ul,
+.presenter-slide-card .presenter-slide-body ol,
+.presenter-slide-body.markdown-rendered ul,
+.presenter-slide-body.markdown-rendered ol,
 .presenter-slide-body ul,
 .presenter-slide-body ol {
-	padding-left: calc(28px * var(--presenter-body-scale, 1));
-	margin: calc(12px * var(--presenter-body-scale, 1)) 0;
+	padding-left: calc(24px * var(--presenter-body-scale, 1));
+	padding-inline-start: calc(24px * var(--presenter-body-scale, 1));
+	margin: calc(3px * var(--presenter-body-scale, 1)) 0 calc(5px * var(--presenter-body-scale, 1)) 0;
+	margin-block-start: calc(3px * var(--presenter-body-scale, 1));
+	margin-block-end: calc(5px * var(--presenter-body-scale, 1));
 }
 
+.presenter-slide-card .presenter-slide-body.markdown-rendered li > ul,
+.presenter-slide-card .presenter-slide-body.markdown-rendered li > ol,
+.presenter-slide-card .presenter-slide-body li > ul,
+.presenter-slide-card .presenter-slide-body li > ol,
+.presenter-slide-body.markdown-rendered li > ul,
+.presenter-slide-body.markdown-rendered li > ol,
+.presenter-slide-body li > ul,
+.presenter-slide-body li > ol {
+	padding-left: calc(16px * var(--presenter-body-scale, 1));
+	padding-inline-start: calc(16px * var(--presenter-body-scale, 1));
+	margin: 0;
+	margin-block-start: 0;
+	margin-block-end: 0;
+}
+
+.presenter-slide-card .presenter-slide-body.markdown-rendered li > ul > li,
+.presenter-slide-card .presenter-slide-body.markdown-rendered li > ol > li,
+.presenter-slide-card .presenter-slide-body li > ul > li,
+.presenter-slide-card .presenter-slide-body li > ol > li,
+.presenter-slide-body.markdown-rendered li > ul > li,
+.presenter-slide-body.markdown-rendered li > ol > li,
+.presenter-slide-body li > ul > li,
+.presenter-slide-body li > ol > li {
+	margin: calc(1px * var(--presenter-body-scale, 1)) 0;
+	margin-block-start: calc(1px * var(--presenter-body-scale, 1));
+	margin-block-end: calc(1px * var(--presenter-body-scale, 1));
+}
+
+.presenter-slide-card .presenter-slide-body.markdown-rendered li::marker,
+.presenter-slide-card .presenter-slide-body li::marker,
 .presenter-slide-body li::marker {
 	color: var(--presenter-accent-color);
 }
@@ -202,6 +282,12 @@
 	font-style: italic;
 }
 
+/* --------------------------------------------------------------------------
+   Table Styles (Scoped strictly to override theme defaults without !important)
+   -------------------------------------------------------------------------- */
+.presenter-slide-card .presenter-slide-body.markdown-rendered table,
+.presenter-slide-card .presenter-slide-body table,
+.presenter-slide-body.markdown-rendered table,
 .presenter-slide-body table {
 	width: 100%;
 	border-collapse: separate;
@@ -212,43 +298,96 @@
 	overflow: hidden;
 	border: 1px solid color-mix(in srgb, var(--presenter-main-color) 16%, transparent);
 	box-shadow: 0 2px 8px color-mix(in srgb, var(--presenter-main-color) 4%, transparent);
+	background-color: transparent;
 }
 
-.presenter-slide-body th {
-	background: color-mix(in srgb, var(--presenter-accent-color) 12%, transparent);
+.presenter-slide-card .presenter-slide-body.markdown-rendered table thead th,
+.presenter-slide-card .presenter-slide-body.markdown-rendered table th,
+.presenter-slide-card .presenter-slide-body table thead th,
+.presenter-slide-card .presenter-slide-body table th,
+.presenter-slide-body.markdown-rendered table thead th,
+.presenter-slide-body table th {
+	background: color-mix(in srgb, var(--presenter-main-color) 6%, transparent);
+	background-color: color-mix(in srgb, var(--presenter-main-color) 6%, transparent);
 	color: var(--presenter-main-color);
 	font-weight: 700;
 	padding: calc(12px * var(--presenter-body-scale, 1)) calc(16px * var(--presenter-body-scale, 1));
+	border-top: none;
+	border-left: none;
 	border-bottom: 2px solid var(--presenter-accent-color);
 	border-right: 1px solid color-mix(in srgb, var(--presenter-main-color) 12%, transparent);
 	text-align: left;
 }
 
-.presenter-slide-body th:last-child {
+.presenter-slide-card .presenter-slide-body.markdown-rendered table thead th:last-child,
+.presenter-slide-card .presenter-slide-body.markdown-rendered table th:last-child,
+.presenter-slide-card .presenter-slide-body table th:last-child,
+.presenter-slide-body table th:last-child {
 	border-right: none;
 }
 
-.presenter-slide-body td {
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody td,
+.presenter-slide-card .presenter-slide-body.markdown-rendered table td,
+.presenter-slide-card .presenter-slide-body table tbody td,
+.presenter-slide-card .presenter-slide-body table td,
+.presenter-slide-body.markdown-rendered table tbody td,
+.presenter-slide-body table td {
 	padding: calc(10px * var(--presenter-body-scale, 1)) calc(16px * var(--presenter-body-scale, 1));
+	border-top: none;
+	border-left: none;
 	border-bottom: 1px solid color-mix(in srgb, var(--presenter-main-color) 10%, transparent);
 	border-right: 1px solid color-mix(in srgb, var(--presenter-main-color) 10%, transparent);
 	color: var(--presenter-main-color);
 }
 
-.presenter-slide-body td:last-child {
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody td:last-child,
+.presenter-slide-card .presenter-slide-body.markdown-rendered table td:last-child,
+.presenter-slide-card .presenter-slide-body table td:last-child,
+.presenter-slide-body table td:last-child {
 	border-right: none;
 }
 
-.presenter-slide-body tr:last-child td {
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody tr:last-child td,
+.presenter-slide-card .presenter-slide-body table tbody tr:last-child td,
+.presenter-slide-card .presenter-slide-body table tr:last-child td,
+.presenter-slide-body table tr:last-child td {
 	border-bottom: none;
 }
 
-.presenter-slide-body tbody tr:nth-child(even) {
-	background: color-mix(in srgb, var(--presenter-main-color) 3.5%, transparent);
+/* 奇数行: 白（カードベースカラー） */
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody tr:nth-child(odd),
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody tr:nth-child(odd) td,
+.presenter-slide-card .presenter-slide-body table tbody tr:nth-child(odd),
+.presenter-slide-card .presenter-slide-body table tbody tr:nth-child(odd) td,
+.presenter-slide-body.markdown-rendered table tbody tr:nth-child(odd),
+.presenter-slide-body.markdown-rendered table tbody tr:nth-child(odd) td,
+.presenter-slide-body table tbody tr:nth-child(odd),
+.presenter-slide-body table tbody tr:nth-child(odd) td {
+	background-color: var(--presenter-base-color, #ffffff);
 }
 
-.presenter-slide-body tbody tr:hover {
-	background: color-mix(in srgb, var(--presenter-accent-color) 6%, transparent);
+/* 偶数行: メインカラーを薄めた色（thの6%より薄い2.5%） */
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody tr:nth-child(even),
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody tr:nth-child(even) td,
+.presenter-slide-card .presenter-slide-body table tbody tr:nth-child(even),
+.presenter-slide-card .presenter-slide-body table tbody tr:nth-child(even) td,
+.presenter-slide-body.markdown-rendered table tbody tr:nth-child(even),
+.presenter-slide-body.markdown-rendered table tbody tr:nth-child(even) td,
+.presenter-slide-body table tbody tr:nth-child(even),
+.presenter-slide-body table tbody tr:nth-child(even) td {
+	background-color: color-mix(in srgb, var(--presenter-main-color) 2.5%, var(--presenter-base-color, #ffffff));
+}
+
+/* 行ホバー効果 */
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody tr:hover,
+.presenter-slide-card .presenter-slide-body.markdown-rendered table tbody tr:hover td,
+.presenter-slide-card .presenter-slide-body table tbody tr:hover,
+.presenter-slide-card .presenter-slide-body table tbody tr:hover td,
+.presenter-slide-body.markdown-rendered table tbody tr:hover,
+.presenter-slide-body.markdown-rendered table tbody tr:hover td,
+.presenter-slide-body table tbody tr:hover,
+.presenter-slide-body table tbody tr:hover td {
+	background-color: color-mix(in srgb, var(--presenter-accent-color) 6%, var(--presenter-base-color, #ffffff));
 	transition: background-color 0.15s ease;
 }
 
@@ -265,6 +404,221 @@
 	font-size: calc(16px * var(--presenter-body-scale, 1));
 	margin: calc(16px * var(--presenter-body-scale, 1)) 0;
 	padding: calc(14px * var(--presenter-body-scale, 1)) calc(18px * var(--presenter-body-scale, 1));
+}
+
+/* --------------------------------------------------------------------------
+   Mermaid Diagrams (Outer CSS Injection for Slide Integration)
+   Support both Obsidian's native .block-language-mermaid and standalone .mermaid
+   -------------------------------------------------------------------------- */
+.presenter-slide-card .presenter-slide-body.markdown-rendered .block-language-mermaid,
+.presenter-slide-card .presenter-slide-body.markdown-rendered .mermaid,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid,
+.presenter-slide-card .presenter-slide-body .mermaid,
+.presenter-slide-body.markdown-rendered .block-language-mermaid,
+.presenter-slide-body.markdown-rendered .mermaid,
+.presenter-slide-body .block-language-mermaid,
+.presenter-slide-body .mermaid {
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+	text-align: left;
+	width: 100%;
+	margin: calc(12px * var(--presenter-body-scale, 1)) 0;
+	overflow: visible;
+	line-height: normal;
+}
+
+.presenter-slide-card .presenter-slide-body.markdown-rendered .block-language-mermaid svg,
+.presenter-slide-card .presenter-slide-body.markdown-rendered .mermaid svg,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid svg,
+.presenter-slide-card .presenter-slide-body .mermaid svg,
+.presenter-slide-body.markdown-rendered .block-language-mermaid svg,
+.presenter-slide-body.markdown-rendered .mermaid svg,
+.presenter-slide-body .block-language-mermaid svg,
+.presenter-slide-body .mermaid svg {
+	margin-left: 0;
+	margin-right: auto;
+	max-width: 100%;
+	max-height: calc(500px * var(--presenter-body-scale, 1));
+	height: auto;
+	overflow: visible;
+	filter: none;
+}
+
+/* Ensure Mermaid foreignObject does not clip node labels */
+.presenter-slide-card .presenter-slide-body.markdown-rendered .block-language-mermaid foreignObject,
+.presenter-slide-card .presenter-slide-body.markdown-rendered .mermaid foreignObject,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid foreignObject,
+.presenter-slide-card .presenter-slide-body .mermaid foreignObject,
+.presenter-slide-body.markdown-rendered .block-language-mermaid foreignObject,
+.presenter-slide-body.markdown-rendered .mermaid foreignObject,
+.presenter-slide-body .block-language-mermaid foreignObject,
+.presenter-slide-body .mermaid foreignObject {
+	overflow: visible;
+}
+
+/* Flowchart Edges & Connector Lines */
+.presenter-slide-card .presenter-slide-body .block-language-mermaid g.edgePaths path.path,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid g.edgePaths path,
+.presenter-slide-card .presenter-slide-body .mermaid g.edgePaths path.path,
+.presenter-slide-card .presenter-slide-body .mermaid g.edgePaths path,
+.presenter-slide-body .block-language-mermaid g.edgePaths path.path,
+.presenter-slide-body .block-language-mermaid g.edgePaths path,
+.presenter-slide-body .mermaid g.edgePaths path.path,
+.presenter-slide-body .mermaid g.edgePaths path {
+	stroke: var(--presenter-main-color);
+	stroke-width: 2px;
+	stroke-opacity: 0.85;
+}
+
+.presenter-slide-card .presenter-slide-body .block-language-mermaid marker path,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid marker polygon,
+.presenter-slide-card .presenter-slide-body .mermaid marker path,
+.presenter-slide-card .presenter-slide-body .mermaid marker polygon,
+.presenter-slide-body .block-language-mermaid marker path,
+.presenter-slide-body .block-language-mermaid marker polygon,
+.presenter-slide-body .mermaid marker path,
+.presenter-slide-body .mermaid marker polygon {
+	fill: var(--presenter-main-color);
+	stroke: var(--presenter-main-color);
+}
+
+/* Edge label background rect - hide murky gray box and render clean badge */
+.presenter-slide-card .presenter-slide-body .block-language-mermaid g.edgeLabels rect,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid g.edgeLabel rect,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid .edgeLabel .label rect,
+.presenter-slide-card .presenter-slide-body .mermaid g.edgeLabels rect,
+.presenter-slide-card .presenter-slide-body .mermaid g.edgeLabel rect,
+.presenter-slide-card .presenter-slide-body .mermaid .edgeLabel .label rect,
+.presenter-slide-body .block-language-mermaid g.edgeLabels rect,
+.presenter-slide-body .block-language-mermaid g.edgeLabel rect,
+.presenter-slide-body .block-language-mermaid .edgeLabel .label rect,
+.presenter-slide-body .mermaid g.edgeLabels rect,
+.presenter-slide-body .mermaid g.edgeLabel rect,
+.presenter-slide-body .mermaid .edgeLabel .label rect {
+	fill: var(--presenter-base-color, #ffffff);
+	fill-opacity: 1;
+	opacity: 1;
+	stroke: color-mix(in srgb, var(--presenter-main-color) 25%, transparent);
+	stroke-width: 1px;
+	rx: 4px;
+	ry: 4px;
+}
+
+/* Edge label text & container styling */
+.presenter-slide-card .presenter-slide-body .block-language-mermaid .edgeLabel,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid g.edgeLabels .edgeLabel,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid g.edgeLabels foreignObject div,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid g.edgeLabels text,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid g.edgeLabels span,
+.presenter-slide-card .presenter-slide-body .mermaid .edgeLabel,
+.presenter-slide-card .presenter-slide-body .mermaid g.edgeLabels .edgeLabel,
+.presenter-slide-card .presenter-slide-body .mermaid g.edgeLabels foreignObject div,
+.presenter-slide-card .presenter-slide-body .mermaid g.edgeLabels text,
+.presenter-slide-card .presenter-slide-body .mermaid g.edgeLabels span,
+.presenter-slide-body .block-language-mermaid .edgeLabel,
+.presenter-slide-body .block-language-mermaid g.edgeLabels .edgeLabel,
+.presenter-slide-body .block-language-mermaid g.edgeLabels foreignObject div,
+.presenter-slide-body .block-language-mermaid g.edgeLabels text,
+.presenter-slide-body .block-language-mermaid g.edgeLabels span,
+.presenter-slide-body .mermaid .edgeLabel,
+.presenter-slide-body .mermaid g.edgeLabels .edgeLabel,
+.presenter-slide-body .mermaid g.edgeLabels foreignObject div,
+.presenter-slide-body .mermaid g.edgeLabels text,
+.presenter-slide-body .mermaid g.edgeLabels span {
+	background-color: var(--presenter-base-color, #ffffff);
+	opacity: 1;
+	color: var(--presenter-main-color);
+	fill: var(--presenter-main-color);
+	font-family: inherit;
+	border-radius: 4px;
+}
+
+/* Sequence Diagram: Fix faint message lines and labels */
+.presenter-slide-card .presenter-slide-body .block-language-mermaid line.messageLine0,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid line.messageLine1,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid .messageLine0,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid .messageLine1,
+.presenter-slide-card .presenter-slide-body .mermaid line.messageLine0,
+.presenter-slide-card .presenter-slide-body .mermaid line.messageLine1,
+.presenter-slide-card .presenter-slide-body .mermaid .messageLine0,
+.presenter-slide-card .presenter-slide-body .mermaid .messageLine1,
+.presenter-slide-body .block-language-mermaid line.messageLine0,
+.presenter-slide-body .block-language-mermaid line.messageLine1,
+.presenter-slide-body .mermaid line.messageLine0,
+.presenter-slide-body .mermaid line.messageLine1 {
+	stroke: var(--presenter-main-color);
+	stroke-width: 1.5px;
+	stroke-opacity: 0.85;
+}
+
+.presenter-slide-card .presenter-slide-body .block-language-mermaid #arrowhead path,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid .arrowheadPath,
+.presenter-slide-card .presenter-slide-body .mermaid #arrowhead path,
+.presenter-slide-card .presenter-slide-body .mermaid .arrowheadPath,
+.presenter-slide-body .block-language-mermaid #arrowhead path,
+.presenter-slide-body .block-language-mermaid .arrowheadPath,
+.presenter-slide-body .mermaid #arrowhead path,
+.presenter-slide-body .mermaid .arrowheadPath {
+	fill: var(--presenter-main-color);
+	stroke: var(--presenter-main-color);
+}
+
+.presenter-slide-card .presenter-slide-body .block-language-mermaid text.messageText,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid .messageText,
+.presenter-slide-card .presenter-slide-body .mermaid text.messageText,
+.presenter-slide-card .presenter-slide-body .mermaid .messageText,
+.presenter-slide-body .block-language-mermaid text.messageText,
+.presenter-slide-body .block-language-mermaid .messageText,
+.presenter-slide-body .mermaid text.messageText,
+.presenter-slide-body .mermaid .messageText {
+	fill: var(--presenter-main-color);
+	stroke: none;
+	font-size: calc(13px * var(--presenter-body-scale, 1));
+	font-weight: 500;
+	text-align: center;
+}
+
+.presenter-slide-card .presenter-slide-body .block-language-mermaid line.actor-line,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid .actor-line,
+.presenter-slide-card .presenter-slide-body .mermaid line.actor-line,
+.presenter-slide-card .presenter-slide-body .mermaid .actor-line,
+.presenter-slide-body .block-language-mermaid line.actor-line,
+.presenter-slide-body .mermaid line.actor-line {
+	stroke: color-mix(in srgb, var(--presenter-main-color) 35%, transparent);
+	stroke-width: 1.5px;
+}
+
+.presenter-slide-card .presenter-slide-body .block-language-mermaid .sequenceNumber,
+.presenter-slide-card .presenter-slide-body .mermaid .sequenceNumber,
+.presenter-slide-body .block-language-mermaid .sequenceNumber,
+.presenter-slide-body .mermaid .sequenceNumber {
+	fill: #ffffff;
+	font-weight: 700;
+	font-size: 11px;
+}
+
+.presenter-slide-card .presenter-slide-body .block-language-mermaid .loopLine,
+.presenter-slide-card .presenter-slide-body .mermaid .loopLine,
+.presenter-slide-body .block-language-mermaid .loopLine,
+.presenter-slide-body .mermaid .loopLine {
+	stroke: color-mix(in srgb, var(--presenter-main-color) 40%, transparent);
+}
+
+.presenter-slide-card .presenter-slide-body .block-language-mermaid .labelBox,
+.presenter-slide-card .presenter-slide-body .mermaid .labelBox,
+.presenter-slide-body .block-language-mermaid .labelBox,
+.presenter-slide-body .mermaid .labelBox {
+	fill: var(--presenter-main-color);
+}
+
+.presenter-slide-card .presenter-slide-body .block-language-mermaid .labelText text,
+.presenter-slide-card .presenter-slide-body .block-language-mermaid .labelText > text,
+.presenter-slide-card .presenter-slide-body .mermaid .labelText text,
+.presenter-slide-card .presenter-slide-body .mermaid .labelText > text,
+.presenter-slide-body .block-language-mermaid .labelText text,
+.presenter-slide-body .mermaid .labelText text {
+	fill: #ffffff;
 }
 
 /* Cover Slide Specific Layout */
@@ -288,6 +642,98 @@
 	opacity: 0.85;
 }
 
+/* Section Divider Slide Layout */
+.presenter-slide-section {
+	justify-content: center;
+	text-align: center;
+	background: radial-gradient(circle at center, rgba(120, 120, 120, 0.04) 0%, transparent 70%), var(--presenter-base-color);
+}
+
+.presenter-slide-section .presenter-slide-body {
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+}
+
+.presenter-slide-section .presenter-slide-body h2 {
+	font-size: calc(46px * var(--presenter-body-scale, 1));
+	font-weight: 800;
+	border-bottom: none;
+	color: var(--presenter-accent-color);
+	margin-bottom: calc(16px * var(--presenter-body-scale, 1));
+}
+
+.presenter-slide-section .presenter-slide-body p {
+	font-size: calc(24px * var(--presenter-body-scale, 1));
+	opacity: 0.85;
+	max-width: 800px;
+	margin: 0 auto;
+}
+
+/* Quote / Big Statement Slide Layout */
+.presenter-slide-quote {
+	justify-content: center;
+	text-align: center;
+}
+
+.presenter-slide-quote .presenter-slide-body {
+	justify-content: center;
+	align-items: center;
+}
+
+.presenter-slide-quote .presenter-slide-body blockquote {
+	border-left: none;
+	background: transparent;
+	padding: 0 40px;
+	font-size: calc(28px * var(--presenter-body-scale, 1));
+	font-style: italic;
+	line-height: 1.5;
+	position: relative;
+	color: var(--presenter-main-color);
+}
+
+.presenter-slide-quote .presenter-slide-body blockquote::before {
+	content: "“";
+	font-size: 72px;
+	line-height: 1;
+	color: var(--presenter-accent-color);
+	opacity: 0.4;
+	display: block;
+	margin-bottom: -24px;
+	font-family: Georgia, serif;
+}
+
+/* KPI / Metric styling */
+.presenter-kpi-value {
+	font-size: calc(44px * var(--presenter-body-scale, 1));
+	font-weight: 800;
+	color: var(--presenter-accent-color);
+	line-height: 1.1;
+	margin: calc(10px * var(--presenter-body-scale, 1)) 0;
+	letter-spacing: -0.02em;
+	display: block;
+	text-align: center;
+}
+
+/* Enhanced Callouts in Slide Body */
+.presenter-slide-body .callout {
+	margin: calc(14px * var(--presenter-body-scale, 1)) 0;
+	border-radius: 8px;
+	border-left-width: 4px;
+	padding: calc(12px * var(--presenter-body-scale, 1)) calc(16px * var(--presenter-body-scale, 1));
+	background: rgba(120, 120, 120, 0.05);
+	box-sizing: border-box;
+}
+
+.presenter-slide-body .callout-title {
+	font-weight: 700;
+	font-size: calc(16px * var(--presenter-body-scale, 1));
+}
+
+.presenter-slide-body .callout-content {
+	font-size: calc(15px * var(--presenter-body-scale, 1));
+}
+
 /* 5. Multi-Column Grid Layout */
 .presenter-cols {
 	display: grid;
@@ -309,6 +755,49 @@
 	grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+/* Non-uniform column ratios */
+.presenter-cols.presenter-cols-ratio-2-1 {
+	grid-template-columns: 2fr 1fr;
+}
+
+.presenter-cols.presenter-cols-ratio-1-2 {
+	grid-template-columns: 1fr 2fr;
+}
+
+.presenter-cols.presenter-cols-ratio-3-1 {
+	grid-template-columns: 3fr 1fr;
+}
+
+.presenter-cols.presenter-cols-ratio-1-3 {
+	grid-template-columns: 1fr 3fr;
+}
+
+/* Step flow process layout */
+.presenter-cols.presenter-cols-step {
+	counter-reset: presenter-step-counter;
+	position: relative;
+}
+
+.presenter-cols.presenter-cols-step .presenter-col {
+	counter-increment: presenter-step-counter;
+	position: relative;
+	padding-top: calc(36px * var(--presenter-body-scale, 1));
+}
+
+.presenter-cols.presenter-cols-step .presenter-col::before {
+	content: "STEP " counter(presenter-step-counter, decimal-leading-zero);
+	position: absolute;
+	top: 10px;
+	left: 18px;
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	color: var(--presenter-accent-color);
+	background: rgba(120, 120, 120, 0.08);
+	padding: 2px 8px;
+	border-radius: 4px;
+}
+
 .presenter-col {
 	display: flex;
 	flex-direction: column;
@@ -321,6 +810,14 @@
 
 .presenter-col > :first-child {
 	margin-top: 0;
+}
+
+.presenter-col h3 + ul,
+.presenter-col h3 + ol,
+.presenter-slide-body h3 + ul,
+.presenter-slide-body h3 + ol {
+	margin-top: calc(2px * var(--presenter-body-scale, 1));
+	margin-block-start: calc(2px * var(--presenter-body-scale, 1));
 }
 
 .presenter-col > :last-child {
@@ -341,11 +838,11 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	min-height: 34px;
+	min-height: 20px;
 	margin-top: auto;
-	padding-top: 14px;
+	padding-top: 6px;
 	border-top: 1px solid rgba(120, 120, 120, 0.15);
-	font-size: 13px;
+	font-size: 12px;
 	color: var(--presenter-main-color);
 	opacity: 0.7;
 }
@@ -916,6 +1413,180 @@ h4 .presenter-badge {
 	contain: strict !important;
 	overflow: hidden !important;
 	z-index: -9999 !important;
+}
+
+/* 12. Clickable Image & Mermaid Lightbox */
+.presenter-slide-body img,
+.presenter-slide-body .mermaid {
+	cursor: zoom-in;
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.presenter-slide-body img:hover,
+.presenter-slide-body .mermaid:hover {
+	transform: scale(1.015);
+}
+
+.presenter-lightbox-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background: rgba(8, 12, 20, 0.92);
+	backdrop-filter: blur(12px);
+	z-index: 2000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: zoom-out;
+}
+
+.presenter-lightbox-content {
+	max-width: 90vw;
+	max-height: 90vh;
+	object-fit: contain;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+	border-radius: 8px;
+	cursor: default;
+	background: #ffffff;
+	padding: 12px;
+	box-sizing: border-box;
+}
+
+.presenter-lightbox-svg-wrapper svg {
+	max-width: 85vw;
+	max-height: 85vh;
+	width: auto;
+	height: auto;
+}
+
+.presenter-lightbox-close {
+	position: absolute;
+	top: 24px;
+	right: 24px;
+	color: #ffffff;
+	font-size: 24px;
+	cursor: pointer;
+	opacity: 0.75;
+	transition: opacity 0.15s, background-color 0.15s;
+	width: 44px;
+	height: 44px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.12);
+}
+
+.presenter-lightbox-close:hover {
+	opacity: 1;
+	background: rgba(255, 255, 255, 0.25);
+}
+
+/* 13. Overview Grid (Slide Sorter) Modal */
+.presenter-overview-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background: rgba(9, 13, 22, 0.96);
+	backdrop-filter: blur(16px);
+	z-index: 1500;
+	display: flex;
+	flex-direction: column;
+	padding: 36px 48px;
+	box-sizing: border-box;
+	overflow-y: auto;
+}
+
+.presenter-overview-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 28px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+	padding-bottom: 16px;
+}
+
+.presenter-overview-title {
+	color: #ffffff;
+	font-size: 20px;
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.presenter-overview-count {
+	font-size: 13px;
+}
+
+.presenter-overview-close-btn {
+	position: relative !important;
+	top: 0 !important;
+	right: 0 !important;
+}
+
+.presenter-overview-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+	gap: 20px;
+	width: 100%;
+}
+
+.presenter-overview-thumb {
+	background: #1e293b;
+	border: 2px solid transparent;
+	border-radius: 8px;
+	padding: 16px;
+	cursor: pointer;
+	transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+	display: flex;
+	flex-direction: column;
+	min-height: 140px;
+	position: relative;
+	box-sizing: border-box;
+}
+
+.presenter-overview-thumb:hover {
+	transform: translateY(-3px);
+	border-color: var(--presenter-accent-color, #38bdf8);
+	box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+}
+
+.presenter-overview-thumb.is-active {
+	border-color: var(--presenter-accent-color, #38bdf8);
+	box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.4);
+}
+
+.presenter-overview-thumb-badge {
+	font-size: 11px;
+	font-weight: 700;
+	color: #94a3b8;
+	margin-bottom: 8px;
+}
+
+.presenter-overview-thumb-title {
+	color: #f1f5f9;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.4;
+	flex: 1;
+}
+
+.presenter-overview-thumb.is-section {
+	background: rgba(56, 189, 248, 0.1);
+	border: 1px dashed rgba(56, 189, 248, 0.4);
+}
+
+.presenter-overview-thumb.is-section .presenter-overview-thumb-title {
+	color: var(--presenter-accent-color, #38bdf8);
+	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 

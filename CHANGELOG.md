@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-10-25
+
+### Added
+
+- **Smart Slide Layouts & Auto-Inference**:
+  - Automatically infers header-only slides as centered **Section Divider** (`section`) cards and blockquote slides as prominent **Quote / Big Statement** (`quote`) cards.
+  - Three-tier hierarchy: Explicit HTML comment directives (`<!-- slide: section -->`, `<!-- slide: quote -->`, `<!-- slide: content -->`) take precedence over automatic inference.
+  - Vault-wide toggle in **Settings → Layout & grid → Enable smart slide layouts** (default `true`) and per-note override via frontmatter `smartLayouts`.
+- **Non-Uniform Column Ratios & Step Flow Process**:
+  - Golden ratio columns via `<!-- columns 2:1 -->` and `<!-- columns 1:2 -->` (and 3:1 / 1:3), compatible with both `card` and `plain` styles.
+  - Step-by-step process flow layout via `<!-- columns 3 step -->` and `<!-- columns 4 step -->` with styled `STEP 01`, `STEP 02`... badges.
+  - Direct insertion commands and new presets in `Presenter: Insert column layout...` picker.
+- **KPI Metrics & Styled Key Takeaway Callouts**:
+  - Standalone bold metrics (e.g. `**+140%**`, `**3.5x**`) or `<!-- kpi -->` are automatically styled as high-impact KPI metric cards.
+  - Callouts like `> [!important]`, `> [!tip]`, and `> [!warning]` in slide body are formatted as styled key takeaway conclusion boxes.
+- **Slide Overview Grid (Slide Sorter)**:
+  - Toggle a bird's-eye thumbnail grid in presentation mode via `G` or `O` keys (or toolbar button) for instant navigation during Q&A.
+- **Image & Diagram Lightbox Zoom**:
+  - Click any image or Mermaid diagram in presentation view or exported standalone HTML to zoom in full-screen (`Escape` to close).
+- **One-Click Summary Copy for Sharing**:
+  - Command `Presenter: Copy summary for sharing` extracts the presentation outline, section structure, and key takeaway callouts to the clipboard for instant sharing in Slack, Teams, or email.
+- **Mermaid Diagram Native Rendering Support**:
+  - Native asynchronous Mermaid diagram rendering (`renderMermaidSlides`) and dedicated presentation styles for diagrams.
+- **Standalone HTML Export Enhancements & Modular Architecture**:
+  - Added slide overview grid button and `G` key toggle.
+  - Deep-link `#slide-N` URL hash synchronization for pinpoint sharing and browser history navigation.
+  - Asynchronous Mermaid SVG rendering wait before serialization.
+  - Modularized `htmlExporter.ts` into `exportScript.ts`, `exportStyles.ts`, and `imageInliner.ts` with comprehensive unit tests (`tests/export.test.ts`).
+- **Agent Skill `create-pr-body`**:
+  - Added automated pull request drafting skill with workflow definition, templates, and examples.
+
+### Changed & Improved
+
+- **Slide Overflow Measurement Caching (`SlideOverflowCache`)**:
+  - Added content and configuration hash-based caching to prevent redundant DOM reflows during live editing and slide preview.
+- **Lazy PDF Print Slide Rendering**:
+  - PDF print slide DOM is now generated on-demand only when the user triggers print, dramatically reducing initial presentation load overhead.
+- **Theme-Coordinated Table & Slide Typography Refinements**:
+  - Improved presentation table styles with theme color coordination and zebra striping.
+  - Optimized list spacing, paragraph margins, and stage dimension calculations.
+- **Shared Stage UI Helpers**:
+  - Consolidated scaling math, toolbar controls, and modal actions into `stageHelpers.ts`.
+
+---
+
 ## [1.3.0] - 2026-10-18
 
 ### Added
