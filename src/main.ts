@@ -238,6 +238,8 @@ export default class PresenterPlugin extends Plugin {
 				defaultColumnStyle: this.settings.defaultColumnStyle,
 				enableBadges: this.settings.enableBadges,
 				enableSmartLayouts: this.settings.enableSmartLayouts,
+				inheritSlideHeadings: this.settings.inheritSlideHeadings,
+				headingContinuationSuffix: this.settings.headingContinuationSuffix,
 			});
 
 			if (presentation.slides.length === 0) {
@@ -295,6 +297,8 @@ export default class PresenterPlugin extends Plugin {
 				defaultColumnStyle: this.settings.defaultColumnStyle,
 				enableBadges: this.settings.enableBadges,
 				enableSmartLayouts: this.settings.enableSmartLayouts,
+				inheritSlideHeadings: this.settings.inheritSlideHeadings,
+				headingContinuationSuffix: this.settings.headingContinuationSuffix,
 			});
 			if (presentation.slides.length === 0) {
 				new Notice('No slide content found in this note.');
@@ -403,6 +407,8 @@ export default class PresenterPlugin extends Plugin {
 				defaultColumnStyle: this.settings.defaultColumnStyle,
 				enableBadges: this.settings.enableBadges,
 				enableSmartLayouts: this.settings.enableSmartLayouts,
+				inheritSlideHeadings: this.settings.inheritSlideHeadings,
+				headingContinuationSuffix: this.settings.headingContinuationSuffix,
 			});
 
 			if (presentation.slides.length === 0) {

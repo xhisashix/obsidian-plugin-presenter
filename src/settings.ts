@@ -118,6 +118,23 @@ export class PresenterSettingTab extends PluginSettingTab {
 							key: 'enableSmartLayouts',
 						},
 					},
+					{
+						name: 'Inherit section headings on split slides',
+						desc: 'Automatically repeat the preceding H2 heading on continuation slides split by `---` (override with frontmatter `inheritHeadings`).',
+						control: {
+							type: 'toggle',
+							key: 'inheritSlideHeadings',
+						},
+					},
+					{
+						name: 'Continuation heading suffix',
+						desc: 'Suffix appended to inherited headings on continuation slides (override with frontmatter `continuationSuffix`).',
+						control: {
+							type: 'text',
+							key: 'headingContinuationSuffix',
+							placeholder: ' (続き)',
+						},
+					},
 				],
 			},
 			{
@@ -315,6 +332,31 @@ export class PresenterSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.enableSmartLayouts)
 					.onChange(async (val) => {
 						this.plugin.settings.enableSmartLayouts = val;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName('Inherit section headings on split slides')
+			.setDesc('Automatically repeat the preceding H2 heading on continuation slides split by `---` (override with frontmatter `inheritHeadings`).')
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.inheritSlideHeadings)
+					.onChange(async (val) => {
+						this.plugin.settings.inheritSlideHeadings = val;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName('Continuation heading suffix')
+			.setDesc('Suffix appended to inherited headings on continuation slides (override with frontmatter `continuationSuffix`).')
+			.addText((text) =>
+				text
+					.setPlaceholder(' (続き)')
+					.setValue(this.plugin.settings.headingContinuationSuffix)
+					.onChange(async (val) => {
+						this.plugin.settings.headingContinuationSuffix = val;
 						await this.plugin.saveSettings();
 					})
 			);

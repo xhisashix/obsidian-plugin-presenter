@@ -4,7 +4,7 @@ import { preprocessBadges } from './badges';
 import { preprocessColumns } from './columns';
 import { FenceTracker } from './fence';
 import { extractFrontmatter } from './frontmatter';
-import { inferSlideLayout, preprocessKpi } from './layoutInference';
+import { findExplicitSlideLayout, inferSlideLayout, preprocessKpi } from './layoutInference';
 import { extractSlideNotes } from './notes';
 
 export { extractFrontmatter } from './frontmatter';
@@ -40,11 +40,21 @@ export function parsePresentation(
 	const defaultStyle: ColumnStyle = options.defaultColumnStyle || 'card';
 	const enableBadges: boolean = options.enableBadges ?? true;
 	const enableSmartLayouts: boolean = options.enableSmartLayouts ?? true;
+	const inheritSlideHeadings: boolean = options.inheritSlideHeadings ?? true;
+	const headingContinuationSuffix: string = options.headingContinuationSuffix ?? ' (続き)';
 
 	const { frontmatter, body, frontmatterLines } = extractFrontmatter(rawMarkdown);
 	const resolvedDefaultStyle: ColumnStyle = frontmatter.columnStyle || defaultStyle;
 	const resolvedSmartLayouts: boolean =
 		frontmatter.smartLayouts !== undefined ? frontmatter.smartLayouts : enableSmartLayouts;
+	const resolvedInheritHeadings: boolean =
+		frontmatter.inheritHeadings !== undefined
+			? frontmatter.inheritHeadings
+			: inheritSlideHeadings;
+	const resolvedContinuationSuffix: string =
+		frontmatter.continuationSuffix !== undefined
+			? frontmatter.continuationSuffix
+			: headingContinuationSuffix;
 	const lines = body.split(/\r?\n/);
 
 	const rawSlides: RawSlide[] = [];
@@ -184,6 +194,46 @@ export function parsePresentation(
 			startLine: 0,
 			endLine: 0,
 		});
+	}
+
+	// Inherit H2 headings on continuation slides split by '---' when enabled
+	if (resolvedInheritHeadings) {
+		let currentBaseH2Title: string | null = null;
+
+		for (const slide of rawSlides) {
+			if (slide.type === 'cover') {
+				// Cover slide resets parent section
+				currentBaseH2Title = null;
+				continue;
+			}
+
+			if (slide.title) {
+				// Slide has an explicit H2 heading
+				currentBaseH2Title = slide.title;
+			} else if (currentBaseH2Title) {
+				// Continuation slide without its own heading
+				const explicitLayout = findExplicitSlideLayout(slide.lines);
+				if (!explicitLayout || explicitLayout === 'content') {
+					const inferred = inferSlideLayout(slide.lines, slide.type, resolvedSmartLayouts);
+					if (inferred === 'content') {
+						const continuedTitle = `${currentBaseH2Title}${resolvedContinuationSuffix}`;
+						slide.title = continuedTitle;
+
+						// Prepend ## continuedTitle to slide lines so it renders in the presentation body
+						// Place after any opening slide directives (e.g. <!-- slide: content -->)
+						let insertIdx = 0;
+						while (
+							insertIdx < slide.lines.length &&
+							slide.lines[insertIdx]!.trim().startsWith('<!-- slide:')
+						) {
+							insertIdx++;
+						}
+
+						slide.lines.splice(insertIdx, 0, `## ${continuedTitle}`, '');
+					}
+				}
+			}
+		}
 	}
 
 	// Map to SlideData, extract notes, preprocess columns, kpi, and badges
