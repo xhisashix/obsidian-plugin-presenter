@@ -753,33 +753,33 @@ export function getExportStyles(params: ExportStyleParams): string {
 		/* Print Styling */
 		@media print {
 			body {
-				background: #ffffff !important;
-				color: #000000 !important;
-				overflow: visible !important;
-				height: auto !important;
+				background: #ffffff;
+				color: #000000;
+				overflow: visible;
+				height: auto;
 			}
 
 			.navbar, .progress-bar, .floating-controls, .notes-drawer {
-				display: none !important;
+				display: none;
 			}
 
 			#presentation-mode {
-				display: none !important;
+				display: none;
 			}
 
 			#handout-mode {
-				display: block !important;
-				background: #ffffff !important;
-				padding: 0 !important;
-				overflow: visible !important;
+				display: block;
+				background: #ffffff;
+				padding: 0;
+				overflow: visible;
 			}
 
 			.handout-item {
-				box-shadow: none !important;
-				border: 1px solid #cbd5e1 !important;
-				page-break-after: always !important;
-				break-after: page !important;
-				margin-bottom: 20px !important;
+				box-shadow: none;
+				border: 1px solid #cbd5e1;
+				page-break-after: always;
+				break-after: page;
+				margin-bottom: 20px;
 			}
 		}
 	`;
