@@ -304,6 +304,21 @@ For large slides that still overflow at 70% reduction, click **Split slide** ins
 
 ---
 
+## AI Slide Authoring Skill (Agent Skill)
+
+An official AI Agent Skill (`create-presentation`) optimized for Obsidian Presenter is available in a dedicated repository for tools like Google Antigravity and Claude Code.
+
+- **Repository**: [xhisashix/obsidian-presenter-skill](https://github.com/xhisashix/obsidian-presenter-skill)
+- **Key Features**:
+  - Automatically structures H1/H2 hierarchies and ensures one message per slide.
+  - Implements multi-column layouts (2-column, 3-column, 2:1 ratio, step flows).
+  - Decorates slides with KPI big numbers, bracket badges, and conclusion callouts.
+  - Segregates speaker notes and handout details via `> [!note]`.
+  - Applies overflow auto-fit (`fit: auto`).
+- **Getting Started**: Simply clone or copy the skill into your Vault's `.agents/skills/` directory to generate high-quality slide decks by prompting in natural language. See the skill repository for details.
+
+---
+
 ## Design Documents
 
 For architecture details, specifications, and UI/UX design:
