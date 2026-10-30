@@ -329,6 +329,21 @@ fit: auto # このノート内のあふれたスライドを自動で最大70%�
 
 ---
 
+## AIエージェント連携スキル (AI Slide Authoring Skill)
+
+Google Antigravity や Claude Code などのAIエージェントツールを使って、自然言語からObsidian Presenterに最適化されたスライド資料を自動作成・構造化できるスキル（`create-presentation`）を別リポジトリで提供しています。
+
+- **リポジトリ**: [xhisashix/obsidian-presenter-skill](https://github.com/xhisashix/obsidian-presenter-skill)
+- **主な機能**:
+  - H1/H2の適切なスライド分割と1スライド1メッセージの推敲
+  - マルチカラム（2カラム、3カラム、2:1比率、ステップフロー）の自動レイアウト構築
+  - KPIビッグナンバー、角括弧バッジ、結論Calloutの自動装飾
+  - 発表者カンペ 兼 配布用詳細解説（`> [!note]`）の分離執筆
+  - はみ出し防止（`fit: auto`）の適用
+- **導入方法**: お使いのVaultの `.agents/skills/` に配置するだけで、AIに「企画書のプレゼンスライドを作成して」「技術LTのスライドを作って」と伝えるだけで高品質なスライドMarkdownが生成されます。詳細はリポジトリをご参照ください。
+
+---
+
 ## 設計書ドキュメント (Design Documents)
 
 本プラグインの内部構造や詳細仕様については、以下の設計書をご参照ください：
