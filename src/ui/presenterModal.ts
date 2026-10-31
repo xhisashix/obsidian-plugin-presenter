@@ -7,6 +7,10 @@ import {
 	TFile,
 	setIcon,
 } from 'obsidian';
+import {
+	exportPresentationToPptx,
+	saveAndDownloadPptx,
+} from '../export/pptxExporter';
 import type {
 	PresentationData,
 	PresenterSettings,
@@ -192,6 +196,15 @@ export class PresenterModal extends Modal {
 						void this.printPresentation('handout');
 					});
 			});
+			menu.addSeparator();
+			menu.addItem((item) => {
+				item
+					.setTitle('Export as powerpoint (.pptx)')
+					.setIcon('download')
+					.onClick(() => {
+						void this.exportPptx();
+					});
+			});
 			menu.showAtMouseEvent(e);
 		};
 
@@ -292,6 +305,31 @@ export class PresenterModal extends Modal {
 			notice.hide();
 			console.error('Failed to prepare slides for printing:', err);
 			new Notice('Failed to prepare slides for printing. Check console for details.');
+		}
+	}
+
+	private async exportPptx() {
+		const file = this.app.vault.getAbstractFileByPath(this.sourcePath);
+		if (!(file instanceof TFile)) {
+			new Notice('Source note file not found.');
+			return;
+		}
+
+		const notice = new Notice('Exporting powerpoint (.pptx) presentation...', 0);
+		try {
+			const pptxBuffer = await exportPresentationToPptx(
+				this.app,
+				file,
+				this.presentation,
+				this.settings
+			);
+			const exportPath = await saveAndDownloadPptx(this.app, file, pptxBuffer);
+			notice.hide();
+			new Notice(`Presentation exported successfully!\nSaved to: ${exportPath}`, 5000);
+		} catch (err) {
+			notice.hide();
+			console.error('Failed to export PowerPoint (.pptx):', err);
+			new Notice('Failed to export powerpoint (.pptx). Check console for details.');
 		}
 	}
 

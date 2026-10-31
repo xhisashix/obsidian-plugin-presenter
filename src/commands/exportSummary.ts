@@ -85,6 +85,8 @@ export function registerSummaryCommand(plugin: PresenterPlugin): void {
 					defaultColumnStyle: settings.defaultColumnStyle,
 					enableBadges: settings.enableBadges,
 					enableSmartLayouts: settings.enableSmartLayouts,
+					inheritSlideHeadings: settings.inheritSlideHeadings,
+					headingContinuationPrefix: settings.headingContinuationPrefix,
 				});
 
 				const summary = extractPresentationSummary(presentation);

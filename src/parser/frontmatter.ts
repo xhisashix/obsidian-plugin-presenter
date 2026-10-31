@@ -92,6 +92,25 @@ export function extractFrontmatter(content: string): {
 					frontmatter.smartLayouts = false;
 				}
 				break;
+			case 'inheritHeadings':
+			case 'inherit-headings':
+			case 'inheritSlideHeadings':
+				if (val === 'true') {
+					frontmatter.inheritHeadings = true;
+				} else if (val === 'false') {
+					frontmatter.inheritHeadings = false;
+				}
+				break;
+			case 'continuationPrefix':
+			case 'continuation-prefix':
+			case 'headingContinuationPrefix':
+				frontmatter.continuationPrefix = val;
+				break;
+			case 'continuationSuffix':
+			case 'continuation-suffix':
+			case 'headingContinuationSuffix':
+				frontmatter.continuationSuffix = val;
+				break;
 		}
 	}
 

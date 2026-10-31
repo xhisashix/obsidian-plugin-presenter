@@ -8,6 +8,10 @@ import {
 import { registerColumnCommands } from './commands/insertColumns';
 import { registerSummaryCommand } from './commands/exportSummary';
 import { exportPresentationToHtml } from './export/htmlExporter';
+import {
+	exportPresentationToPptx,
+	saveAndDownloadPptx,
+} from './export/pptxExporter';
 import { parsePresentation } from './parser/slideParser';
 import { PresenterSettingTab } from './settings';
 import {
@@ -85,6 +89,22 @@ export default class PresenterPlugin extends Plugin {
 				if (activeView && activeView.file instanceof TFile) {
 					if (!checking) {
 						void this.exportHtmlForActiveFile();
+					}
+					return true;
+				}
+				return false;
+			},
+		});
+
+		// Add command to export presentation as PowerPoint (.pptx)
+		this.addCommand({
+			id: 'export-pptx',
+			name: 'Export presentation as powerpoint (.pptx)',
+			checkCallback: (checking: boolean) => {
+				const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+				if (activeView && activeView.file instanceof TFile) {
+					if (!checking) {
+						void this.exportPptxForActiveFile();
 					}
 					return true;
 				}
@@ -218,6 +238,8 @@ export default class PresenterPlugin extends Plugin {
 				defaultColumnStyle: this.settings.defaultColumnStyle,
 				enableBadges: this.settings.enableBadges,
 				enableSmartLayouts: this.settings.enableSmartLayouts,
+				inheritSlideHeadings: this.settings.inheritSlideHeadings,
+				headingContinuationPrefix: this.settings.headingContinuationPrefix,
 			});
 
 			if (presentation.slides.length === 0) {
@@ -275,6 +297,8 @@ export default class PresenterPlugin extends Plugin {
 				defaultColumnStyle: this.settings.defaultColumnStyle,
 				enableBadges: this.settings.enableBadges,
 				enableSmartLayouts: this.settings.enableSmartLayouts,
+				inheritSlideHeadings: this.settings.inheritSlideHeadings,
+				headingContinuationPrefix: this.settings.headingContinuationPrefix,
 			});
 			if (presentation.slides.length === 0) {
 				new Notice('No slide content found in this note.');
@@ -316,6 +340,53 @@ export default class PresenterPlugin extends Plugin {
 	}
 
 	/**
+	 * Exports the active markdown note as an editable PowerPoint (.pptx) file.
+	 */
+	async exportPptxForActiveFile() {
+		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (!activeView || !(activeView.file instanceof TFile)) {
+			new Notice('Please open a Markdown note to export.');
+			return;
+		}
+
+		const file = activeView.file;
+		try {
+			new Notice('Exporting powerpoint (.pptx) presentation...');
+			let content = '';
+			if (activeView.file.path === file.path) {
+				content = activeView.editor.getValue();
+			} else {
+				content = await this.app.vault.read(file);
+			}
+
+			const presentation = parsePresentation(content, {
+				defaultColumnStyle: this.settings.defaultColumnStyle,
+				enableBadges: this.settings.enableBadges,
+				enableSmartLayouts: this.settings.enableSmartLayouts,
+				inheritSlideHeadings: this.settings.inheritSlideHeadings,
+				headingContinuationPrefix: this.settings.headingContinuationPrefix,
+			});
+			if (presentation.slides.length === 0) {
+				new Notice('No slide content found in this note.');
+				return;
+			}
+
+			const pptxBuffer = await exportPresentationToPptx(
+				this.app,
+				file,
+				presentation,
+				this.settings
+			);
+			const exportPath = await saveAndDownloadPptx(this.app, file, pptxBuffer);
+
+			new Notice(`Presentation exported successfully!\nSaved to: ${exportPath}`, 5000);
+		} catch (err) {
+			console.error('Failed to export presentation as PowerPoint (.pptx):', err);
+			new Notice('Failed to export powerpoint (.pptx). Check console for details.');
+		}
+	}
+
+	/**
 	 * Inspects slides in the active markdown note for layout overflow and opens the report modal.
 	 */
 	async checkOverflowForActiveFile() {
@@ -338,6 +409,8 @@ export default class PresenterPlugin extends Plugin {
 				defaultColumnStyle: this.settings.defaultColumnStyle,
 				enableBadges: this.settings.enableBadges,
 				enableSmartLayouts: this.settings.enableSmartLayouts,
+				inheritSlideHeadings: this.settings.inheritSlideHeadings,
+				headingContinuationPrefix: this.settings.headingContinuationPrefix,
 			});
 
 			if (presentation.slides.length === 0) {

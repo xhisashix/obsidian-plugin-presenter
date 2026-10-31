@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-10-31
+
+### Added
+
+- **Editable PowerPoint (`.pptx`) Export (`pptxgenjs`)**:
+  - Added command `Presenter: Export presentation as powerpoint (.pptx)` (`export-pptx`) and presentation toolbar print menu action (`Export as powerpoint (.pptx)`).
+  - Generates native, editable `.pptx` slide decks (`<note-name>-presentation.pptx`) saved to the vault and downloaded via the browser.
+  - Preserves 16:9 / 4:3 layouts, custom color themes (`baseColor`, `mainColor`, `accentColor`), headers/footers/logos, cover/section/quote/content slide layouts, multi-column grids (`card` / `plain`), non-uniform ratios (`2:1`, `1:2`, `3:1`, `1:3`), step flow cards (`STEP 01`...), KPI metric cards, callout boxes, tables, code blocks, bracket badges, inline images, rasterized SVG/Mermaid diagrams, and speaker notes.
+  - Added comprehensive unit test suite (`tests/pptx.test.ts`).
+- **Automatic Section Heading Inheritance & Numbering on Split Slides**:
+  - Automatically repeats and numbers the parent `## H2` heading across multi-page sections split by `---` as `Title 1-1, Title 1-2, ... Title 1-N` while keeping single-page sections unnumbered.
+  - Excludes cover slides, standalone quote slides, and section divider slides from automatic heading inheritance.
+  - Configurable vault-wide via **Settings → Layout & grid → Inherit section headings on split slides** (`inheritSlideHeadings`, default `true`) and per-note via frontmatter (`inheritHeadings: true | false`).
+- **AI Slide Authoring Skill Documentation & Release Workflow Skill**:
+  - Added documentation and links to the official `create-presentation` Agent Skill repository (`xhisashix/obsidian-presenter-skill`) in `README.md` and `README_ja.md`.
+  - Added `.agents/skills/release-workflow` skill and release templates for standardized release preparation and tagging.
+
+### Changed & Improved
+
+- **CSS Specificity Refactoring (Zero `!important`)**:
+  - Removed all `!important` declarations across `styles.css` and `src/export/exportStyles.ts` by increasing selector specificity, complying strictly with Obsidian community plugin styling guidelines.
+
+### Fixed
+
+- **Standalone HTML Export Layout & Style Parity**:
+  - Added missing CSS rules in `src/export/exportStyles.ts` for step flow process badges (`STEP 01`...), non-uniform column ratios (`2:1`, `1:2`, `3:1`, `1:3`), plain column styles, KPI metric cards, key takeaway callouts, section dividers, and quote slide layouts.
+
+---
+
 ## [1.4.0] - 2026-10-25
 
 ### Added
