@@ -363,6 +363,8 @@ export default class PresenterPlugin extends Plugin {
 				defaultColumnStyle: this.settings.defaultColumnStyle,
 				enableBadges: this.settings.enableBadges,
 				enableSmartLayouts: this.settings.enableSmartLayouts,
+				inheritSlideHeadings: this.settings.inheritSlideHeadings,
+				headingContinuationPrefix: this.settings.headingContinuationPrefix,
 			});
 			if (presentation.slides.length === 0) {
 				new Notice('No slide content found in this note.');

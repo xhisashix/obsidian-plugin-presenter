@@ -14,11 +14,11 @@ Keep your natural note-taking workflow and AI-generated Markdown structure (`# H
   - View rendered slides right beside your editor in real time as you write.
   - Automatically syncs and highlights the slide matching your editor cursor position (with a pin/unpin toggle).
   - Smooth typing experience powered by a 250ms debounced renderer.
-- **Natural Markdown Structure**:
+- **Natural Markdown Structure & Continuation Heading Inheritance**:
   - `# H1`: Presentation title slide.
   - `## H2`: New slide title and delimiter.
   - `### H3` / `#### H4`: Subsections and column headers within slides.
-  - (Explicit slide delimiters using horizontal rules `---` are also supported).
+  - Explicit slide delimiters using horizontal rules (`---`) automatically inherit and number the parent `## H2` section heading as `Title 1-1, Title 1-2, ... Title 1-N` (configurable via Settings or frontmatter `inheritHeadings: false`).
 - **Smart Slide Layouts & Auto-Inference**:
   - Automatically identifies header-only slides as centered **Section Divider** slides.
   - Formats single-blockquote slides as elegant **Quote / Big Statement** cards.
@@ -55,6 +55,9 @@ Keep your natural note-taking workflow and AI-generated Markdown structure (`# H
   - Export self-contained, single-file HTML presentations (`<note-name>-presentation.html`) via the command palette.
   - Recipients need only a web browser (no Obsidian or internet connection required) and can switch between **[ 🖥 Slide View ]** and **[ 📄 Handout Document View ]** with a single click.
   - Includes slide overview drawer (`G` key), `#slide-N` deep-link URL hash synchronization, and lightbox zoom.
+- **Editable PowerPoint (`.pptx`) Export**:
+  - Export native, editable PowerPoint slide decks (`<note-name>-presentation.pptx`) via the command palette (`Presenter: Export presentation as powerpoint (.pptx)`) or the toolbar Print/Export menu.
+  - Preserves theme colors, multi-column grids, non-uniform ratios, step flow cards, tables, code blocks, callouts, KPI cards, images, Mermaid diagrams, and speaker notes.
 - **High-Quality PDF Export**:
   - Press `Cmd + P` (Mac) or `Ctrl + P` (Windows) inside presentation mode to export high-resolution slide or handout PDFs.
 - **Slide Overflow Detection & Auto-fit**:
@@ -274,7 +277,12 @@ Export your presentation as a single self-contained HTML file:
 - The exported `<note-name>-presentation.html` contains all scripts and styles inline—no external servers or dependencies required.
 - Recipients simply double-click to view, with a toggle in the top-right corner to switch between **[ 🖥 Slide Mode ]** and **[ 📄 Handout Document Mode ]**.
 
-### 3. Handout (SlideDoc) Print & PDF
+### 3. Editable PowerPoint (`.pptx`) Export
+Export your presentation as a native PowerPoint file for corporate sharing or further editing:
+- Run `Presenter: Export presentation as powerpoint (.pptx)` from the Command Palette, or click the Print icon in presentation mode and select **Export as powerpoint (.pptx)**.
+- Saves `<note-name>-presentation.pptx` to the same folder as your note and triggers a browser download, complete with editable text boxes, styled columns, tables, diagrams, and speaker notes.
+
+### 4. Handout (SlideDoc) Print & PDF
 - Press `P` or click the Print icon in presentation mode and choose **Print handout with notes**.
 - Generates an executive A4 PDF report with slide cards on top and detailed speaker notes below.
 
