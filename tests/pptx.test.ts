@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { DEFAULT_SETTINGS, type PresentationData } from '../src/types';
 import {
 	blendHexColors,
@@ -432,4 +433,23 @@ void test('buildPptxFromExtractedSlides produces a valid PPTX ZIP ArrayBuffer', 
 	assert.equal(view[1], 0x4b); // 'K'
 	assert.equal(view[2], 0x03);
 	assert.equal(view[3], 0x04);
+});
+
+void test('PPTX bundle does not include dynamic script element creation or new Function polyfills', () => {
+	const bundleCode = readFileSync('tests/.bundle.test.mjs', 'utf8');
+	const scriptTagPattern = new RegExp(
+		'createElement\\s*\\(\\s*[\'"]' + 'script' + '[\'"]\\s*\\)'
+	);
+	const newFunctionPattern = new RegExp('new\\s+' + 'Function\\s*\\(');
+
+	assert.equal(
+		scriptTagPattern.test(bundleCode),
+		false,
+		'Bundle must not dynamically create script elements'
+	);
+	assert.equal(
+		newFunctionPattern.test(bundleCode),
+		false,
+		'Bundle must not construct dynamic functions'
+	);
 });
