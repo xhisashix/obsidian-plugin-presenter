@@ -18,6 +18,8 @@ export interface PresenterSettings {
 	enableBadges: boolean;
 	autoFitOverflow: boolean;
 	enableSmartLayouts: boolean;
+	inheritSlideHeadings: boolean;
+	headingContinuationPrefix: string;
 }
 
 export const DEFAULT_SETTINGS: PresenterSettings = {
@@ -33,6 +35,8 @@ export const DEFAULT_SETTINGS: PresenterSettings = {
 	enableBadges: true,
 	autoFitOverflow: false,
 	enableSmartLayouts: true,
+	inheritSlideHeadings: true,
+	headingContinuationPrefix: '[続き] ',
 };
 
 export interface SlideFrontmatter {
@@ -47,6 +51,9 @@ export interface SlideFrontmatter {
 	columnStyle?: ColumnStyle;
 	fit?: 'auto' | 'none' | boolean;
 	smartLayouts?: boolean;
+	inheritHeadings?: boolean;
+	continuationPrefix?: string;
+	continuationSuffix?: string;
 }
 
 export const VIEW_TYPE_PRESENTER_PREVIEW = 'presenter-preview-view';
@@ -72,6 +79,9 @@ export interface ParseOptions {
 	defaultColumnStyle?: ColumnStyle;
 	enableBadges?: boolean;
 	enableSmartLayouts?: boolean;
+	inheritSlideHeadings?: boolean;
+	headingContinuationPrefix?: string;
+	headingContinuationSuffix?: string;
 }
 
 export interface SlideOverflowInfo {

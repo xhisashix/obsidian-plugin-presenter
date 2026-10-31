@@ -118,6 +118,14 @@ export class PresenterSettingTab extends PluginSettingTab {
 							key: 'enableSmartLayouts',
 						},
 					},
+					{
+						name: 'Inherit section headings on split slides',
+						desc: 'Automatically repeat and number headings on continuation slides split by `---` as `Title 1-1, Title 1-2, ... Title 1-N` (override with frontmatter `inheritHeadings`).',
+						control: {
+							type: 'toggle',
+							key: 'inheritSlideHeadings',
+						},
+					},
 				],
 			},
 			{
@@ -315,6 +323,18 @@ export class PresenterSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.enableSmartLayouts)
 					.onChange(async (val) => {
 						this.plugin.settings.enableSmartLayouts = val;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName('Inherit section headings on split slides')
+			.setDesc('Automatically repeat and number headings on continuation slides split by `---` as `Title 1-1, Title 1-2, ... Title 1-N` (override with frontmatter `inheritHeadings`).')
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.inheritSlideHeadings)
+					.onChange(async (val) => {
+						this.plugin.settings.inheritSlideHeadings = val;
 						await this.plugin.saveSettings();
 					})
 			);

@@ -4,7 +4,7 @@ import { preprocessBadges } from './badges';
 import { preprocessColumns } from './columns';
 import { FenceTracker } from './fence';
 import { extractFrontmatter } from './frontmatter';
-import { inferSlideLayout, preprocessKpi } from './layoutInference';
+import { findExplicitSlideLayout, inferSlideLayout, preprocessKpi } from './layoutInference';
 import { extractSlideNotes } from './notes';
 
 export { extractFrontmatter } from './frontmatter';
@@ -40,11 +40,16 @@ export function parsePresentation(
 	const defaultStyle: ColumnStyle = options.defaultColumnStyle || 'card';
 	const enableBadges: boolean = options.enableBadges ?? true;
 	const enableSmartLayouts: boolean = options.enableSmartLayouts ?? true;
+	const inheritSlideHeadings: boolean = options.inheritSlideHeadings ?? true;
 
 	const { frontmatter, body, frontmatterLines } = extractFrontmatter(rawMarkdown);
 	const resolvedDefaultStyle: ColumnStyle = frontmatter.columnStyle || defaultStyle;
 	const resolvedSmartLayouts: boolean =
 		frontmatter.smartLayouts !== undefined ? frontmatter.smartLayouts : enableSmartLayouts;
+	const resolvedInheritHeadings: boolean =
+		frontmatter.inheritHeadings !== undefined
+			? frontmatter.inheritHeadings
+			: inheritSlideHeadings;
 	const lines = body.split(/\r?\n/);
 
 	const rawSlides: RawSlide[] = [];
@@ -184,6 +189,98 @@ export function parsePresentation(
 			startLine: 0,
 			endLine: 0,
 		});
+	}
+
+	// Inherit and number H2 headings on continuation slides split by '---' when enabled
+	if (resolvedInheritHeadings) {
+		interface SectionGroup {
+			sectionIndex: number;
+			baseTitle: string;
+			slides: RawSlide[];
+		}
+
+		const sections: SectionGroup[] = [];
+		let currentSection: SectionGroup | null = null;
+		let sectionCounter = 0;
+
+		for (const slide of rawSlides) {
+			if (slide.type === 'cover') {
+				// Cover slide resets parent section
+				currentSection = null;
+				continue;
+			}
+
+			// Check explicit layout
+			const explicitLayout = findExplicitSlideLayout(slide.lines);
+			const inferred = inferSlideLayout(slide.lines, slide.type, resolvedSmartLayouts);
+			const isSpecialLayout =
+				explicitLayout === 'quote' ||
+				explicitLayout === 'section' ||
+				inferred === 'quote' ||
+				inferred === 'section';
+
+			if (isSpecialLayout) {
+				currentSection = null;
+				continue;
+			}
+
+			if (slide.title) {
+				// Starts a new H2 section
+				sectionCounter++;
+				currentSection = {
+					sectionIndex: sectionCounter,
+					baseTitle: slide.title,
+					slides: [slide],
+				};
+				sections.push(currentSection);
+			} else if (currentSection) {
+				// Continuation slide belonging to current H2 section
+				currentSection.slides.push(slide);
+			}
+		}
+
+		// Apply Title 1-1, Title 1-2, ... Title 1-N to multi-slide sections
+		for (const section of sections) {
+			if (section.slides.length > 1) {
+				section.slides.forEach((slide, idx) => {
+					const pageNum = idx + 1;
+					const numberedTitle = `${section.baseTitle} ${section.sectionIndex}-${pageNum}`;
+					slide.title = numberedTitle;
+
+					if (idx === 0) {
+						// Update 1st slide's existing H2 heading in lines
+						let replaced = false;
+						for (let l = 0; l < slide.lines.length; l++) {
+							const heading = matchAtxHeading(slide.lines[l]!);
+							if (heading && heading.level === 2 && heading.text === section.baseTitle) {
+								slide.lines[l] = `## ${numberedTitle}`;
+								replaced = true;
+								break;
+							}
+						}
+						if (!replaced) {
+							for (let l = 0; l < slide.lines.length; l++) {
+								if (slide.lines[l]!.trim() === section.baseTitle) {
+									slide.lines[l] = numberedTitle;
+									break;
+								}
+							}
+						}
+					} else {
+						// Continuation slide (idx >= 1): insert ## numberedTitle at top
+						let insertIdx = 0;
+						while (
+							insertIdx < slide.lines.length &&
+							slide.lines[insertIdx]!.trim().startsWith('<!-- slide:')
+						) {
+							insertIdx++;
+						}
+
+						slide.lines.splice(insertIdx, 0, `## ${numberedTitle}`, '');
+					}
+				});
+			}
+		}
 	}
 
 	// Map to SlideData, extract notes, preprocess columns, kpi, and badges
