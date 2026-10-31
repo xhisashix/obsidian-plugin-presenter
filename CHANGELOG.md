@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-10-31
+
+### Fixed
+
+- **Prevent Dynamic Script Element Creation & Legacy Polyfill Injection in PPTX Bundle**:
+  - Resolved Obsidian community plugin security guideline violation regarding runtime dynamic script element creation (`createElement('script')` and `new Function()`).
+  - Configured custom esbuild resolver and loader plugin (`jszip-browser-clean`) to resolve `jszip` directly to its CommonJS modules (`node_modules/jszip/lib/index.js`) rather than its pre-bundled browser distribution containing legacy IE6–8 polyfills (`lie`, `setimmediate`).
+  - Replaced legacy polyfills with browser-native `Promise`, standard `setTimeout`/`clearTimeout`, and an inert stream adapter, completely eliminating runtime `<script>` element insertions and dynamic `Function` constructor evaluations.
+  - Added unit test assertions ensuring neither `createElement('script')` nor dynamic `Function` constructors are present in test and production bundles.
+
+---
+
 ## [1.5.0] - 2026-10-31
 
 ### Added
