@@ -1,6 +1,6 @@
 {
 	"name": "markdown-presenter",
-	"version": "1.5.0",
+	"version": "1.5.1",
 	"description": "Obsidian plugin to present Markdown notes as beautiful slides",
 	"main": "main.js",
 	"type": "module",
