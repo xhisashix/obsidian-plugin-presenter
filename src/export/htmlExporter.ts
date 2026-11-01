@@ -67,7 +67,7 @@ export function buildHandoutItemsHtml(
 	return renderedSlides
 		.map((slide, idx) => {
 			return `
-			<article class="handout-item">
+			<article class="handout-item" id="handout-item-${idx}">
 				<div class="handout-slide-preview">
 					<div class="presenter-slide-body">
 						${slide.bodyHtml}
@@ -84,6 +84,31 @@ export function buildHandoutItemsHtml(
 					</div>
 				</div>
 			</article>`;
+		})
+		.join('\n');
+}
+
+/**
+ * Builds HTML markup for slide overview grid cards.
+ */
+export function buildOverviewGridHtml(renderedSlides: RenderedExportSlide[]): string {
+	return renderedSlides
+		.map((slide, idx) => {
+			const isSection = slide.type === 'section';
+			const typeLabel =
+				slide.type === 'cover'
+					? 'TITLE'
+					: isSection
+						? 'SECTION'
+						: slide.type === 'quote'
+							? 'QUOTE'
+							: `SLIDE ${idx + 1}`;
+			const slideTitle = escapeHtml(slide.title || (slide.type === 'cover' ? 'Title' : `Slide ${idx + 1}`));
+			return `
+			<div id="overview-thumb-${idx}" class="presenter-overview-thumb${idx === 0 ? ' is-active' : ''}${isSection ? ' is-section' : ''}" data-index="${idx}">
+				<div class="presenter-overview-thumb-badge">${escapeHtml(typeLabel)}</div>
+				<div class="presenter-overview-thumb-title">${slideTitle}</div>
+			</div>`;
 		})
 		.join('\n');
 }
@@ -197,6 +222,8 @@ export async function exportPresentationToHtml(
 		totalSlides
 	);
 
+	const overviewThumbsHtml = buildOverviewGridHtml(renderedSlides);
+
 	return `<!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -235,6 +262,20 @@ export async function exportPresentationToHtml(
 	</header>
 
 	<div id="progress-bar" class="progress-bar"></div>
+
+	<!-- Slide Overview Grid / Table of Contents Modal -->
+	<div id="overview-modal" class="presenter-overview-overlay hidden">
+		<div class="presenter-overview-header">
+			<div class="presenter-overview-title">
+				<span>📑 一覧 / 目次</span>
+				<span class="presenter-overview-count">${totalSlides} slides</span>
+			</div>
+			<button id="btn-overview-close" class="presenter-overview-close-btn" title="Close (Esc)">✕</button>
+		</div>
+		<div class="presenter-overview-grid">
+${overviewThumbsHtml}
+		</div>
+	</div>
 
 	<!-- Mode 1: Slide Presentation Mode -->
 	<main id="presentation-mode">

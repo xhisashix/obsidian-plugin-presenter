@@ -140,6 +140,139 @@ export function getExportStyles(params: ExportStyleParams): string {
 			border-color: rgba(56, 189, 248, 0.4);
 		}
 
+		/* Slide Overview Grid / Table of Contents Modal */
+		.presenter-overview-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			background: rgba(9, 13, 22, 0.96);
+			backdrop-filter: blur(16px);
+			z-index: 1500;
+			display: flex;
+			flex-direction: column;
+			padding: 36px 48px;
+			box-sizing: border-box;
+			overflow-y: auto;
+		}
+
+		.presenter-overview-overlay.hidden {
+			display: none;
+		}
+
+		.presenter-overview-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 28px;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+			padding-bottom: 16px;
+			flex-shrink: 0;
+		}
+
+		.presenter-overview-title {
+			color: #ffffff;
+			font-size: 20px;
+			font-weight: 700;
+			display: flex;
+			align-items: center;
+			gap: 12px;
+		}
+
+		.presenter-overview-count {
+			font-size: 13px;
+			color: #94a3b8;
+			background: rgba(255, 255, 255, 0.1);
+			padding: 2px 8px;
+			border-radius: 12px;
+		}
+
+		.presenter-overview-close-btn {
+			position: relative;
+			color: #ffffff;
+			font-size: 20px;
+			cursor: pointer;
+			opacity: 0.75;
+			transition: opacity 0.15s, background-color 0.15s;
+			width: 40px;
+			height: 40px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 50%;
+			background: rgba(255, 255, 255, 0.12);
+			border: none;
+		}
+
+		.presenter-overview-close-btn:hover {
+			opacity: 1;
+			background: rgba(255, 255, 255, 0.25);
+		}
+
+		.presenter-overview-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+			gap: 20px;
+			width: 100%;
+		}
+
+		.presenter-overview-thumb {
+			background: #1e293b;
+			border: 2px solid transparent;
+			border-radius: 8px;
+			padding: 16px;
+			cursor: pointer;
+			transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+			display: flex;
+			flex-direction: column;
+			min-height: 120px;
+			position: relative;
+			box-sizing: border-box;
+			text-align: left;
+		}
+
+		.presenter-overview-thumb:hover {
+			transform: translateY(-3px);
+			border-color: var(--presenter-accent-color);
+			box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+		}
+
+		.presenter-overview-thumb.is-active {
+			border-color: var(--presenter-accent-color);
+			box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.4);
+		}
+
+		.presenter-overview-thumb-badge {
+			font-size: 11px;
+			font-weight: 700;
+			color: #94a3b8;
+			margin-bottom: 8px;
+			text-transform: uppercase;
+		}
+
+		.presenter-overview-thumb-title {
+			color: #f1f5f9;
+			font-size: 14px;
+			font-weight: 600;
+			line-height: 1.4;
+			flex: 1;
+			word-break: break-word;
+		}
+
+		.presenter-overview-thumb.is-section {
+			background: rgba(56, 189, 248, 0.1);
+			border: 1px dashed rgba(56, 189, 248, 0.4);
+		}
+
+		.presenter-overview-thumb.is-section .presenter-overview-thumb-title {
+			color: var(--presenter-accent-color);
+			text-align: center;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
 		/* Progress Bar */
 		.progress-bar {
 			height: 3px;

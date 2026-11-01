@@ -13,6 +13,7 @@ import { getExportStyles } from '../src/export/exportStyles';
 import { getExportScript } from '../src/export/exportScript';
 import {
 	buildHandoutItemsHtml,
+	buildOverviewGridHtml,
 	buildSlideCardsHtml,
 	type RenderedExportSlide,
 } from '../src/export/htmlExporter';
@@ -129,11 +130,11 @@ void test('getExportStyles generates CSS with provided colors, dimensions, and l
 	assert.match(css, /\.presenter-cols-ratio-1-2/);
 	assert.match(css, /\.presenter-cols-plain/);
 
-	// Verify KPI, callout, and smart layouts
-	assert.match(css, /\.presenter-kpi-value/);
-	assert.match(css, /\.callout/);
-	assert.match(css, /\.presenter-slide-section/);
-	assert.match(css, /\.presenter-slide-quote/);
+	// Verify overview modal styles
+	assert.match(css, /\.presenter-overview-overlay/);
+	assert.match(css, /\.presenter-overview-grid/);
+	assert.match(css, /\.presenter-overview-thumb/);
+	assert.match(css, /\.presenter-overview-close-btn/);
 });
 
 void test('getExportScript includes total slide count and client logic', () => {
@@ -147,9 +148,12 @@ void test('getExportScript includes total slide count and client logic', () => {
 	assert.match(script, /const total = 5;/);
 	assert.match(script, /showSlide\(index\)/);
 	assert.match(script, /nextSlide\(\)/);
+	assert.match(script, /toggleOverview\(\)/);
+	assert.match(script, /overviewModal/);
+	assert.match(script, /case 'g':/);
 });
 
-void test('buildSlideCardsHtml and buildHandoutItemsHtml construct proper structure', () => {
+void test('buildSlideCardsHtml, buildHandoutItemsHtml, and buildOverviewGridHtml construct proper structure', () => {
 	const dummySlides: RenderedExportSlide[] = [
 		{
 			index: 0,
@@ -158,6 +162,13 @@ void test('buildSlideCardsHtml and buildHandoutItemsHtml construct proper struct
 			bodyHtml: '<h1>Welcome</h1>',
 			notesHtml: '<p>Speaker notes</p>',
 		},
+		{
+			index: 1,
+			type: 'section',
+			title: 'Section Header',
+			bodyHtml: '<h2>Section 1</h2>',
+			notesHtml: '',
+		},
 	];
 
 	const slideHtml = buildSlideCardsHtml(
@@ -165,16 +176,26 @@ void test('buildSlideCardsHtml and buildHandoutItemsHtml construct proper struct
 		'Company Presentation',
 		'Page Footer',
 		'<div class="logo"></div>',
-		1
+		2
 	);
 
 	assert.match(slideHtml, /presenter-slide-cover/);
 	assert.match(slideHtml, /Company Presentation/);
 	assert.match(slideHtml, /class="logo"/);
-	assert.match(slideHtml, /1 \/ 1/);
+	assert.match(slideHtml, /1 \/ 2/);
 
-	const handoutHtml = buildHandoutItemsHtml(dummySlides, 'Page Footer', 1);
+	const handoutHtml = buildHandoutItemsHtml(dummySlides, 'Page Footer', 2);
 	assert.match(handoutHtml, /handout-item/);
+	assert.match(handoutHtml, /id="handout-item-0"/);
 	assert.match(handoutHtml, /Speaker notes/);
-	assert.match(handoutHtml, /Slide 1 of 1/);
+	assert.match(handoutHtml, /Slide 1 of 2/);
+
+	const overviewHtml = buildOverviewGridHtml(dummySlides);
+	assert.match(overviewHtml, /presenter-overview-thumb/);
+	assert.match(overviewHtml, /id="overview-thumb-0"/);
+	assert.match(overviewHtml, /TITLE/);
+	assert.match(overviewHtml, /Title Slide/);
+	assert.match(overviewHtml, /is-section/);
+	assert.match(overviewHtml, /SECTION/);
+	assert.match(overviewHtml, /Section Header/);
 });
