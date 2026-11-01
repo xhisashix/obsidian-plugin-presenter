@@ -18,18 +18,44 @@
 
 ```bash
 src/
-├── main.ts                  # プラグインエントリーポイント・ライフサイクル
-├── types.ts                 # データ構造・インターフェース定義
-├── settings.ts              # グローバル設定UI (PluginSettingTab)
+├── main.ts                     # プラグインエントリーポイント・ライフサイクル・コマンド登録
+├── types.ts                    # データ構造・インターフェース定義
+├── settings.ts                 # グローバル設定UI (PluginSettingTab, 宣言的設定API)
+├── commands/
+│   ├── insertColumns.ts        # カラムレイアウト挿入コマンド群・ピッカー
+│   ├── exportSummary.ts        # 共有用サマリーコピーコマンド
+│   └── splitSlide.ts          # スライド自動分割処理
 ├── parser/
-│   └── slideParser.ts       # フロントマター抽出、スライド分割、ノート抽出、カラム・バッジ変換
+│   ├── slideParser.ts          # スライド分割、見出し自動継承・連番統合ロジック
+│   ├── layoutInference.ts      # 中扉 (section)、引用 (quote)、KPIメトリクスの自動推論
+│   ├── frontmatter.ts          # YAMLフロントマター抽出
+│   ├── directives.ts           # HTMLコメント指示子の抽出・解析
+│   ├── columns.ts              # カラムレイアウト・比率・ステップの前処理
+│   ├── badges.ts               # 角括弧バッジ [重要] の前処理
+│   ├── notes.ts                # 発表者ノート (> [!note]) の抽出・分離
+│   ├── blocks.ts               # ブロック・見出し・水平線判定ユーティリティ
+│   └── fence.ts                # CommonMarkコードブロックフェンストラッカー
 ├── export/
-│   └── htmlExporter.ts      # スタンドアロン単一HTMLエクスポート（スライド＆ハンドアウト切替）
+│   ├── htmlExporter.ts         # スタンドアロン単一HTMLエクスポート
+│   ├── exportScript.ts         # エクスポートHTMLクライアントランタイム (スライド/ハンドアウト切替, Lightbox)
+│   ├── exportStyles.ts         # エクスポート用埋め込みCSSスタイル (レスポンシブ, カラム, ステップ, KPI)
+│   ├── imageInliner.ts         # ローカル画像/ロゴのBase64 Data URL変換
+│   ├── pptxExporter.ts         # PowerPoint (.pptx) エクスポート統括・ファイル保存
+│   ├── pptxDomParser.ts        # DOM解析・ブロック抽出・Mermaid SVGラスタライズ
+│   ├── pptxLayoutRenderer.ts   # PPTXネイティブオブジェクト・レイアウト描画エンジン
+│   ├── pptxTheme.ts            # PPTXカラーテーマ・フォント設定生成
+│   └── pptxTypes.ts            # PPTXエクスポート専用型定義
 └── ui/
-    ├── jumpModal.ts         # スライド番号直接ジャンプモーダル
-    ├── presenterModal.ts    # プレゼンテーション全画面モーダル・ノートドロワー・印刷制御
+    ├── presenterModal.ts       # プレゼンテーション全画面モーダル・ツールバー・印刷制御
     ├── presenterPreviewView.ts # リアルタイムプレビューペイン (ItemView)
-    └── slideRenderer.ts     # Markdownレンダリング、動的CSS変数・ヘッダー/フッター/ノート生成
+    ├── slideRenderer.ts        # Markdownレンダリング、動的CSS変数・ヘッダー/フッター/ノート生成
+    ├── stageHelpers.ts         # スケーリング計算・ツールバー構築・共通UIヘルパー
+    ├── jumpModal.ts            # スライド番号直接ジャンプモーダル
+    ├── overviewGridModal.ts    # スライド俯瞰一覧 (Overview Grid / Slide Sorter)
+    ├── lightbox.ts             # 画像・Mermaid図のクリック拡大表示 (Lightbox)
+    ├── columnPickerModal.ts    # カラムレイアウト選択クイックピッカー (SuggestModal)
+    ├── overflowReportModal.ts  # スライドはみ出し検査モーダル (はみ出し率・ワンクリック分割)
+    └── overflow.ts             # はみ出し量計測・キャッシュ・Auto-fit計算エンジン
 ```
 
 ### 2.1 コンポーネント関連図 (Component Relationship)
@@ -38,26 +64,42 @@ src/
 flowchart TD
     ObsidianApp[Obsidian Core App] --> PresenterPlugin[PresenterPlugin (main.ts)]
     PresenterPlugin --> Settings[PresenterSettingTab (settings.ts)]
-    PresenterPlugin --> SlideParser[slideParser.ts]
+    PresenterPlugin --> SlideParser[SlideParser (parser/*)]
     PresenterPlugin --> PresenterModal[PresenterModal (presenterModal.ts)]
     PresenterPlugin --> PresenterPreviewView[PresenterPreviewView (presenterPreviewView.ts)]
-    PresenterPlugin --> HtmlExporter[htmlExporter.ts]
+    PresenterPlugin --> HtmlExporter[HtmlExporter (export/htmlExporter.ts)]
+    PresenterPlugin --> PptxExporter[PptxExporter (export/pptxExporter.ts)]
+    PresenterPlugin --> Commands[Commands (commands/*)]
     
     SlideParser --> Types[Data Models (types.ts)]
+    PresenterModal --> StageHelpers[stageHelpers.ts]
     PresenterModal --> SlideRenderer[slideRenderer.ts]
     PresenterModal --> JumpModal[JumpToSlideModal (jumpModal.ts)]
+    PresenterModal --> OverviewModal[OverviewGridModal (overviewGridModal.ts)]
+    PresenterModal --> Lightbox[Lightbox (lightbox.ts)]
+    PresenterModal --> OverflowModal[OverflowReportModal (overflowReportModal.ts)]
+    
+    PresenterPreviewView --> StageHelpers
     PresenterPreviewView --> SlideRenderer
     PresenterPreviewView --> JumpModal
+    PresenterPreviewView --> OverflowModal
     PresenterPreviewView -.->|全画面プレゼン起動| PresenterModal
     
     SlideRenderer --> MarkdownRenderer[Obsidian MarkdownRenderer.render]
+    SlideRenderer --> OverflowEngine[Overflow & Cache Engine (overflow.ts)]
     SlideRenderer --> DOM[Slide Card DOM Structure]
-    PresenterModal --> KeyNav[Keyboard & Navigation Controls]
-    PresenterModal --> NotesDrawer[Speaker Notes Drawer]
-    PresenterModal --> PrintManager[Print & Handout PDF Engine]
 
     HtmlExporter --> MarkdownRenderer
-    HtmlExporter --> VaultStorage[Vault File & Browser Download]
+    HtmlExporter --> ExportStyles[exportStyles.ts]
+    HtmlExporter --> ExportScript[exportScript.ts]
+    HtmlExporter --> ImageInliner[imageInliner.ts]
+    
+    PptxExporter --> MarkdownRenderer
+    PptxExporter --> PptxDomParser[pptxDomParser.ts]
+    PptxExporter --> PptxLayoutRenderer[pptxLayoutRenderer.ts]
+    PptxExporter --> PptxTheme[pptxTheme.ts]
+    PptxExporter --> PptxGenJS[PptxGenJS Library]
+    PptxDomParser --> ImageInliner
 ```
 
 ---
@@ -157,6 +199,48 @@ sequenceDiagram
     Browser-->>User: スライド表示 & 配布資料（詳細解説）表示を自由に切り替えて閲覧
 ```
 
+### 3.4 PowerPoint (.pptx) エクスポートシーケンス (PowerPoint Export Sequence)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant Main as PresenterPlugin (main.ts)
+    participant Parser as SlideParser (slideParser.ts)
+    participant Exporter as PptxExporter (pptxExporter.ts)
+    participant DomParser as PptxDomParser (pptxDomParser.ts)
+    participant NativeRenderer as Obsidian MarkdownRenderer
+    participant Renderer as PptxLayoutRenderer (pptxLayoutRenderer.ts)
+    participant PptxGen as PptxGenJS Library
+    participant Vault as Obsidian Vault
+
+    User->>Main: コマンド実行 (Export as powerpoint) / ツールバー印刷メニュー
+    Main->>Parser: parsePresentation(content)
+    Parser-->>Main: PresentationData
+    Main->>Exporter: exportPresentationToPptx(app, file, presentation, settings)
+    
+    loop 各スライド
+        Exporter->>NativeRenderer: MarkdownRenderer.render(一時DOMコンテナ)
+        Exporter->>DomParser: waitForEmbeddedDiagrams (Mermaid非同期描画待機)
+        Exporter->>DomParser: rasterizeSvgElementsToImages (Mermaid SVG -> PNGラスタライズ)
+        Exporter->>DomParser: inlineLocalImages (画像Base64化)
+        Exporter->>DomParser: extractSlideBlocksFromDom (見出し, 段落, カラム, 表, コード, KPI抽出)
+    end
+
+    Exporter->>PptxGen: new PptxGenJS() & レイアウト/メタデータ初期化
+    loop 各抽出スライド
+        Exporter->>Renderer: renderPptxSlide(pptx, pptxSlide, slideData, blocks, theme)
+        Renderer->>PptxGen: テキストボックス, シェイプ, 表, コード, 画像をネイティブ追加
+        Renderer->>PptxGen: pptxSlide.addNotes(speakerNotes)
+    end
+
+    Exporter->>PptxGen: pptx.write('arraybuffer')
+    PptxGen-->>Exporter: ArrayBufferバイナリ
+    Exporter->>Vault: <ノート名>-presentation.pptx を同一フォルダに保存
+    Exporter->>Main: ブラウザ Blob ダウンロード発火
+    Main-->>User: エクスポート完了通知 (Notice)
+```
+
 ---
 
 ## 4. ライフサイクル・リソース管理 (Lifecycle & Resource Management)
@@ -206,14 +290,18 @@ Obsidianコミュニティプラグインの品質ガイドラインに従い、
 
 ---
 
-## 5. レンダリング戦略と互換性 (Rendering Strategy)
+## 5. レンダリング戦略とセキュリティ・互換性 (Rendering & Security Strategy)
 
 1. **Obsidian Native MarkdownRenderer の利用**:
    サードパーティのMarkdownパーサー（markdown-itやmarked等）をバンドルせず、Obsidian組み込みの `MarkdownRenderer.render` を使用しています。
    - メリット:
      - Obsidianの内部リンク `[[...]]`、画像埋め込み `![[...]`、Callout、MathJax、Mermaid、Code Highlightがそのまま動作。
-     - プラグインバンドルサイズが極小（14KB）になり、起動負荷がゼロ。
+     - プラグインバンドルサイズが極小になり、起動負荷がゼロ。
 2. **非破壊的前処理 (Non-destructive Preprocessing)**:
    Markdownの元ファイルを変更することは一切なく、メモリ上でスライド分割・カラムタグ置換を行いレンダリングします。
 3. **オフライン・セキュリティ原則**:
    外部ネットワーク通信を一切行わず、Vault内のみで完結する安全設計です。
+4. **ネイティブPPTX生成と動的スクリプト実行の完全排除 (Zero Dynamic Scripts)**:
+   PowerPointエクスポートエンジン（`pptxgenjs` / `jszip`）のバンドル時、Obsidianコミュニティプラグインのセキュリティ基準に違反する動的スクリプト要素の作成（`document.createElement('script')`）や動的関数生成（`new Function()`）を伴うIE向けレガシーポリフィル（Lie, setImmediate等）を esbuild レベルで完全にインターセプト・排除。ブラウザ標準のネイティブ `Promise` と標準タイマーへ安全に置換しています。
+5. **CSS Specificity 設計 (Zero `!important`)**:
+   Obsidianコミュニティプラグインのスタイルガイドラインに厳格に準拠し、CSS定義およびエクスポートCSS内のすべての `!important` 宣言を撤廃。詳細度（Selector Specificity）の最適化により Obsidian テーマとの完全な共存を実現しています。

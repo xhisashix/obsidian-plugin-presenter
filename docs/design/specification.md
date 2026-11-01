@@ -22,6 +22,24 @@
 > [!NOTE]
 > コードブロック（` ``` ` または ` ~~~ `）内の見出しや水平線は、スライド境界として誤認識されないよう CommonMark 準拠のフェンストラッカーにより厳密に無視されます。
 
+### 2.2 分割スライドの見出し自動継承・連番仕様 (Section Heading Inheritance)
+
+長文スライドを `---` で分割した際、プレゼンテーション時にどのセクションの続きかが一目でわかるよう、親の `## H2` 見出しを自動継承して連番を付与します。
+
+- **連番フォーマット**:
+  同一セクション内の複数スライドに対して、`Title X-1, Title X-2, ... Title X-N` の形式で連番を付与（例: `背景と課題 1-1`, `背景と課題 1-2`）。
+  1枚目のスライドの見出しも `Title X-1` に更新され、2枚目以降（続きスライド）の先頭に `## Title X-2` が自動挿入されます。
+- **単一スライドの保護**:
+  分割されていない（1枚のみの）H2セクションは連番が付かず、元のタイトル（`Title`）のまま表示されます。
+- **除外ルール**:
+  - 表紙スライド (`cover`)
+  - 明示的または自動推論された中扉スライド (`section`)
+  - 明示的または自動推論された引用スライド (`quote`)
+  これらは親セクションの区切りとみなされ、見出しの自動継承は行われません。
+- **設定と制御**:
+  - **プラグイン設定**: **Settings → Layout & grid → Inherit section headings on split slides** (`inheritSlideHeadings`, デフォルト `true`)
+  - **フロントマター**: `inheritHeadings: false` でノート個別に無効化可能。
+
 ---
 
 ## 3. 設定とフロントマター仕様 (Settings & Frontmatter Specification)
@@ -62,6 +80,7 @@ accentColor: "#e11d48"
 | `columnStyle` | Default column style | `"card"` \| `"plain"` | `"card"` | カラムレイアウトの基本スタイル |
 | `fit` (または `presenter-fit`) | Auto-fit overflowing slides | `"auto"` \| `"none"` \| boolean | `false` | カード枠からはみ出たスライドの文字・余白を自動縮小（下限70%）するか |
 | `smartLayouts` | Enable smart slide layouts | boolean | `true` | 見出しのみの中扉や引用スライド、KPI数値を自動推論してスタイリングするか |
+| `inheritHeadings` | Inherit section headings on split slides | boolean | `true` | `---` で分割されたスライドに親H2見出しを引き継ぎ `Title 1-1, 1-2` と連番付与するか |
 | - | Show notes by default | boolean | `false` | プレゼン開始時に発表者ノートドロワーをデフォルト展開するか |
 | - | Enable label badges | boolean | `true` | `[重要]` などの角括弧ラベルを視覚的バッジとして自動装飾するか |
 
@@ -284,6 +303,33 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
 - **印刷最適化**:
   受取手がブラウザ上で印刷（`Cmd + P`）を実行した場合も、A4用紙1枚につき「スライド ＋ 詳細解説」が綺麗に収まるプリントスタイルを内蔵。
 
+### 9.4 配布用PowerPoint (.pptx) エクスポート仕様 (PowerPoint Export Specification)
+- **起動トリガー**:
+  - コマンドパレット: `Presenter: Export presentation as powerpoint (.pptx)` (`export-pptx`)
+  - プレゼンツールバー: 「🖨 印刷」メニュー内の「Export as powerpoint (.pptx)」アクション
+- **出力形式**:
+  - ノートと同じ階層に `<ノート名>-presentation.pptx` を Vault 内に保存。
+  - ブラウザのダウンロードリンク（Data URL/Blob）を自動発火し、ローカル環境へ直接ダウンロード保存。
+- **ネイティブPowerPointオブジェクト変換 (`pptxgenjs`)**:
+  - HTML/CSSの画像スクショ貼り付けではなく、PowerPointネイティブのテキストボックス、テーブル、シェイプ、レイアウトとして忠実に再構築。
+  - **アスペクト比**: フロントマターおよび設定の `aspectRatio` に応じて `LAYOUT_WIDE` (16:9) または `LAYOUT_4x3` (4:3) を動的適用。
+  - **テーマと配色**: フロントマター/設定の `baseColor`, `mainColor`, `accentColor` をRGB 16進に変換し、スライド背景、ヘッダー、アクセントバー、箇条書きマーカー、バッジ色へ適用。
+  - **レイアウトの忠実な再現**:
+    - 表紙スライド (`cover`): タイトルとサブタイトルの中央配置、ロゴ配置。
+    - 中扉スライド (`section`): セクションタイトルのセンタリングとアクセント装飾。
+    - 引用スライド (`quote`): 大きな引用メッセージカードの描画。
+    - 通常コンテンツスライド (`content`): 上部ヘッダー・タイトルバー、下部フッター・ページ番号。
+    - マルチカラムグリッド: 2カラム、3カラム、4カラム、card（角丸・薄い背景・枠線）/ plain（透明・枠線なし）。
+    - 非均等カラム比率: `2:1`, `1:2`, `3:1`, `1:3` の幅計算による段組み配置。
+    - ステップフロー: `<!-- columns N step -->` による `STEP 01`, `STEP 02`... バッジ付きステップカード。
+    - KPIメトリクス: `**+140%**` 等の数値を大文字フォント（44pt）で強調配置。
+    - Calloutボックス: `> [!important]` などの要約コールアウトをアクセント枠付きサマリーカードとして配置。
+    - テーブル・コードブロック: ネイティブPPTX表オブジェクト（テーマ色ヘッダー）、モノスペース背景付きコードブロック。
+    - 図表・画像: ローカル画像・Web画像のBase64埋め込み、Mermaid図（SVG）のCanvas経由PNG自動ラスタライズ埋め込み。
+    - 発表者ノート: `> [!note]` の内容を各PPTXスライドのネイティブ発表者ノート（`pptxSlide.addNotes`）へ自動格納。
+- **セキュリティ・堅牢性**:
+  - Obsidianプラグインセキュリティポリシーに準拠し、動的スクリプト要素の作成（`createElement('script')`）や動的コード評価（`new Function()`）を伴うレガシーポリフィル（IE向け Lie/setImmediate 等）を esbuild レベルで完全に排除（ネイティブ Promise / タイマーへ置換）。
+
 ---
 
 ## 10. スライドはみ出し検知と自動フィット仕様 (Slide Overflow Detection & Auto-fit)
@@ -361,4 +407,33 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
 
 ### 13.3 共有用エグゼクティブサマリーコピー (`Presenter: Copy summary for sharing`)
 - プレゼンタイトル、章・各スライド構成番号、および結論Callout（`> [!important]`）や重要バッジ（`[重要]`）を抽出した構造化テキストをクリップボードにコピー。Slackやメールでの共有を瞬時に行えます。
+
+---
+
+## 14. 提供コマンド一覧 (Command Palette Commands)
+
+プラグインが登録するすべてのコマンド（IDおよび名称）と機能概要です。すべてのコマンドは Obsidian の **設定 → ホットキー** より任意のショートカットキーにバインドできます。
+
+| コマンドID | コマンド表示名 (Name) | 説明 |
+| :--- | :--- | :--- |
+| `start-presentation` | `Presenter: Start presentation` | 現在開いているノートで全画面プレゼンテーションを開始 |
+| `open-preview` | `Presenter: Open slide preview` | リアルタイムスライドプレビューペインを開く（既に開いていればフォーカス） |
+| `toggle-preview` | `Presenter: Toggle slide preview` | スライドプレビューペインの開閉をトグル |
+| `export-html` | `Presenter: Export presentation as standalone HTML` | 単一完結のポータブルHTMLプレゼンテーションを出力・保存 |
+| `export-pptx` | `Presenter: Export presentation as powerpoint (.pptx)` | 編集可能なネイティブPowerPointファイルを出力・保存 |
+| `check-overflow` | `Presenter: Check slide overflow` | スライドはみ出し検査モーダル（警告率一覧・ワンクリック分割）を開く |
+| `copy-presentation-summary` | `Presenter: Copy summary for sharing` | スライド構成と要点をまとめたテキストをクリップボードにコピー |
+| `insert-columns` | `Presenter: Insert column layout...` | カラム数・スタイル・比率をインタラクティブに選べるピッカーモーダルを表示 |
+| `insert-columns-2` | `Presenter: Insert 2-column layout` | `<!-- columns 2 -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-2-ratio-2-1` | `Presenter: Insert 2-column (2:1 ratio) layout` | `<!-- columns 2:1 -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-2-ratio-1-2` | `Presenter: Insert 2-column (1:2 ratio) layout` | `<!-- columns 1:2 -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-3` | `Presenter: Insert 3-column layout` | `<!-- columns 3 -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-3-step` | `Presenter: Insert 3-column step flow layout` | `<!-- columns 3 step -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-4` | `Presenter: Insert 4-column layout` | `<!-- columns 4 -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-2-card` | `Presenter: Insert 2-column card layout` | `<!-- columns 2 card -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-2-plain` | `Presenter: Insert 2-column plain layout` | `<!-- columns 2 plain -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-3-card` | `Presenter: Insert 3-column card layout` | `<!-- columns 3 card -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-3-plain` | `Presenter: Insert 3-column plain layout` | `<!-- columns 3 plain -->` ... `<!-- /columns -->` を挿入 |
+| `insert-column-break` | `Presenter: Insert column break` | 明示的カラム区切り `<!-- column -->` を挿入 |
+
 
