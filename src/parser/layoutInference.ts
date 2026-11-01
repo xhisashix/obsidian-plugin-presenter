@@ -112,6 +112,17 @@ export function preprocessKpi(markdown: string, enableSmartLayouts: boolean = tr
 	const fence = new FenceTracker();
 	const output: string[] = [];
 	let inExplicitKpi = false;
+	let inExplicitChart = false;
+	let chartLines: string[] = [];
+
+	const flushChart = () => {
+		if (!inExplicitChart) return;
+		inExplicitChart = false;
+		if (chartLines.length > 0) {
+			output.push(renderChartBarsBlock(chartLines));
+			chartLines = [];
+		}
+	};
 
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i]!;
@@ -123,6 +134,21 @@ export function preprocessKpi(markdown: string, enableSmartLayouts: boolean = tr
 		}
 
 		const trimmed = line.trim();
+
+		// Check explicit Chart comment directives: <!-- chart --> ... <!-- /chart -->
+		if (/^ {0,3}<!--\s*(?:presenter:)?chart\s*-->[ \t]*$/i.test(trimmed)) {
+			inExplicitChart = true;
+			chartLines = [];
+			continue;
+		}
+		if (/^ {0,3}<!--\s*\/\s*(?:presenter:)?chart\s*-->[ \t]*$/i.test(trimmed)) {
+			flushChart();
+			continue;
+		}
+		if (inExplicitChart) {
+			chartLines.push(line);
+			continue;
+		}
 
 		// Check explicit KPI comment directives
 		if (/^ {0,3}<!--\s*(?:presenter:)?kpi\s*-->[ \t]*$/i.test(trimmed)) {
@@ -156,5 +182,46 @@ export function preprocessKpi(markdown: string, enableSmartLayouts: boolean = tr
 		output.push(line);
 	}
 
+	if (inExplicitChart) {
+		flushChart();
+	}
+
 	return output.join('\n');
+}
+
+function formatInlineBold(text: string): string {
+	return text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+}
+
+function renderChartBarsBlock(lines: string[]): string {
+	const rows: string[] = [];
+
+	for (const rawLine of lines) {
+		const trimmed = rawLine.trim();
+		if (!trimmed) continue;
+		const content = trimmed.replace(/^[-*+]\s+/, '');
+		const parts = content.split('|').map((p) => p.trim());
+		if (parts.length < 2) continue;
+
+		const labelRaw = parts[0]!;
+		const valRaw = parts.length >= 3 ? parts[1]! : parts[1]!;
+		const pctRaw = parts[parts.length - 1]!;
+		const pctMatch = pctRaw.match(/(\d+(?:\.\d+)?)/);
+		const pct = pctMatch ? Math.max(6, Math.min(100, Number(pctMatch[1]))) : 50;
+
+		const isAccent =
+			content.includes('**') ||
+			/\[(?:牽引|重点|重要|強調|ボトルネック|目標)\]/.test(content) ||
+			content.includes('🎯');
+
+		const labelHtml = formatInlineBold(labelRaw);
+		const valHtml = formatInlineBold(valRaw);
+		const accentClass = isAccent ? ' presenter-chart-row-accent' : '';
+
+		rows.push(
+			`<div class="presenter-chart-row${accentClass}"><div class="presenter-chart-meta"><span class="presenter-chart-label">${labelHtml}</span><span class="presenter-chart-val">${valHtml}</span></div><div class="presenter-chart-track"><div class="presenter-chart-fill" style="width: ${pct}%"></div></div></div>`
+		);
+	}
+
+	return `<div class="presenter-chart-bars">\n${rows.join('\n')}\n</div>`;
 }

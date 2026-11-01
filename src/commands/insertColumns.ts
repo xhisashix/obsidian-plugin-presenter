@@ -1,6 +1,7 @@
 import type { Editor, Plugin } from 'obsidian';
 import type { ColumnRatio, ColumnStyle, ColumnVariant, SlideLayout } from '../types';
 import { ColumnPickerModal } from '../ui/columnPickerModal';
+import { TemplateNavigatorModal } from '../ui/templateNavigatorModal';
 
 /**
  * Formats the opening HTML comment directive for a multi-column region.
@@ -128,6 +129,14 @@ export function insertColumnBreak(editor: Editor): void {
  * or bind custom hotkeys in Settings → Hotkeys.
  */
 export function registerColumnCommands(plugin: Plugin): void {
+	plugin.addCommand({
+		id: 'open-template-navigator',
+		name: 'Open slide template navigator...',
+		callback: () => {
+			new TemplateNavigatorModal(plugin.app).open();
+		},
+	});
+
 	plugin.addCommand({
 		id: 'insert-columns',
 		name: 'Insert column layout...',

@@ -4,16 +4,28 @@ import {
 	insertColumnBreak,
 	insertSlideDirective,
 } from '../commands/insertColumns';
+import { TemplateNavigatorModal } from './templateNavigatorModal';
 
 export interface ColumnPreset {
 	id: string;
 	label: string;
 	description: string;
 	syntaxPreview: string;
-	action: (editor: Editor) => void;
+	action: (editor: Editor, app?: App) => void;
 }
 
 export const COLUMN_PRESETS: ColumnPreset[] = [
+	{
+		id: 'template-navigator',
+		label: 'Slide template navigator (目的からテンプレートを探す...)',
+		description: 'Open visual navigator with 13 professional consulting slide templates & rules',
+		syntaxPreview: '13 templates',
+		action: (editor, app) => {
+			if (app) {
+				new TemplateNavigatorModal(app, { editor }).open();
+			}
+		},
+	},
 	{
 		id: 'cols-2',
 		label: '2 columns (default style)',
@@ -156,6 +168,6 @@ export class ColumnPickerModal extends SuggestModal<ColumnPreset> {
 	}
 
 	onChooseSuggestion(preset: ColumnPreset): void {
-		preset.action(this.editor);
+		preset.action(this.editor, this.app);
 	}
 }

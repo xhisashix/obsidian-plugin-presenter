@@ -8,6 +8,7 @@ import {
 	calculateOverflow,
 	createSlideOverflowInfo,
 	findSplitHeadingInSlide,
+	fitContentToSlideBody,
 	getPresentationConfigKey,
 	getSlideOverflowCacheKey,
 	isAutoFitEnabled,
@@ -286,4 +287,44 @@ void test('SlideOverflowCache can store and retrieve cached measurements across 
 
 	assert.equal(cache.has(key), true);
 	assert.deepEqual(cache.get(key), dummyMeasurement);
+});
+
+void test('fitContentToSlideBody iteratively steps down scale when initial estimate leaves residual overflow', () => {
+	const styles = new Map<string, string>();
+	const classes = new Set<string>();
+	let currentScale = 1.0;
+
+	// Simulate non-linear column wrapping where initial 0.88 scale still leaves 520px > 500px,
+	// and only at <= 0.82 does it fit (490px <= 500px).
+	const mockNonLinearBodyEl = {
+		get scrollHeight() {
+			if (currentScale >= 0.99) return 565; // initial ratio 1.13 -> optimalScale = 0.88
+			if (currentScale > 0.82) return 520;  // still overflowing at 0.88 and 0.85
+			return 490;                           // fits at 0.82
+		},
+		clientHeight: 500,
+		style: {
+			setProperty(k: string, v: string) {
+				styles.set(k, v);
+				if (k === '--presenter-body-scale') {
+					currentScale = parseFloat(v);
+				}
+			},
+			removeProperty(k: string) {
+				styles.delete(k);
+				if (k === '--presenter-body-scale') {
+					currentScale = 1.0;
+				}
+			},
+		},
+		addClass: (cls: string) => classes.add(cls),
+		removeClass: (cls: string) => classes.delete(cls),
+	} as unknown as HTMLElement;
+
+	const fitRes = fitContentToSlideBody(mockNonLinearBodyEl);
+	assert.equal(fitRes.wasOverflowing, true);
+	assert.equal(fitRes.isStillOverflowing, false);
+	assert.equal(fitRes.optimalScale, 0.88);
+	assert.equal(fitRes.fittedScale, 0.82); // stepped down 0.88 -> 0.85 -> 0.82
+	assert.equal(styles.get('--presenter-body-scale'), '0.82');
 });

@@ -22,9 +22,11 @@ src/
 ├── types.ts                    # データ構造・インターフェース定義
 ├── settings.ts                 # グローバル設定UI (PluginSettingTab, 宣言的設定API)
 ├── commands/
-│   ├── insertColumns.ts        # カラムレイアウト挿入コマンド群・ピッカー
+│   ├── insertColumns.ts        # カラム・テンプレート挿入コマンド群・ピッカー登録
 │   ├── exportSummary.ts        # 共有用サマリーコピーコマンド
 │   └── splitSlide.ts          # スライド自動分割処理
+├── templates/
+│   └── slideTemplates.ts       # プロフェッショナル・スライドテンプレート体系 (13種・12目的・6原則・Markdownスニペット)
 ├── parser/
 │   ├── slideParser.ts          # スライド分割、見出し自動継承・連番統合ロジック
 │   ├── layoutInference.ts      # 中扉 (section)、引用 (quote)、KPIメトリクスの自動推論
@@ -54,6 +56,8 @@ src/
     ├── overviewGridModal.ts    # スライド俯瞰一覧 (Overview Grid / Slide Sorter)
     ├── lightbox.ts             # 画像・Mermaid図のクリック拡大表示 (Lightbox)
     ├── columnPickerModal.ts    # カラムレイアウト選択クイックピッカー (SuggestModal)
+    ├── templateNavigatorModal.ts # スライド・テンプレート・ナビゲーター (3タブUI・詳細ルール・スニペット挿入Modal)
+    ├── templatePreviewIcon.ts  # 13種類のテンプレート用CSSワイヤーフレーム図解レンダラー
     ├── overflowReportModal.ts  # スライドはみ出し検査モーダル (はみ出し率・ワンクリック分割)
     └── overflow.ts             # はみ出し量計測・キャッシュ・Auto-fit計算エンジン
 ```
