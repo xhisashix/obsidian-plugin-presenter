@@ -10,8 +10,7 @@ import type {
 	SlideFrontmatter,
 } from '../types';
 import {
-	applyContentScale,
-	calculateOverflow,
+	fitContentToSlideBody,
 	isAutoFitEnabled,
 } from './overflow';
 import { getSlideDimensions } from './stageHelpers';
@@ -130,10 +129,7 @@ export async function renderSlide(
 
 	// Check and apply auto-fit if enabled
 	if (isAutoFitEnabled(config, settings)) {
-		const { isOverflowing, optimalScale } = calculateOverflow(bodyEl);
-		if (isOverflowing && optimalScale < 0.999) {
-			applyContentScale(bodyEl, optimalScale);
-		}
+		fitContentToSlideBody(bodyEl);
 	}
 
 	// 3. Footer (Footer Text & Slide Counter)

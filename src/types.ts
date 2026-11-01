@@ -1,6 +1,6 @@
 export type ColumnStyle = 'card' | 'plain';
 export type ColumnRatio = '2:1' | '1:2' | '3:1' | '1:3';
-export type ColumnVariant = 'normal' | 'step';
+export type ColumnVariant = 'normal' | 'step' | 'pyramid' | 'funnel' | 'matrix' | 'cycle';
 
 export type SlideLayout = 'cover' | 'content' | 'section' | 'quote';
 export type SlideType = SlideLayout;
@@ -33,7 +33,7 @@ export const DEFAULT_SETTINGS: PresenterSettings = {
 	defaultColumnStyle: 'card',
 	showNotes: false,
 	enableBadges: true,
-	autoFitOverflow: false,
+	autoFitOverflow: true,
 	enableSmartLayouts: true,
 	inheritSlideHeadings: true,
 	headingContinuationPrefix: '[続き] ',

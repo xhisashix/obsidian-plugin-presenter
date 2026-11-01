@@ -25,17 +25,17 @@
 
 ### 2.1 配色マッピング表
 
-| 要素                    | 適用プロパティ            | 参照変数                                              |
-| :---------------------- | :------------------------ | :---------------------------------------------------- |
-| **スライド背景**        | `background-color`        | `--presenter-base-color`                              |
-| **本文・段落**          | `color`                   | `--presenter-main-color`                              |
-| **H1 (表紙見出し)**     | `color`                   | `--presenter-accent-color`                            |
-| **H2 (スライド見出し)** | `color` / `border-bottom` | `--presenter-main-color` / `--presenter-accent-color` |
-| **箇条書きマーカー**    | `li::marker`              | `--presenter-accent-color`                            |
-| **太字 (`strong`)**     | `color`                   | `--presenter-accent-color`                            |
-| **引用 (`blockquote`)** | `border-left-color`       | `--presenter-accent-color`                            |
-| **ラベル・バッジ (`.presenter-badge`)** | `background-color` / `color` | `--presenter-accent-color` / `#ffffff`               |
-| **進捗バー**            | `background`              | `--presenter-accent-color`                            |
+| 要素                                    | 適用プロパティ               | 参照変数                                              |
+| :-------------------------------------- | :--------------------------- | :---------------------------------------------------- |
+| **スライド背景**                        | `background-color`           | `--presenter-base-color`                              |
+| **本文・段落**                          | `color`                      | `--presenter-main-color`                              |
+| **H1 (表紙見出し)**                     | `color`                      | `--presenter-accent-color`                            |
+| **H2 (スライド見出し)**                 | `color` / `border-bottom`    | `--presenter-main-color` / `--presenter-accent-color` |
+| **箇条書きマーカー**                    | `li::marker`                 | `--presenter-accent-color`                            |
+| **太字 (`strong`)**                     | `color`                      | `--presenter-accent-color`                            |
+| **引用 (`blockquote`)**                 | `border-left-color`          | `--presenter-accent-color`                            |
+| **ラベル・バッジ (`.presenter-badge`)** | `background-color` / `color` | `--presenter-accent-color` / `#ffffff`                |
+| **進捗バー**                            | `background`                 | `--presenter-accent-color`                            |
 
 ---
 
@@ -76,10 +76,14 @@ cardEl.style.transform = `scale(${Math.max(scale, 0.2)})`;
 
 ### 4.2 通常スライド (`.presenter-slide-content`)
 
-- **H2 (タイトル)**: `font-size: 36px`, `font-weight: 700`, 下部にアクセントボーダー (4px)
-- **H3 (小見出し)**: `font-size: 24px`, `font-weight: 600`
-- **本文 (p, li)**: `font-size: 20px`, `line-height: 1.6`
-- **テーブル (table)**: `font-size: 18px`, 均等パディング、薄いグリッド線
+- **H2 (アクションタイトル)**: `font-size: 28px`, `font-weight: 700`, 下部にアクセントボーダー (3px)
+- **H3 (小見出し)**: `font-size: 22px`, `font-weight: 600`
+- **本文 (p, li)**: `font-size: 20px`, `line-height: 1.5`
+- **カラム内密度適応 (`.presenter-col`)**:
+  - **2カラム**: `h3: 19.5px`, `p/li: 17.5px`, `padding: 15px 18px`
+  - **3・4カラム (`.presenter-cols-3`, `.presenter-cols-4`)**: `h3: 18px`, `p/li: 16px`, `padding: 13px 15px`
+  - **2段スタック / Callout併用複合レイアウト**: 行間マージンとパディングを自動圧縮し、Bento・2軸マトリクス・エグゼクティブサマリー等が100%スケールで16:9枠内に収まるよう最適化
+- **テーブル (table)**: `font-size: 17px`（カラム内は `15px`）、均等パディング、薄いグリッド線
 - **コードブロック (pre)**: `font-size: 16px`, 角丸8px
 
 ### 4.3 スマートスライドレイアウト・タイポグラフィ
@@ -126,6 +130,8 @@ cardEl.style.transform = `scale(${Math.max(scale, 0.2)})`;
   - ページ送り（前へ・次へ）と現在位置カウンター表示（`X / Y`）。
   - **カーソル追従トグル（ピンボタン）**:
     追従有効時はアクセントカラー（`--interactive-accent` / `#38bdf8`）のハイライト背景と境界線でアクティブ状態を明示。
+  - **スライド・テンプレート・ナビゲーターボタン (`layout-template`)**:
+    プレビューを確認しながら1クリックでテンプレートナビゲーターを開き、目的別のスライド構成スニペットを即座に挿入。
   - **全画面プレゼンボタン**:
     プレビュー状態から1クリックでフルスクリーンプレゼンテーションを開始。
 - **プレビューキャンバス (`.presenter-preview-stage`)**:
@@ -223,7 +229,27 @@ cardEl.style.transform = `scale(${Math.max(scale, 0.2)})`;
 
 ---
 
-## 12. 配布資料（ハンドアウト）目次サイドバー UI/UX (Handout TOC Sidebar UX)
+## 12. スライド・テンプレート・ナビゲーター UI/UX (`TemplateNavigatorModal`)
+
+- **目的**: 執筆者が「このスライドで何を伝えたいか（目的）」から最適なレイアウトの型を選び、トップファームの設計原則・厳格ルールを参照しながら、実践的な Markdown スニペットを1クリックでエディタへ挿入できるようにする。
+- **ビジュアルトーン**:
+  - コンサルティングファーム基準の深いネイビー（`#0B2265`）、視線を誘導するアクセントオレンジ（`#FF6B00`）、ノイズのないライトグレー背景（`#F5F5F5`）を基調とした洗練された2ペイン＆カードUI。
+- **3つのナビゲーションタブ**:
+  1. **目的から探す (`usecase`)**:
+     - 左サイドバーに12種類の伝達目的（「Q. スライドで何を伝えたいですか？」）を配置。
+     - 右メインペインに選択した目的に対する「推奨テンプレート」および「代替パターン」カードをCSSワイヤーフレーム図解（`renderTemplatePreviewIcon`）付きで提示。
+  2. **全テンプレート (`all`)**:
+     - 「動的構造（ステップ・フロー）」「静的構造（比較・対比・構造）」「定量分析構造（データと証拠）」「サマリー構造（統合と俯瞰）」の4カテゴリ・全13種類のテンプレートを一覧表示。
+  3. **デザイン絶対原則 (`principles`)**:
+     - 黄金の配色比率（70:25:5の法則）、タイポグラフィの厳格化、ホワイトスペースとグリッド、SCQAとピラミッド原則、アクションタイトルの義務化、1スライド・1メッセージの徹底の6原則をカード形式で解説。
+- **テンプレート詳細・挿入ビュー**:
+  - カードをクリックすると詳細画面へ遷移し、「💡 構造と意図 / 最適なシーン」「⚖️ トップファームの厳格なルール」「📝 挿入されるMarkdownスニペット」を表示。
+  - **「＋ 新規スライドとして挿入（推奨）」**（アクションタイトル見出し＋ボディ構成）と **「＋ 現在のスライドにレイアウトのみ挿入」**（ボディ構成のみ）、および **「📋 Markdownスニペットをコピー」** の3つのアクションを提供。
+
+
+---
+
+## 13. 配布資料（ハンドアウト）目次サイドバー UI/UX (Handout TOC Sidebar UX)
 
 - **目的**: 縦スクロール形式の配布資料モードにおいて、資料全体の構成を俯瞰し、目的のセクションやスライドへ迅速に移動できるようにする。
 - **配置とレイアウト**:
