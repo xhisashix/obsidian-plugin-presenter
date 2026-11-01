@@ -89,6 +89,102 @@ export function buildHandoutItemsHtml(
 }
 
 /**
+ * Builds hierarchical HTML markup for the handout mode table of contents sidebar.
+ */
+export function buildHandoutTocHtml(renderedSlides: RenderedExportSlide[]): string {
+	const hasAnySection = renderedSlides.some((s) => s.type === 'section');
+
+	if (!hasAnySection) {
+		const itemsHtml = renderedSlides
+			.map((slide) => {
+				const title = escapeHtml(slide.title || `Slide ${slide.index + 1}`);
+				return `
+				<li class="handout-toc-item">
+					<a href="#handout-item-${slide.index}" class="handout-toc-link" data-index="${slide.index}">
+						<span class="handout-toc-num">${slide.index + 1}.</span>
+						<span class="handout-toc-text">${title}</span>
+					</a>
+				</li>`;
+			})
+			.join('');
+		return `<ul class="handout-toc-list">${itemsHtml}</ul>`;
+	}
+
+	interface TocGroup {
+		index: number;
+		title: string;
+		isSection: boolean;
+		slides: Array<{ index: number; title: string }>;
+	}
+
+	const groups: TocGroup[] = [];
+	let currentGroup: TocGroup | null = null;
+
+	for (const slide of renderedSlides) {
+		if (slide.type === 'section') {
+			currentGroup = {
+				index: slide.index,
+				title: slide.title || `Section ${groups.length + 1}`,
+				isSection: true,
+				slides: [],
+			};
+			groups.push(currentGroup);
+		} else if (currentGroup) {
+			currentGroup.slides.push({
+				index: slide.index,
+				title: slide.title || `Slide ${slide.index + 1}`,
+			});
+		} else {
+			// Slides before the first section (e.g., cover or intro)
+			if (slide.type === 'cover' || groups.length === 0) {
+				currentGroup = {
+					index: slide.index,
+					title: slide.title || (slide.type === 'cover' ? 'Title' : 'Overview'),
+					isSection: false,
+					slides: [],
+				};
+				groups.push(currentGroup);
+			} else {
+				const firstGroup = groups[0];
+				if (firstGroup) {
+					firstGroup.slides.push({
+						index: slide.index,
+						title: slide.title || `Slide ${slide.index + 1}`,
+					});
+				}
+			}
+		}
+	}
+
+	return groups
+		.map((group) => {
+			const groupTitle = escapeHtml(group.title);
+			const subItemsHtml = group.slides
+				.map((child) => {
+					const childTitle = escapeHtml(child.title);
+					return `
+					<li class="handout-toc-subitem">
+						<a href="#handout-item-${child.index}" class="handout-toc-link" data-index="${child.index}">
+							<span class="handout-toc-num">${child.index + 1}.</span>
+							<span class="handout-toc-text">${childTitle}</span>
+						</a>
+					</li>`;
+				})
+				.join('');
+
+			return `
+			<div class="handout-toc-group">
+				<a href="#handout-item-${group.index}" class="handout-toc-section-link${group.isSection ? ' is-section' : ''}" data-index="${group.index}">
+					<span class="handout-toc-section-icon">${group.isSection ? '📌' : '📄'}</span>
+					<span class="handout-toc-section-title">${groupTitle}</span>
+				</a>
+				${subItemsHtml ? `<ul class="handout-toc-sublist">${subItemsHtml}</ul>` : ''}
+			</div>`;
+		})
+		.join('\n');
+}
+
+/**
  * Builds HTML markup for slide overview grid cards.
  */
 export function buildOverviewGridHtml(renderedSlides: RenderedExportSlide[]): string {
@@ -222,6 +318,7 @@ export async function exportPresentationToHtml(
 		totalSlides
 	);
 
+	const handoutTocHtml = buildHandoutTocHtml(renderedSlides);
 	const overviewThumbsHtml = buildOverviewGridHtml(renderedSlides);
 
 	return `<!DOCTYPE html>
@@ -305,14 +402,31 @@ ${slideCardsHtml}
 
 	<!-- Mode 2: Handout (Reading Document) Mode -->
 	<main id="handout-mode" class="hidden">
-		<div class="handout-wrapper">
-			<div class="handout-header-card">
-				<h1>${escapeHtml(presentation.title)}</h1>
-				<div class="handout-meta">
-					Total: ${totalSlides} Slides &bull; ${escapeHtml(headerText ? headerText + ' &bull; ' : '')} Generated with Obsidian Presenter
+		<div class="handout-container">
+			<!-- Handout Table of Contents Sidebar -->
+			<aside class="handout-sidebar">
+				<div class="handout-sidebar-header">
+					<div class="handout-sidebar-title">
+						<span class="handout-sidebar-icon">📑</span>
+						<span>目次</span>
+					</div>
+					<span class="handout-sidebar-count">${totalSlides} slides</span>
 				</div>
-			</div>
+				<nav class="handout-toc" id="handout-toc">
+${handoutTocHtml}
+				</nav>
+			</aside>
+
+			<!-- Handout Main Content Wrapper -->
+			<div class="handout-wrapper">
+				<div class="handout-header-card">
+					<h1>${escapeHtml(presentation.title)}</h1>
+					<div class="handout-meta">
+						Total: ${totalSlides} Slides &bull; ${escapeHtml(headerText ? headerText + ' &bull; ' : '')} Generated with Obsidian Presenter
+					</div>
+				</div>
 ${handoutItemsHtml}
+			</div>
 		</div>
 	</main>
 

@@ -986,22 +986,205 @@ export function getExportStyles(params: ExportStyleParams): string {
 			overflow-y: auto;
 			background: #f1f5f9;
 			color: #1e293b;
-			padding: 40px 20px;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
+			padding: 40px 24px;
 		}
 
 		#handout-mode.hidden {
 			display: none;
 		}
 
-		.handout-wrapper {
+		.handout-container {
+			display: flex;
+			justify-content: center;
+			gap: 32px;
 			width: 100%;
+			max-width: 1240px;
+			margin: 0 auto;
+			align-items: flex-start;
+		}
+
+		/* Handout Table of Contents Sidebar */
+		.handout-sidebar {
+			position: sticky;
+			top: 24px;
+			width: 260px;
+			max-height: calc(100vh - 100px);
+			overflow-y: auto;
+			background: #ffffff;
+			border-radius: 12px;
+			padding: 20px 16px;
+			box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+			border: 1px solid #e2e8f0;
+			flex-shrink: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+		}
+
+		.handout-sidebar-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding-bottom: 12px;
+			border-bottom: 1px solid #e2e8f0;
+		}
+
+		.handout-sidebar-title {
+			font-size: 15px;
+			font-weight: 700;
+			color: #0f172a;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.handout-sidebar-count {
+			font-size: 11px;
+			font-weight: 600;
+			color: #64748b;
+			background: #f1f5f9;
+			padding: 2px 8px;
+			border-radius: 12px;
+		}
+
+		.handout-toc {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+
+		.handout-toc-list {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+		}
+
+		.handout-toc-item {
+			display: flex;
+			flex-direction: column;
+		}
+
+		.handout-toc-group {
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+		}
+
+		.handout-toc-section-link {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			padding: 8px 10px;
+			border-radius: 6px;
+			text-decoration: none;
+			color: #1e293b;
+			font-weight: 600;
+			font-size: 13px;
+			line-height: 1.4;
+			transition: background-color 0.15s, color 0.15s;
+		}
+
+		.handout-toc-section-link:hover {
+			background: #f8fafc;
+			color: var(--presenter-accent-color);
+		}
+
+		.handout-toc-section-link.is-active {
+			background: rgba(56, 189, 248, 0.12);
+			color: var(--presenter-accent-color);
+			font-weight: 700;
+		}
+
+		.handout-toc-section-icon {
+			font-size: 13px;
+			flex-shrink: 0;
+		}
+
+		.handout-toc-section-title {
+			flex: 1;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.handout-toc-sublist {
+			list-style: none;
+			padding-left: 14px;
+			margin: 0 0 4px 10px;
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+			border-left: 2px solid #e2e8f0;
+		}
+
+		.handout-toc-subitem {
+			display: flex;
+			flex-direction: column;
+		}
+
+		.handout-toc-link {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			padding: 5px 8px;
+			border-radius: 4px;
+			text-decoration: none;
+			color: #64748b;
+			font-size: 12px;
+			line-height: 1.4;
+			transition: background-color 0.15s, color 0.15s;
+		}
+
+		.handout-toc-link:hover {
+			background: #f1f5f9;
+			color: #0f172a;
+		}
+
+		.handout-toc-link.is-active {
+			background: rgba(56, 189, 248, 0.12);
+			color: var(--presenter-accent-color);
+			font-weight: 600;
+		}
+
+		.handout-toc-num {
+			font-size: 11px;
+			font-weight: 600;
+			color: #94a3b8;
+			flex-shrink: 0;
+		}
+
+		.handout-toc-text {
+			flex: 1;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.handout-wrapper {
+			flex: 1;
 			max-width: 900px;
 			display: flex;
 			flex-direction: column;
 			gap: 36px;
+			min-width: 0;
+		}
+
+		/* Responsive styling for smaller screens */
+		@media (max-width: 1024px) {
+			.handout-container {
+				flex-direction: column;
+				align-items: center;
+			}
+
+			.handout-sidebar {
+				position: static;
+				width: 100%;
+				max-width: 900px;
+				max-height: 280px;
+			}
 		}
 
 		.handout-header-card {
@@ -1025,6 +1208,7 @@ export function getExportStyles(params: ExportStyleParams): string {
 		}
 
 		.handout-item {
+			scroll-margin-top: 72px;
 			background: #ffffff;
 			border-radius: 12px;
 			overflow: hidden;
@@ -1086,7 +1270,7 @@ export function getExportStyles(params: ExportStyleParams): string {
 				height: auto;
 			}
 
-			.navbar, .progress-bar, .floating-controls, .notes-drawer {
+			.navbar, .progress-bar, .floating-controls, .notes-drawer, .handout-sidebar {
 				display: none;
 			}
 
