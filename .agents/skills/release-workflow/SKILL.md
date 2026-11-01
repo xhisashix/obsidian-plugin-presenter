@@ -64,7 +64,7 @@ Execute Phase 1 when the user asks to prepare a release from `develop` (e.g., `"
    - Follow the templates in [resources/release-templates.md](./resources/release-templates.md).
    - Add a `## [<VERSION>] - YYYY-MM-DD` section at the top of `CHANGELOG.md` covering all changes since the last release on `main`.
    - Update `RELEASE_NOTES.md` with the new version, release date, overview, feature details, and update instructions.
-   - If new user-facing syntax, commands, or settings were introduced, ensure `README.md` and `README_ja.md` are up to date.
+   - Ensure `README.md`, `README_ja.md`, and design documents under `docs/design/` (`specification.md`, `architecture.md`, `ui-ux.md`, `standard-markdown-compatibility.md`) are synchronized with all changes included in the release.
 
 ### Step 4: Run Quality Gates (Tests, Lint, Build)
 

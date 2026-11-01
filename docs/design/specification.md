@@ -22,6 +22,24 @@
 > [!NOTE]
 > コードブロック（` ``` ` または ` ~~~ `）内の見出しや水平線は、スライド境界として誤認識されないよう CommonMark 準拠のフェンストラッカーにより厳密に無視されます。
 
+### 2.2 分割スライドの見出し自動継承・連番仕様 (Section Heading Inheritance)
+
+長文スライドを `---` で分割した際、プレゼンテーション時にどのセクションの続きかが一目でわかるよう、親の `## H2` 見出しを自動継承して連番を付与します。
+
+- **連番フォーマット**:
+  同一セクション内の複数スライドに対して、`Title X-1, Title X-2, ... Title X-N` の形式で連番を付与（例: `背景と課題 1-1`, `背景と課題 1-2`）。
+  1枚目のスライドの見出しも `Title X-1` に更新され、2枚目以降（続きスライド）の先頭に `## Title X-2` が自動挿入されます。
+- **単一スライドの保護**:
+  分割されていない（1枚のみの）H2セクションは連番が付かず、元のタイトル（`Title`）のまま表示されます。
+- **除外ルール**:
+  - 表紙スライド (`cover`)
+  - 明示的または自動推論された中扉スライド (`section`)
+  - 明示的または自動推論された引用スライド (`quote`)
+  これらは親セクションの区切りとみなされ、見出しの自動継承は行われません。
+- **設定と制御**:
+  - **プラグイン設定**: **Settings → Layout & grid → Inherit section headings on split slides** (`inheritSlideHeadings`, デフォルト `true`)
+  - **フロントマター**: `inheritHeadings: false` でノート個別に無効化可能。
+
 ---
 
 ## 3. 設定とフロントマター仕様 (Settings & Frontmatter Specification)
@@ -62,6 +80,7 @@ accentColor: "#e11d48"
 | `columnStyle` | Default column style | `"card"` \| `"plain"` | `"card"` | カラムレイアウトの基本スタイル |
 | `fit` (または `presenter-fit`) | Auto-fit overflowing slides | `"auto"` \| `"none"` \| boolean | `false` | カード枠からはみ出たスライドの文字・余白を自動縮小（下限70%）するか |
 | `smartLayouts` | Enable smart slide layouts | boolean | `true` | 見出しのみの中扉や引用スライド、KPI数値を自動推論してスタイリングするか |
+| `inheritHeadings` | Inherit section headings on split slides | boolean | `true` | `---` で分割されたスライドに親H2見出しを引き継ぎ `Title 1-1, 1-2` と連番付与するか |
 | - | Show notes by default | boolean | `false` | プレゼン開始時に発表者ノートドロワーをデフォルト展開するか |
 | - | Enable label badges | boolean | `true` | `[重要]` などの角括弧ラベルを視覚的バッジとして自動装飾するか |
 
@@ -128,7 +147,9 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
 エディタ上でカラムディレクティブを素早く挿入できるよう、以下のコマンドを提供します。すべてのコマンドは **Settings → Hotkeys** から任意のショートカットキーを割り当て可能です。
 
 - **クイック選択ピッカー (`insert-columns` / `Insert column layout...`)**:
-  `SuggestModal` を表示し、2/3/4カラム、card/plainスタイル、またはカラム区切り（`<!-- column -->`）を検索・選択して挿入。
+  `SuggestModal` を表示し、2/3/4カラム、card/plainスタイル、またはカラム区切り（`<!-- column -->`）を検索・選択して挿入。また、ピッカー先頭から後述の「スライド・テンプレート・ナビゲーター」を起動可能。
+- **スライド・テンプレート・ナビゲーター (`open-template-navigator` / `Open slide template navigator...`)**:
+  コンサルティングファーム基準の13種類のスライドレイアウト体系を「目的から探す（12目的）」「全テンプレート（4カテゴリ・13種）」「デザイン絶対原則（6原則）」の3タブで探索し、厳格なルールとワイヤーフレーム図解を確認した上で、実践的なMarkdownスニペット（新規スライド全体、またはレイアウト部分のみ）をエディタへワンクリック挿入する大型モーダル。
 - **ダイレクト挿入コマンド**:
   - `insert-columns-2`: `<!-- columns 2 -->` ... `<!-- /columns -->`
   - `insert-columns-3`: `<!-- columns 3 -->` ... `<!-- /columns -->`
@@ -224,6 +245,7 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
 - **カーソル追従トグル (ピン留めアイコン)**:
   - **有効 (Active)**: エディタ内のカーソル行番号に応じて、プレビュー対象スライドを自動切り替え
   - **無効 (Locked)**: 特定のスライドを固定表示したまま、ドキュメントの他の箇所を自由に編集可能
+- **テンプレートナビゲーターボタン (`layout-template` アイコン)**: クリックで「スライド・テンプレート・ナビゲーター (`TemplateNavigatorModal`)」を開き、現在プレビュー中のノートに対して目的別のスライドテンプレートを即座に挿入可能
 - **全画面プレゼン開始ボタン**: 現在プレビュー表示中のスライド位置から、即座にフルスクリーンのプレゼンテーションモーダルを開始
 
 ### 8.4 同期・パフォーマンス制御
@@ -280,9 +302,37 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
   - 共有相手は Obsidian やプラグインを一切持たずとも、**任意のWebブラウザでダブルクリックするだけで閲覧可能**。
 - **受取手のデュアルビュー体験**:
   1. **🖥 スライド表示モード**: 矢印キーでページ送りできるフルスクリーンプレゼンテーション。ノートボタンでカンペも確認可能。
-  2. **📄 配布資料（ハンドアウト）表示モード**: スライドカードと詳細解説（`> [!note]`）が縦スクロールで1ページずつ整然と並ぶ、Webレポート/ドキュメント形式。
+  2. **📄 配布資料（ハンドアウト）表示モード**: スライドカードと詳細解説（`> [!note]`）が縦スクロールで1ページずつ整然と並ぶ、Webレポート/ドキュメント形式。画面左側には階層的な目次（TOC）サイドバーが常駐し、各種セクションやスライドへ瞬時にスムーズスクロール移動可能。閲覧中のスライドはスクロールに応じて目次内で自動ハイライト（Scrollspy）される。
+  3. **📑 スライド一覧 / 目次**: 全スライドをグリッド一覧で俯瞰し、クリックで対象スライドへ即時ジャンプ（配布資料モード時は該当解説箇所へスムーズスクロール）。`G` / `O` キーや `Esc` での開閉に対応。
 - **印刷最適化**:
   受取手がブラウザ上で印刷（`Cmd + P`）を実行した場合も、A4用紙1枚につき「スライド ＋ 詳細解説」が綺麗に収まるプリントスタイルを内蔵。
+
+### 9.4 配布用PowerPoint (.pptx) エクスポート仕様 (PowerPoint Export Specification)
+- **起動トリガー**:
+  - コマンドパレット: `Presenter: Export presentation as powerpoint (.pptx)` (`export-pptx`)
+  - プレゼンツールバー: 「🖨 印刷」メニュー内の「Export as powerpoint (.pptx)」アクション
+- **出力形式**:
+  - ノートと同じ階層に `<ノート名>-presentation.pptx` を Vault 内に保存。
+  - ブラウザのダウンロードリンク（Data URL/Blob）を自動発火し、ローカル環境へ直接ダウンロード保存。
+- **ネイティブPowerPointオブジェクト変換 (`pptxgenjs`)**:
+  - HTML/CSSの画像スクショ貼り付けではなく、PowerPointネイティブのテキストボックス、テーブル、シェイプ、レイアウトとして忠実に再構築。
+  - **アスペクト比**: フロントマターおよび設定の `aspectRatio` に応じて `LAYOUT_WIDE` (16:9) または `LAYOUT_4x3` (4:3) を動的適用。
+  - **テーマと配色**: フロントマター/設定の `baseColor`, `mainColor`, `accentColor` をRGB 16進に変換し、スライド背景、ヘッダー、アクセントバー、箇条書きマーカー、バッジ色へ適用。
+  - **レイアウトの忠実な再現**:
+    - 表紙スライド (`cover`): タイトルとサブタイトルの中央配置、ロゴ配置。
+    - 中扉スライド (`section`): セクションタイトルのセンタリングとアクセント装飾。
+    - 引用スライド (`quote`): 大きな引用メッセージカードの描画。
+    - 通常コンテンツスライド (`content`): 上部ヘッダー・タイトルバー、下部フッター・ページ番号。
+    - マルチカラムグリッド: 2カラム、3カラム、4カラム、card（角丸・薄い背景・枠線）/ plain（透明・枠線なし）。
+    - 非均等カラム比率: `2:1`, `1:2`, `3:1`, `1:3` の幅計算による段組み配置。
+    - ステップフロー: `<!-- columns N step -->` による `STEP 01`, `STEP 02`... バッジ付きステップカード。
+    - KPIメトリクス: `**+140%**` 等の数値を大文字フォント（44pt）で強調配置。
+    - Calloutボックス: `> [!important]` などの要約コールアウトをアクセント枠付きサマリーカードとして配置。
+    - テーブル・コードブロック: ネイティブPPTX表オブジェクト（テーマ色ヘッダー）、モノスペース背景付きコードブロック。
+    - 図表・画像: ローカル画像・Web画像のBase64埋め込み、Mermaid図（SVG）のCanvas経由PNG自動ラスタライズ埋め込み。
+    - 発表者ノート: `> [!note]` の内容を各PPTXスライドのネイティブ発表者ノート（`pptxSlide.addNotes`）へ自動格納。
+- **セキュリティ・堅牢性**:
+  - Obsidianプラグインセキュリティポリシーに準拠し、動的スクリプト要素の作成（`createElement('script')`）や動的コード評価（`new Function()`）を伴うレガシーポリフィル（IE向け Lie/setImmediate 等）を esbuild レベルで完全に排除（ネイティブ Promise / タイマーへ置換）。
 
 ---
 
@@ -301,10 +351,12 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
 ### 10.2 自動フィット (Auto-fit)
 - **CSS変数駆動**:
   `.presenter-slide-body` に `--presenter-body-scale` を付与し、フォントサイズ・行間・見出し上下マージン・カラムのパディングを一律に比率計算。
+- **反復ステップ縮小 (`fitContentToSlideBody`)**:
+  初回の比率計算（`1.0 / overflowRatio`）適用後も、グリッド列幅に対する文字折り返しの非線形性によって残余はみ出しが存在する場合は、収まるか下限（`0.70`）に達するまで `0.03` 刻みで段階的に再計測・微調整を実行。
 - **縮小下限（70%制限）**:
   視認性と可読性を担保するため、縮小率は `0.70`（70%）でクランプ（下限クリッピング）。
 - **設定優先度**:
-  Frontmatter `fit: auto` / `fit: none` が最優先、未指定時はプラグイン設定 `autoFitOverflow`（デフォルト: `false`）を適用。
+  Frontmatter `fit: auto` / `fit: none` が最優先、未指定時はプラグイン設定 `autoFitOverflow`（デフォルト: `true`）を適用。
 
 ### 10.3 スライド分割判定 (`findSplitHeadingInSlide`)
 - **判定基準**:
@@ -337,7 +389,7 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
 
 ---
 
-## 12. 非均等カラム比率 & ステップフロー仕様
+## 12. 非均等カラム比率 & コンサル図解バリアント仕様
 
 ### 12.1 非均等カラム比率 (`<!-- columns 2:1 -->` 等)
 - `<!-- columns 2:1 -->`: 左カラム幅 2fr、右カラム幅 1fr の黄金比グリッドを生成（図＋解説に最適）。
@@ -346,7 +398,19 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
 
 ### 12.2 ステップフロー (`<!-- columns 3 step -->`)
 - `<!-- columns 3 step -->` または `<!-- columns 4 step -->`:
-- 各カラム上部に `STEP 01`, `STEP 02`... のアクセントインジケーターを自動生成し、手順やフェーズ進行を直感的に図解。
+- 各カラム上部に `STEP 01`, `STEP 02`... のアクセントインジケーターとカラム間の `➔` 矢印コネクタを自動生成し、手順やフェーズ進行を直感的に図解。
+
+### 12.3 図解バリアント (`pyramid` / `funnel` / `matrix` / `cycle` / `chart`)
+- **`<!-- columns pyramid -->`（ピラミッド階層図）**:
+  各 `###` セクションを1階層として描画。左側に上層（アクセントカラー・狭幅）から下層（メインカラー・広幅）へ広がる台形ピラミッドシェイプ、右側に各階層の詳細解説カードを横並びで整列配置。また従来の2カラム（左に `▲ / ■ / ▬` 箇条書き＋右に解説箇条書き）記法も自動検知してピラミッド図へアップグレード描画。
+- **`<!-- columns funnel -->`（ファネル図）**:
+  各 `###` セクションを1フェーズとして描画。左側に上から下へ絞り込まれる逆台形ファネルシェイプ、右側に解説カードを配置。`[ボトルネック]` 等の強調バッジを含むフェーズは自動的にアクセントカラーでハイライト。
+- **`<!-- columns matrix -->`（2軸4象限マトリクス）**:
+  4つの `###` セクションを `2×2` 象限グリッドとして配置し、左縦軸・下横軸（`▲ 高 (High)` / `高 (High) ▶`）と右上象限（最優先領域）のアクセント枠ハイライトを自動付与。
+- **`<!-- columns cycle -->`（循環サイクル図）**:
+  4つの `###` セクションを時計回りの `2×2` ループとして配置し、中央に循環コアハブ（`↻`）と各象限間の方向矢印（`➔`, `▼`, `◀`, `▲`）を自動付与。
+- **`<!-- chart --> ... <!-- /chart -->`（横棒グラフ）**:
+  `- ラベル | 数値テキスト | 80%` 形式のリストを水平バーチャートに変換。太字（`**`）や `[牽引]` 等のバッジを含む行のみをアクセントカラーで塗り、それ以外をニュートラルグレーで描画。
 
 ---
 
@@ -361,4 +425,34 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
 
 ### 13.3 共有用エグゼクティブサマリーコピー (`Presenter: Copy summary for sharing`)
 - プレゼンタイトル、章・各スライド構成番号、および結論Callout（`> [!important]`）や重要バッジ（`[重要]`）を抽出した構造化テキストをクリップボードにコピー。Slackやメールでの共有を瞬時に行えます。
+
+---
+
+## 14. 提供コマンド一覧 (Command Palette Commands)
+
+プラグインが登録するすべてのコマンド（IDおよび名称）と機能概要です。すべてのコマンドは Obsidian の **設定 → ホットキー** より任意のショートカットキーにバインドできます。
+
+| コマンドID | コマンド表示名 (Name) | 説明 |
+| :--- | :--- | :--- |
+| `start-presentation` | `Presenter: Start presentation` | 現在開いているノートで全画面プレゼンテーションを開始 |
+| `open-preview` | `Presenter: Open slide preview` | リアルタイムスライドプレビューペインを開く（既に開いていればフォーカス） |
+| `toggle-preview` | `Presenter: Toggle slide preview` | スライドプレビューペインの開閉をトグル |
+| `export-html` | `Presenter: Export presentation as standalone HTML` | 単一完結のポータブルHTMLプレゼンテーションを出力・保存 |
+| `export-pptx` | `Presenter: Export presentation as powerpoint (.pptx)` | 編集可能なネイティブPowerPointファイルを出力・保存 |
+| `check-overflow` | `Presenter: Check slide overflow` | スライドはみ出し検査モーダル（警告率一覧・ワンクリック分割）を開く |
+| `copy-presentation-summary` | `Presenter: Copy summary for sharing` | スライド構成と要点をまとめたテキストをクリップボードにコピー |
+| `open-template-navigator` | `Presenter: Open slide template navigator...` | 目的別（12種）・全13種のプロフェッショナル・スライドテンプレートナビゲーターを開く |
+| `insert-columns` | `Presenter: Insert column layout...` | カラム数・スタイル・比率をインタラクティブに選べるピッカーモーダルを表示 |
+| `insert-columns-2` | `Presenter: Insert 2-column layout` | `<!-- columns 2 -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-2-ratio-2-1` | `Presenter: Insert 2-column (2:1 ratio) layout` | `<!-- columns 2:1 -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-2-ratio-1-2` | `Presenter: Insert 2-column (1:2 ratio) layout` | `<!-- columns 1:2 -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-3` | `Presenter: Insert 3-column layout` | `<!-- columns 3 -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-3-step` | `Presenter: Insert 3-column step flow layout` | `<!-- columns 3 step -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-4` | `Presenter: Insert 4-column layout` | `<!-- columns 4 -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-2-card` | `Presenter: Insert 2-column card layout` | `<!-- columns 2 card -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-2-plain` | `Presenter: Insert 2-column plain layout` | `<!-- columns 2 plain -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-3-card` | `Presenter: Insert 3-column card layout` | `<!-- columns 3 card -->` ... `<!-- /columns -->` を挿入 |
+| `insert-columns-3-plain` | `Presenter: Insert 3-column plain layout` | `<!-- columns 3 plain -->` ... `<!-- /columns -->` を挿入 |
+| `insert-column-break` | `Presenter: Insert column break` | 明示的カラム区切り `<!-- column -->` を挿入 |
+
 

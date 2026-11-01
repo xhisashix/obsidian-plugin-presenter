@@ -11,6 +11,8 @@ import { renderSlide } from './slideRenderer';
 
 export const MIN_BODY_SCALE = 0.70;
 export const OVERFLOW_TOLERANCE_PX = 4;
+export const AUTO_FIT_STEP = 0.03;
+export const MAX_AUTO_FIT_STEPS = 8;
 
 export interface SlideOverflowMeasurement {
 	isOverflowing: boolean;
@@ -83,6 +85,60 @@ export function applyContentScale(bodyEl: HTMLElement, scale: number): void {
 }
 
 /**
+ * Measures and iteratively scales down the slide body element until it fits within its container
+ * or reaches MIN_BODY_SCALE (0.70). Handles residual overflow caused by line-wrapping shifts
+ * and fixed-width grid columns.
+ */
+export function fitContentToSlideBody(bodyEl: HTMLElement): {
+	wasOverflowing: boolean;
+	isStillOverflowing: boolean;
+	overflowRatio: number;
+	optimalScale: number;
+	fittedScale: number;
+} {
+	applyContentScale(bodyEl, 1.0);
+	const initial = calculateOverflow(bodyEl);
+	if (!initial.isOverflowing) {
+		return {
+			wasOverflowing: false,
+			isStillOverflowing: false,
+			overflowRatio: 1.0,
+			optimalScale: 1.0,
+			fittedScale: 1.0,
+		};
+	}
+
+	let currentScale = initial.optimalScale;
+	applyContentScale(bodyEl, currentScale);
+	let recheck = calculateOverflow(bodyEl);
+
+	let steps = 0;
+	while (
+		recheck.isOverflowing &&
+		currentScale > MIN_BODY_SCALE &&
+		steps < MAX_AUTO_FIT_STEPS
+	) {
+		const nextScale = Math.max(
+			MIN_BODY_SCALE,
+			Math.round((currentScale - AUTO_FIT_STEP) * 100) / 100
+		);
+		if (nextScale === currentScale) break;
+		currentScale = nextScale;
+		applyContentScale(bodyEl, currentScale);
+		recheck = calculateOverflow(bodyEl);
+		steps++;
+	}
+
+	return {
+		wasOverflowing: true,
+		isStillOverflowing: recheck.isOverflowing,
+		overflowRatio: initial.overflowRatio,
+		optimalScale: initial.optimalScale,
+		fittedScale: currentScale,
+	};
+}
+
+/**
  * Inspects a slide's markdown content to find a candidate H3 heading to split the slide at.
  * Returns the second H3 heading if multiple H3s exist, allowing the user to cleanly split into 2 slides.
  */
@@ -123,27 +179,30 @@ export function measureSlideOverflow(
 	bodyEl: HTMLElement,
 	autoFit: boolean
 ): SlideOverflowMeasurement {
-	// First measure without scale applied (or reset scale to measure intrinsic overflow)
-	applyContentScale(bodyEl, 1.0);
-	const { isOverflowing, overflowRatio, optimalScale } = calculateOverflow(bodyEl);
 	const { canSplit, splitHeadingTitle, splitLineOffset } = findSplitHeadingInSlide(markdown);
 
-	let effectiveOverflowing = isOverflowing;
-	let appliedScale = 1.0;
-
-	if (isOverflowing && autoFit) {
-		applyContentScale(bodyEl, optimalScale);
-		// Re-check after applying optimal scale: if optimalScale reached minimum (0.70), it might still overflow
-		const recheck = calculateOverflow(bodyEl);
-		effectiveOverflowing = recheck.isOverflowing;
-		appliedScale = optimalScale;
+	if (autoFit) {
+		const fitResult = fitContentToSlideBody(bodyEl);
+		return {
+			isOverflowing: fitResult.isStillOverflowing,
+			overflowRatio: fitResult.overflowRatio,
+			optimalScale: fitResult.optimalScale,
+			fittedScale: fitResult.fittedScale,
+			canSplit,
+			splitHeadingTitle,
+			splitLineOffset,
+		};
 	}
 
+	// Measure without scale applied
+	applyContentScale(bodyEl, 1.0);
+	const { isOverflowing, overflowRatio, optimalScale } = calculateOverflow(bodyEl);
+
 	return {
-		isOverflowing: effectiveOverflowing,
+		isOverflowing,
 		overflowRatio,
 		optimalScale,
-		fittedScale: appliedScale,
+		fittedScale: 1.0,
 		canSplit,
 		splitHeadingTitle,
 		splitLineOffset,

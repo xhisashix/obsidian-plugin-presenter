@@ -13,6 +13,8 @@ import { getExportStyles } from '../src/export/exportStyles';
 import { getExportScript } from '../src/export/exportScript';
 import {
 	buildHandoutItemsHtml,
+	buildHandoutTocHtml,
+	buildOverviewGridHtml,
 	buildSlideCardsHtml,
 	type RenderedExportSlide,
 } from '../src/export/htmlExporter';
@@ -129,11 +131,18 @@ void test('getExportStyles generates CSS with provided colors, dimensions, and l
 	assert.match(css, /\.presenter-cols-ratio-1-2/);
 	assert.match(css, /\.presenter-cols-plain/);
 
-	// Verify KPI, callout, and smart layouts
-	assert.match(css, /\.presenter-kpi-value/);
-	assert.match(css, /\.callout/);
-	assert.match(css, /\.presenter-slide-section/);
-	assert.match(css, /\.presenter-slide-quote/);
+	// Verify overview modal styles
+	assert.match(css, /\.presenter-overview-overlay/);
+	assert.match(css, /\.presenter-overview-grid/);
+	assert.match(css, /\.presenter-overview-thumb/);
+	assert.match(css, /\.presenter-overview-close-btn/);
+
+	// Verify handout sidebar TOC styles
+	assert.match(css, /\.handout-container/);
+	assert.match(css, /\.handout-sidebar/);
+	assert.match(css, /\.handout-toc/);
+	assert.match(css, /\.handout-toc-section-link/);
+	assert.match(css, /\.handout-toc-link/);
 });
 
 void test('getExportScript includes total slide count and client logic', () => {
@@ -147,9 +156,14 @@ void test('getExportScript includes total slide count and client logic', () => {
 	assert.match(script, /const total = 5;/);
 	assert.match(script, /showSlide\(index\)/);
 	assert.match(script, /nextSlide\(\)/);
+	assert.match(script, /toggleOverview\(\)/);
+	assert.match(script, /overviewModal/);
+	assert.match(script, /case 'g':/);
+	assert.match(script, /updateHandoutTocActive/);
+	assert.match(script, /handout-item-/);
 });
 
-void test('buildSlideCardsHtml and buildHandoutItemsHtml construct proper structure', () => {
+void test('buildSlideCardsHtml, buildHandoutItemsHtml, and buildOverviewGridHtml construct proper structure', () => {
 	const dummySlides: RenderedExportSlide[] = [
 		{
 			index: 0,
@@ -158,6 +172,13 @@ void test('buildSlideCardsHtml and buildHandoutItemsHtml construct proper struct
 			bodyHtml: '<h1>Welcome</h1>',
 			notesHtml: '<p>Speaker notes</p>',
 		},
+		{
+			index: 1,
+			type: 'section',
+			title: 'Section Header',
+			bodyHtml: '<h2>Section 1</h2>',
+			notesHtml: '',
+		},
 	];
 
 	const slideHtml = buildSlideCardsHtml(
@@ -165,16 +186,94 @@ void test('buildSlideCardsHtml and buildHandoutItemsHtml construct proper struct
 		'Company Presentation',
 		'Page Footer',
 		'<div class="logo"></div>',
-		1
+		2
 	);
 
 	assert.match(slideHtml, /presenter-slide-cover/);
 	assert.match(slideHtml, /Company Presentation/);
 	assert.match(slideHtml, /class="logo"/);
-	assert.match(slideHtml, /1 \/ 1/);
+	assert.match(slideHtml, /1 \/ 2/);
 
-	const handoutHtml = buildHandoutItemsHtml(dummySlides, 'Page Footer', 1);
+	const handoutHtml = buildHandoutItemsHtml(dummySlides, 'Page Footer', 2);
 	assert.match(handoutHtml, /handout-item/);
+	assert.match(handoutHtml, /id="handout-item-0"/);
 	assert.match(handoutHtml, /Speaker notes/);
-	assert.match(handoutHtml, /Slide 1 of 1/);
+	assert.match(handoutHtml, /Slide 1 of 2/);
+
+	const overviewHtml = buildOverviewGridHtml(dummySlides);
+	assert.match(overviewHtml, /presenter-overview-thumb/);
+	assert.match(overviewHtml, /id="overview-thumb-0"/);
+	assert.match(overviewHtml, /TITLE/);
+	assert.match(overviewHtml, /Title Slide/);
+	assert.match(overviewHtml, /is-section/);
+	assert.match(overviewHtml, /SECTION/);
+	assert.match(overviewHtml, /Section Header/);
+});
+
+void test('buildHandoutTocHtml generates hierarchical and flat TOC structures', () => {
+	// 1. With sections (hierarchical)
+	const slidesWithSections: RenderedExportSlide[] = [
+		{
+			index: 0,
+			type: 'cover',
+			title: 'Main Title',
+			bodyHtml: '<h1>Title</h1>',
+			notesHtml: '',
+		},
+		{
+			index: 1,
+			type: 'section',
+			title: 'Section 1: Agenda',
+			bodyHtml: '<h2>Agenda</h2>',
+			notesHtml: '',
+		},
+		{
+			index: 2,
+			type: 'content',
+			title: 'Review Details',
+			bodyHtml: '<p>Details</p>',
+			notesHtml: '',
+		},
+		{
+			index: 3,
+			type: 'section',
+			title: 'Section 2: Next Steps',
+			bodyHtml: '<h2>Next Steps</h2>',
+			notesHtml: '',
+		},
+	];
+
+	const hierarchicalToc = buildHandoutTocHtml(slidesWithSections);
+	assert.match(hierarchicalToc, /handout-toc-group/);
+	assert.match(hierarchicalToc, /href="#handout-item-0"/);
+	assert.match(hierarchicalToc, /Main Title/);
+	assert.match(hierarchicalToc, /Section 1: Agenda/);
+	assert.match(hierarchicalToc, /is-section/);
+	assert.match(hierarchicalToc, /handout-toc-sublist/);
+	assert.match(hierarchicalToc, /Review Details/);
+	assert.match(hierarchicalToc, /Section 2: Next Steps/);
+
+	// 2. Without sections (flat list)
+	const flatSlides: RenderedExportSlide[] = [
+		{
+			index: 0,
+			type: 'content',
+			title: 'First Page',
+			bodyHtml: '<h1>First</h1>',
+			notesHtml: '',
+		},
+		{
+			index: 1,
+			type: 'content',
+			title: 'Second Page',
+			bodyHtml: '<h1>Second</h1>',
+			notesHtml: '',
+		},
+	];
+
+	const flatToc = buildHandoutTocHtml(flatSlides);
+	assert.match(flatToc, /handout-toc-list/);
+	assert.match(flatToc, /First Page/);
+	assert.match(flatToc, /Second Page/);
+	assert.doesNotMatch(flatToc, /handout-toc-group/);
 });

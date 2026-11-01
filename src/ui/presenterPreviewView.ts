@@ -24,6 +24,7 @@ import {
 	openSlideOverflowModal,
 	updateOverflowButton,
 } from './stageHelpers';
+import { TemplateNavigatorModal } from './templateNavigatorModal';
 import type PresenterPlugin from '../main';
 
 export class PresenterPreviewView extends ItemView {
@@ -121,6 +122,18 @@ export class PresenterPreviewView extends ItemView {
 		setIcon(this.pinButtonEl, 'locate');
 		this.pinButtonEl.onclick = () => this.toggleFollowCursor();
 		this.updateFollowCursorUi();
+
+		// Open Slide Template Navigator
+		const templateBtn = toolbarEl.createEl('button', {
+			cls: 'presenter-toolbar-btn presenter-btn-templates',
+			attr: { 'aria-label': 'Open slide template navigator' },
+		});
+		setIcon(templateBtn, 'layout-template');
+		templateBtn.onclick = () => {
+			new TemplateNavigatorModal(this.app, {
+				targetFilePath: this.currentFile?.path ?? null,
+			}).open();
+		};
 
 		// Start fullscreen presentation
 		const playBtn = toolbarEl.createEl('button', {

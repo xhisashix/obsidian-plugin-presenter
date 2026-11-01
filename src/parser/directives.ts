@@ -86,6 +86,13 @@ export function parseDirective(line: string): Directive | null {
 				if (!directive.count) directive.count = 2;
 			} else if (token === 'step' || token === 'steps') {
 				directive.variant = 'step';
+			} else if (
+				token === 'pyramid' ||
+				token === 'funnel' ||
+				token === 'matrix' ||
+				token === 'cycle'
+			) {
+				directive.variant = token;
 			} else {
 				// Unknown token: treat as an ordinary comment rather than guessing.
 				return null;

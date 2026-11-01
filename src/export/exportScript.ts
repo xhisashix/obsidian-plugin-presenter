@@ -16,6 +16,8 @@ export function getExportScript(params: ExportScriptParams): string {
 			const total = ${totalSlides};
 			let currentIndex = 0;
 			let isNotesOpen = false;
+			let isOverviewOpen = false;
+			let currentMode = 'presentation';
 
 			const slidesData = ${JSON.stringify(slidesData)};
 
@@ -24,6 +26,10 @@ export function getExportScript(params: ExportScriptParams): string {
 			const handoutMode = document.getElementById('handout-mode');
 			const btnModePresentation = document.getElementById('btn-mode-presentation');
 			const btnModeHandout = document.getElementById('btn-mode-handout');
+			const btnOverview = document.getElementById('btn-overview');
+			const overviewModal = document.getElementById('overview-modal');
+			const btnOverviewClose = document.getElementById('btn-overview-close');
+			const overviewThumbs = document.querySelectorAll('.presenter-overview-thumb');
 			const btnToggleNotes = document.getElementById('btn-toggle-notes');
 			const btnPrint = document.getElementById('btn-print');
 			const btnPrev = document.getElementById('btn-prev');
@@ -47,6 +53,15 @@ export function getExportScript(params: ExportScriptParams): string {
 							card.classList.add('active');
 						} else {
 							card.classList.remove('active');
+						}
+					}
+
+					const thumb = document.getElementById('overview-thumb-' + i);
+					if (thumb) {
+						if (i === index) {
+							thumb.classList.add('is-active');
+						} else {
+							thumb.classList.remove('is-active');
 						}
 					}
 				}
@@ -77,6 +92,28 @@ export function getExportScript(params: ExportScriptParams): string {
 				if (currentIndex > 0) showSlide(currentIndex - 1);
 			}
 
+			function openOverview() {
+				if (!overviewModal) return;
+				isOverviewOpen = true;
+				overviewModal.classList.remove('hidden');
+				if (btnOverview) btnOverview.classList.add('active');
+			}
+
+			function closeOverview() {
+				if (!overviewModal) return;
+				isOverviewOpen = false;
+				overviewModal.classList.add('hidden');
+				if (btnOverview) btnOverview.classList.remove('active');
+			}
+
+			function toggleOverview() {
+				if (isOverviewOpen) {
+					closeOverview();
+				} else {
+					openOverview();
+				}
+			}
+
 			function toggleNotes() {
 				isNotesOpen = !isNotesOpen;
 				if (isNotesOpen) {
@@ -90,6 +127,7 @@ export function getExportScript(params: ExportScriptParams): string {
 			}
 
 			function setViewMode(mode) {
+				currentMode = mode;
 				if (mode === 'presentation') {
 					presentationMode.style.display = 'flex';
 					handoutMode.classList.add('hidden');
@@ -130,10 +168,79 @@ export function getExportScript(params: ExportScriptParams): string {
 				activeCard.style.transform = 'scale(' + Math.max(scale, 0.2) + ')';
 			}
 
+			function updateHandoutTocActive(activeIdx) {
+				document.querySelectorAll('.handout-toc-link, .handout-toc-section-link').forEach(function(el) {
+					if (el.getAttribute('data-index') === String(activeIdx)) {
+						el.classList.add('is-active');
+					} else {
+						el.classList.remove('is-active');
+					}
+				});
+			}
+
+			// Handout TOC click & scroll handler
+			document.querySelectorAll('.handout-toc-link, .handout-toc-section-link').forEach(function(link) {
+				link.addEventListener('click', function(e) {
+					e.preventDefault();
+					const targetIndex = link.getAttribute('data-index');
+					if (targetIndex !== null) {
+						const targetEl = document.getElementById('handout-item-' + targetIndex);
+						if (targetEl) {
+							targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+							updateHandoutTocActive(targetIndex);
+						}
+					}
+				});
+			});
+
+			// Handout scrollspy using IntersectionObserver
+			if ('IntersectionObserver' in window && handoutMode) {
+				const tocObserver = new IntersectionObserver(function(entries) {
+					entries.forEach(function(entry) {
+						if (entry.isIntersecting) {
+							const id = entry.target.id;
+							if (id && id.indexOf('handout-item-') === 0) {
+								const idx = id.substring('handout-item-'.length);
+								updateHandoutTocActive(idx);
+							}
+						}
+					});
+				}, { root: handoutMode, threshold: 0.25 });
+
+				document.querySelectorAll('.handout-item').forEach(function(item) {
+					tocObserver.observe(item);
+				});
+			}
+
 			// Event Listeners
 			btnPrev.addEventListener('click', prevSlide);
 			btnNext.addEventListener('click', nextSlide);
 			btnToggleNotes.addEventListener('click', toggleNotes);
+			if (btnOverview) btnOverview.addEventListener('click', toggleOverview);
+			if (btnOverviewClose) btnOverviewClose.addEventListener('click', closeOverview);
+			if (overviewModal) {
+				overviewModal.addEventListener('click', function(e) {
+					if (e.target === overviewModal) {
+						closeOverview();
+					}
+				});
+			}
+
+			overviewThumbs.forEach(function(thumb) {
+				thumb.addEventListener('click', function() {
+					const targetIndex = parseInt(thumb.getAttribute('data-index') || '0', 10);
+					closeOverview();
+					if (currentMode === 'handout') {
+						const targetEl = document.getElementById('handout-item-' + targetIndex);
+						if (targetEl) {
+							targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+						}
+					} else {
+						showSlide(targetIndex);
+					}
+				});
+			});
+
 			btnModePresentation.addEventListener('click', () => setViewMode('presentation'));
 			btnModeHandout.addEventListener('click', () => setViewMode('handout'));
 			btnFullscreen.addEventListener('click', toggleFullscreen);
@@ -179,6 +286,19 @@ export function getExportScript(params: ExportScriptParams): string {
 					case 'N':
 						e.preventDefault();
 						toggleNotes();
+						break;
+					case 'g':
+					case 'G':
+					case 'o':
+					case 'O':
+						e.preventDefault();
+						toggleOverview();
+						break;
+					case 'Escape':
+						if (isOverviewOpen) {
+							e.preventDefault();
+							closeOverview();
+						}
 						break;
 					case 'p':
 					case 'P':
