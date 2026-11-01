@@ -168,6 +168,50 @@ export function getExportScript(params: ExportScriptParams): string {
 				activeCard.style.transform = 'scale(' + Math.max(scale, 0.2) + ')';
 			}
 
+			function updateHandoutTocActive(activeIdx) {
+				document.querySelectorAll('.handout-toc-link, .handout-toc-section-link').forEach(function(el) {
+					if (el.getAttribute('data-index') === String(activeIdx)) {
+						el.classList.add('is-active');
+					} else {
+						el.classList.remove('is-active');
+					}
+				});
+			}
+
+			// Handout TOC click & scroll handler
+			document.querySelectorAll('.handout-toc-link, .handout-toc-section-link').forEach(function(link) {
+				link.addEventListener('click', function(e) {
+					e.preventDefault();
+					const targetIndex = link.getAttribute('data-index');
+					if (targetIndex !== null) {
+						const targetEl = document.getElementById('handout-item-' + targetIndex);
+						if (targetEl) {
+							targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+							updateHandoutTocActive(targetIndex);
+						}
+					}
+				});
+			});
+
+			// Handout scrollspy using IntersectionObserver
+			if ('IntersectionObserver' in window && handoutMode) {
+				const tocObserver = new IntersectionObserver(function(entries) {
+					entries.forEach(function(entry) {
+						if (entry.isIntersecting) {
+							const id = entry.target.id;
+							if (id && id.indexOf('handout-item-') === 0) {
+								const idx = id.substring('handout-item-'.length);
+								updateHandoutTocActive(idx);
+							}
+						}
+					});
+				}, { root: handoutMode, threshold: 0.25 });
+
+				document.querySelectorAll('.handout-item').forEach(function(item) {
+					tocObserver.observe(item);
+				});
+			}
+
 			// Event Listeners
 			btnPrev.addEventListener('click', prevSlide);
 			btnNext.addEventListener('click', nextSlide);

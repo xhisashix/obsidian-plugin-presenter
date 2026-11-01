@@ -275,7 +275,7 @@ Use standard Obsidian callout syntax `> [!note]`:
 Export your presentation as a single self-contained HTML file:
 - Run `Presenter: Export presentation as standalone HTML` from the Command Palette.
 - The exported `<note-name>-presentation.html` contains all scripts and styles inline—no external servers or dependencies required.
-- Recipients simply double-click to view, with a toggle in the top-right corner to switch between **[ 🖥 Slide Mode ]** and **[ 📄 Handout Document Mode ]**.
+- Recipients simply double-click to view, with a toggle in the top-right corner to switch between **[ 🖥 Slide Mode ]** and **[ 📄 Handout Document Mode ]** (featuring a sticky hierarchical table of contents sidebar to jump across sections).
 
 ### 3. Editable PowerPoint (`.pptx`) Export
 Export your presentation as a native PowerPoint file for corporate sharing or further editing:
