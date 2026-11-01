@@ -16,6 +16,8 @@ export function getExportScript(params: ExportScriptParams): string {
 			const total = ${totalSlides};
 			let currentIndex = 0;
 			let isNotesOpen = false;
+			let isOverviewOpen = false;
+			let currentMode = 'presentation';
 
 			const slidesData = ${JSON.stringify(slidesData)};
 
@@ -24,6 +26,10 @@ export function getExportScript(params: ExportScriptParams): string {
 			const handoutMode = document.getElementById('handout-mode');
 			const btnModePresentation = document.getElementById('btn-mode-presentation');
 			const btnModeHandout = document.getElementById('btn-mode-handout');
+			const btnOverview = document.getElementById('btn-overview');
+			const overviewModal = document.getElementById('overview-modal');
+			const btnOverviewClose = document.getElementById('btn-overview-close');
+			const overviewThumbs = document.querySelectorAll('.presenter-overview-thumb');
 			const btnToggleNotes = document.getElementById('btn-toggle-notes');
 			const btnPrint = document.getElementById('btn-print');
 			const btnPrev = document.getElementById('btn-prev');
@@ -47,6 +53,15 @@ export function getExportScript(params: ExportScriptParams): string {
 							card.classList.add('active');
 						} else {
 							card.classList.remove('active');
+						}
+					}
+
+					const thumb = document.getElementById('overview-thumb-' + i);
+					if (thumb) {
+						if (i === index) {
+							thumb.classList.add('is-active');
+						} else {
+							thumb.classList.remove('is-active');
 						}
 					}
 				}
@@ -77,6 +92,28 @@ export function getExportScript(params: ExportScriptParams): string {
 				if (currentIndex > 0) showSlide(currentIndex - 1);
 			}
 
+			function openOverview() {
+				if (!overviewModal) return;
+				isOverviewOpen = true;
+				overviewModal.classList.remove('hidden');
+				if (btnOverview) btnOverview.classList.add('active');
+			}
+
+			function closeOverview() {
+				if (!overviewModal) return;
+				isOverviewOpen = false;
+				overviewModal.classList.add('hidden');
+				if (btnOverview) btnOverview.classList.remove('active');
+			}
+
+			function toggleOverview() {
+				if (isOverviewOpen) {
+					closeOverview();
+				} else {
+					openOverview();
+				}
+			}
+
 			function toggleNotes() {
 				isNotesOpen = !isNotesOpen;
 				if (isNotesOpen) {
@@ -90,6 +127,7 @@ export function getExportScript(params: ExportScriptParams): string {
 			}
 
 			function setViewMode(mode) {
+				currentMode = mode;
 				if (mode === 'presentation') {
 					presentationMode.style.display = 'flex';
 					handoutMode.classList.add('hidden');
@@ -134,6 +172,31 @@ export function getExportScript(params: ExportScriptParams): string {
 			btnPrev.addEventListener('click', prevSlide);
 			btnNext.addEventListener('click', nextSlide);
 			btnToggleNotes.addEventListener('click', toggleNotes);
+			if (btnOverview) btnOverview.addEventListener('click', toggleOverview);
+			if (btnOverviewClose) btnOverviewClose.addEventListener('click', closeOverview);
+			if (overviewModal) {
+				overviewModal.addEventListener('click', function(e) {
+					if (e.target === overviewModal) {
+						closeOverview();
+					}
+				});
+			}
+
+			overviewThumbs.forEach(function(thumb) {
+				thumb.addEventListener('click', function() {
+					const targetIndex = parseInt(thumb.getAttribute('data-index') || '0', 10);
+					closeOverview();
+					if (currentMode === 'handout') {
+						const targetEl = document.getElementById('handout-item-' + targetIndex);
+						if (targetEl) {
+							targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+						}
+					} else {
+						showSlide(targetIndex);
+					}
+				});
+			});
+
 			btnModePresentation.addEventListener('click', () => setViewMode('presentation'));
 			btnModeHandout.addEventListener('click', () => setViewMode('handout'));
 			btnFullscreen.addEventListener('click', toggleFullscreen);
@@ -179,6 +242,19 @@ export function getExportScript(params: ExportScriptParams): string {
 					case 'N':
 						e.preventDefault();
 						toggleNotes();
+						break;
+					case 'g':
+					case 'G':
+					case 'o':
+					case 'O':
+						e.preventDefault();
+						toggleOverview();
+						break;
+					case 'Escape':
+						if (isOverviewOpen) {
+							e.preventDefault();
+							closeOverview();
+						}
 						break;
 					case 'p':
 					case 'P':
