@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-11-01
+
+### Added
+
+- **Interactive Slide Template Navigator & 13 Consulting Slide Layouts**:
+  - Added visual slide template picker modal (`Presenter: Insert slide template...` / `insert-slide-template`) and toolbar button (`Insert slide template...`) in live preview.
+  - 13 pre-built consulting layout templates across 4 structured categories:
+    - **Basic**: Title / Key Message / Lead Card (`title-lead`), Multi-Column (`columns-3`), Section Divider (`section-divider`), Quote / Big Statement (`quote`).
+    - **Business Framework**: 2x2 Matrix (`matrix-2x2`), Pyramid Structure (`pyramid`), Funnel Process (`funnel`), Cycle / Loop (`cycle`).
+    - **Comparison & Analysis**: Pros & Cons (`pros-cons`), Feature / Plan Comparison (`comparison-table`), Before / After (`before-after`).
+    - **Data & Metrics**: Metric Highlight (`kpi-metrics`), Trend & Chart (`chart-trend`).
+  - Interactive modal featuring live SVG wireframe thumbnail previews, category filters, instant keyword search (English & Japanese), keyboard navigation (`Arrow keys`, `Enter`, `Escape`), and insertion mode toggle (Insert full slide with `---` vs. Insert layout body only).
+  - Dedicated visual diagram directives and responsive presentation styles (`<!-- columns pyramid -->`, `<!-- columns funnel -->`, `<!-- columns matrix -->`, `<!-- columns cycle -->`, `<!-- chart -->`).
+  - Clear fill-in-the-blank placeholders (`【サンプル】`, `〇〇`, `XX%`) and expected content guidance text.
+  - Automatic upgrade path transforming legacy 2-column pyramid markdown into visual pyramid cards.
+- **Hierarchical Table of Contents (TOC) Sidebar in Handout Mode (Standalone HTML Export)**:
+  - Added collapsible, hierarchical TOC sidebar in exported standalone HTML handout reading mode, automatically organizing slides under parent section divider slides.
+  - Smooth scrolling navigation to any slide on click.
+  - Dynamic scrollspy tracking that highlights the active section/slide during reading.
+  - Fully responsive layout that collapses cleanly on smaller screens.
+- **Slide Overview Grid Modal in Standalone HTML Export**:
+  - Added full-screen thumbnail grid modal in standalone exported HTML presentations.
+  - Toggled via toolbar button or keyboard shortcuts (`G` or `O`, close with `Escape`).
+  - Supports instant click-to-jump in presentation mode and smooth scrolling in handout mode.
+- **Development Workflow Skill & Project Documentation Alignment**:
+  - Added `.agents/skills/dev-workflow` skill and checklists for structured development and verification.
+  - Synchronized design documentation (`docs/design/architecture.md`, `specification.md`, `ui-ux.md`, `standard-markdown-compatibility.md`), `README.md`, and `README_ja.md`.
+
+---
+
 ## [1.5.1] - 2026-10-31
 
 ### Fixed
