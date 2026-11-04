@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import type { Editor, EditorPosition } from 'obsidian';
+import type { App, Editor, EditorPosition, Plugin } from 'obsidian';
+import { registerColumnCommands } from '../src/commands/insertColumns';
 import { parsePresentation } from '../src/parser/slideParser';
 import {
 	DESIGN_PRINCIPLES,
@@ -9,8 +10,16 @@ import {
 	TEMPLATE_USECASES,
 	buildTemplateMarkdown,
 	getSlideTemplateById,
+	searchSlideTemplates,
 } from '../src/templates/slideTemplates';
-import { insertSlideTemplateIntoEditor } from '../src/ui/templateNavigatorModal';
+import {
+	insertSlideTemplateIntoEditor,
+	resolveSmartInsertMode,
+} from '../src/ui/templateNavigatorModal';
+import {
+	TemplatePickerModal,
+	getTemplatePickerItems,
+} from '../src/ui/templatePickerModal';
 import { renderTemplatePreviewIcon } from '../src/ui/templatePreviewIcon';
 
 function createMockEditor(
@@ -73,6 +82,7 @@ interface MockElement {
 	children: MockElement[];
 	createDiv: (opts?: { cls?: string; text?: string }) => MockElement;
 	createSpan: (opts?: { cls?: string; text?: string }) => MockElement;
+	createEl: (tag: string, opts?: { cls?: string; text?: string }) => MockElement;
 	setText: (val: string) => void;
 }
 
@@ -92,6 +102,11 @@ function createMockElement(tagName = 'div', cls = '', text = ''): MockElement {
 			el.children.push(child);
 			return child;
 		},
+		createEl(tag, opts) {
+			const child = createMockElement(tag, opts?.cls ?? '', opts?.text ?? '');
+			el.children.push(child);
+			return child;
+		},
 		setText(val: string) {
 			el.text = val;
 		},
@@ -104,10 +119,18 @@ void test('SLIDE_TEMPLATES defines all 13 professional slide templates across 4 
 	assert.equal(TEMPLATE_CATEGORIES.length, 4);
 
 	const ids = new Set<string>();
+	const commandIds = new Set<string>();
 	for (const tpl of SLIDE_TEMPLATES) {
 		assert.ok(tpl.id.length > 0);
 		assert.ok(!ids.has(tpl.id), `Duplicate template id: ${tpl.id}`);
 		ids.add(tpl.id);
+
+		assert.ok(tpl.commandId.startsWith('insert-template-'));
+		assert.ok(!commandIds.has(tpl.commandId), `Duplicate command id: ${tpl.commandId}`);
+		commandIds.add(tpl.commandId);
+		assert.ok(tpl.commandName.startsWith('Insert design template: '));
+		assert.ok(tpl.syntaxHint.length > 0);
+		assert.ok(tpl.keywords.length >= 4);
 
 		assert.ok(tpl.name.length > 0);
 		assert.ok(TEMPLATE_CATEGORIES.includes(tpl.category));
@@ -258,6 +281,157 @@ void test('renderTemplatePreviewIcon builds wireframe DOM for all 13 preview typ
 		assert.ok(
 			iconEl.children.length > 0,
 			`Preview icon for ${tpl.previewType} should render child wireframe elements`
+		);
+	}
+});
+
+void test('searchSlideTemplates and getTemplatePickerItems filter by English and Japanese keywords', () => {
+	const all = searchSlideTemplates('');
+	assert.equal(all.length, 13);
+
+	const allPickerItems = getTemplatePickerItems('');
+	assert.equal(allPickerItems.length, 14); // 13 templates + 1 visual navigator item
+
+	const matrixMatches = searchSlideTemplates('matrix');
+	assert.equal(matrixMatches.length, 1);
+	assert.equal(matrixMatches[0]?.id, 'matrix');
+
+	const jpPyramidMatches = searchSlideTemplates('ピラミッド');
+	assert.equal(jpPyramidMatches.length, 1);
+	assert.equal(jpPyramidMatches[0]?.id, 'pyramid');
+
+	const funnelMatches = searchSlideTemplates('ファネル ボトルネック');
+	assert.equal(funnelMatches.length, 1);
+	assert.equal(funnelMatches[0]?.id, 'funnel');
+
+	const noMatches = getTemplatePickerItems('nonexistent-template-xyz');
+	assert.equal(noMatches.length, 0);
+});
+
+void test('resolveSmartInsertMode detects whether current slide already has an H2 heading', () => {
+	const pyramid = getSlideTemplateById('pyramid')!;
+
+	// 1. Blank note -> full-slide
+	const blankEditor = createMockEditor('', { line: 0, ch: 0 });
+	assert.equal(resolveSmartInsertMode(blankEditor.editor), 'full-slide');
+
+	// 2. Right on or below an H2 heading with no body yet -> body-only (avoids duplicate H2)
+	const h2OnlyEditor = createMockEditor('## 自社サービスの3階層アーキテクチャ\n', {
+		line: 1,
+		ch: 0,
+	});
+	assert.equal(resolveSmartInsertMode(h2OnlyEditor.editor), 'body-only');
+	const resolvedMode = insertSlideTemplateIntoEditor(h2OnlyEditor.editor, pyramid, 'auto');
+	assert.equal(resolvedMode, 'body-only');
+	assert.ok(h2OnlyEditor.getDoc().startsWith('## 自社サービスの3階層アーキテクチャ\n<!-- columns pyramid -->'));
+	assert.ok(!h2OnlyEditor.getDoc().includes(pyramid.titleTemplate));
+
+	// 3. After an existing slide that already has body content -> full-slide
+	const populatedSlideEditor = createMockEditor(
+		'## 既存スライド\n- 箇条書き1\n- 箇条書き2\n\n',
+		{ line: 4, ch: 0 }
+	);
+	assert.equal(resolveSmartInsertMode(populatedSlideEditor.editor), 'full-slide');
+	const resolvedFull = insertSlideTemplateIntoEditor(
+		populatedSlideEditor.editor,
+		pyramid,
+		'auto'
+	);
+	assert.equal(resolvedFull, 'full-slide');
+	assert.ok(populatedSlideEditor.getDoc().includes(pyramid.titleTemplate));
+
+	// 4. After a thematic break `---` -> full-slide
+	const afterHrEditor = createMockEditor('## Slide 1\n\n---\n\n', { line: 4, ch: 0 });
+	assert.equal(resolveSmartInsertMode(afterHrEditor.editor), 'full-slide');
+
+	// 5. After YAML frontmatter -> full-slide
+	const afterFmEditor = createMockEditor('---\nheader: "Deck"\n---\n\n', { line: 4, ch: 0 });
+	assert.equal(resolveSmartInsertMode(afterFmEditor.editor), 'full-slide');
+});
+
+void test('TemplatePickerModal renders suggestions and inserts template with modifier support', () => {
+	const mockEd = createMockEditor('## Custom Heading\n', { line: 1, ch: 0 });
+	const modal = new TemplatePickerModal({} as unknown as App, mockEd.editor);
+
+	const suggestions = modal.getSuggestions('matrix');
+	assert.equal(suggestions.length, 1);
+	const matrixItem = suggestions[0]!;
+	assert.equal(matrixItem.id, 'matrix');
+
+	// Render suggestion DOM
+	const itemEl = createMockElement();
+	modal.renderSuggestion(matrixItem, itemEl as unknown as HTMLElement);
+	assert.equal(itemEl.children.length, 1);
+	assert.equal(itemEl.children[0]?.cls, 'presenter-template-suggestion');
+
+	// Default Enter in an H2-only slide inserts body-only via auto detection
+	modal.onChooseSuggestion(matrixItem, {
+		shiftKey: false,
+		metaKey: false,
+		ctrlKey: false,
+	} as unknown as KeyboardEvent);
+	assert.ok(mockEd.getDoc().includes('<!-- columns matrix -->'));
+	assert.ok(!mockEd.getDoc().includes(matrixItem.template!.titleTemplate));
+
+	// Mod+Enter explicitly forces full-slide even under an H2 heading
+	const mockEdForceFull = createMockEditor('## Custom Heading\n', { line: 1, ch: 0 });
+	const modal2 = new TemplatePickerModal({} as unknown as App, mockEdForceFull.editor);
+	modal2.onChooseSuggestion(matrixItem, {
+		shiftKey: false,
+		metaKey: true,
+		ctrlKey: false,
+	} as unknown as KeyboardEvent);
+	assert.ok(mockEdForceFull.getDoc().includes(matrixItem.template!.titleTemplate));
+
+	// Shift+Enter explicitly forces body-only even on a blank document
+	const mockEdForceBody = createMockEditor('', { line: 0, ch: 0 });
+	const modal3 = new TemplatePickerModal({} as unknown as App, mockEdForceBody.editor);
+	modal3.onChooseSuggestion(matrixItem, {
+		shiftKey: true,
+		metaKey: false,
+		ctrlKey: false,
+	} as unknown as KeyboardEvent);
+	assert.ok(mockEdForceBody.getDoc().startsWith('<!-- columns matrix -->'));
+	assert.ok(!mockEdForceBody.getDoc().includes(matrixItem.template!.titleTemplate));
+});
+
+void test('registerColumnCommands registers quick template picker and all 13 direct template commands', () => {
+	const registeredCommands: Array<{
+		id: string;
+		name: string;
+		callback?: () => void;
+		editorCallback?: (editor: Editor) => void;
+	}> = [];
+
+	const mockPlugin = {
+		app: {},
+		addCommand(cmd: {
+			id: string;
+			name: string;
+			callback?: () => void;
+			editorCallback?: (editor: Editor) => void;
+		}) {
+			registeredCommands.push(cmd);
+		},
+	} as unknown as Plugin;
+
+	registerColumnCommands(mockPlugin);
+
+	const cmdById = new Map(registeredCommands.map((c) => [c.id, c]));
+	assert.ok(cmdById.has('insert-design-template'));
+	assert.ok(cmdById.has('open-template-navigator'));
+
+	for (const tpl of SLIDE_TEMPLATES) {
+		const cmd = cmdById.get(tpl.commandId);
+		assert.ok(cmd, `Missing command registration for ${tpl.commandId}`);
+		assert.equal(cmd.name, tpl.commandName);
+		assert.equal(typeof cmd.editorCallback, 'function');
+
+		const mockEd = createMockEditor('', { line: 0, ch: 0 });
+		cmd.editorCallback!(mockEd.editor);
+		assert.ok(
+			mockEd.getDoc().includes(tpl.titleTemplate),
+			`Direct command ${tpl.commandId} should insert template ${tpl.id}`
 		);
 	}
 });

@@ -5,6 +5,7 @@ import {
 	insertSlideDirective,
 } from '../commands/insertColumns';
 import { TemplateNavigatorModal } from './templateNavigatorModal';
+import { TemplatePickerModal } from './templatePickerModal';
 
 export interface ColumnPreset {
 	id: string;
@@ -16,10 +17,21 @@ export interface ColumnPreset {
 
 export const COLUMN_PRESETS: ColumnPreset[] = [
 	{
+		id: 'template-picker',
+		label: 'Design template quick picker (デザインテンプレートを検索して挿入...)',
+		description: 'Quickly search and insert any of the 13 slide design templates (pyramid, matrix, funnel, bento...)',
+		syntaxPreview: '13 templates',
+		action: (editor, app) => {
+			if (app) {
+				new TemplatePickerModal(app, editor).open();
+			}
+		},
+	},
+	{
 		id: 'template-navigator',
 		label: 'Slide template navigator (目的からテンプレートを探す...)',
 		description: 'Open visual navigator with 13 professional consulting slide templates & rules',
-		syntaxPreview: '13 templates',
+		syntaxPreview: 'Visual guide',
 		action: (editor, app) => {
 			if (app) {
 				new TemplateNavigatorModal(app, { editor }).open();

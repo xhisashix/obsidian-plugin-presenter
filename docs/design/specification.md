@@ -144,13 +144,21 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
 
 ### 4.4 クイック挿入コマンド・ホットキー仕様
 
-エディタ上でカラムディレクティブを素早く挿入できるよう、以下のコマンドを提供します。すべてのコマンドは **Settings → Hotkeys** から任意のショートカットキーを割り当て可能です。
+エディタ上でカラムディレクティブおよびデザインテンプレートを素早く挿入できるよう、以下のコマンド群を提供します。すべてのコマンドは **Settings → Hotkeys** から任意のショートカットキーを割り当て可能です。
 
-- **クイック選択ピッカー (`insert-columns` / `Insert column layout...`)**:
-  `SuggestModal` を表示し、2/3/4カラム、card/plainスタイル、またはカラム区切り（`<!-- column -->`）を検索・選択して挿入。また、ピッカー先頭から後述の「スライド・テンプレート・ナビゲーター」を起動可能。
+- **デザインテンプレート・クイックピッカー (`insert-design-template` / `Insert slide design template...`)**:
+  キーボード操作主導で執筆するパワーユーザー向けに、`SuggestModal`（`TemplatePickerModal`）を起動して全13種のプロフェッショナル・デザインテンプレート（ピラミッド、2軸マトリクス、ファネル、サイクル、チャート、Bento、エグゼクティブサマリー等）を日本語名・英語ID・カテゴリ・利用シーンのキーワードでインクリメンタル検索し、即座に挿入。
+  - **操作キー**:
+    - `Enter`: カーソル位置の文脈に応じた**スマート自動挿入**（現在のスライドに既に `## 見出し` があり本文が未入力の場合はレイアウト枠のみ `body-only`、それ以外は新規スライド全体 `full-slide` を挿入）
+    - `Shift + Enter`: 明示的に**レイアウト枠のみ (`body-only`)** を挿入
+    - `Cmd / Ctrl + Enter`: 明示的に**新規スライド全体 (`full-slide`：`## アクションタイトル` ＋ レイアウト本文)** を挿入
 - **スライド・テンプレート・ナビゲーター (`open-template-navigator` / `Open slide template navigator...`)**:
   コンサルティングファーム基準の13種類のスライドレイアウト体系を「目的から探す（12目的）」「全テンプレート（4カテゴリ・13種）」「デザイン絶対原則（6原則）」の3タブで探索し、厳格なルールとワイヤーフレーム図解を確認した上で、実践的なMarkdownスニペット（新規スライド全体、またはレイアウト部分のみ）をエディタへワンクリック挿入する大型モーダル。
-- **ダイレクト挿入コマンド**:
+- **全13種デザインテンプレート・ダイレクト挿入コマンド (`insert-template-*`)**:
+  各デザインテンプレート（`horizontal-flow`, `vertical-flow`, `swimlane`, `cycle`, `two-column`, `three-column`, `matrix`, `pyramid`, `chart`, `big-number`, `funnel`, `bento`, `executive`）をコマンドパレットやホットキーから1アクションで直接挿入。挿入時はスマート自動判別（`resolveSmartInsertMode`）により、既存 `## 見出し` 直下では見出し重複を防いでボディのみを挿入し、それ以外では新規スライド全体を挿入します。
+- **カラムレイアウト・クイック選択ピッカー (`insert-columns` / `Insert column layout...`)**:
+  `SuggestModal` を表示し、2/3/4カラム、card/plainスタイル、またはカラム区切り（`<!-- column -->`）を検索・選択して挿入。また、ピッカー先頭から「デザインテンプレート・クイックピッカー」および「スライド・テンプレート・ナビゲーター」を起動可能。
+- **カラムダイレクト挿入コマンド**:
   - `insert-columns-2`: `<!-- columns 2 -->` ... `<!-- /columns -->`
   - `insert-columns-3`: `<!-- columns 3 -->` ... `<!-- /columns -->`
   - `insert-columns-4`: `<!-- columns 4 -->` ... `<!-- /columns -->`
@@ -158,8 +166,10 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
   - `insert-columns-3-card` / `insert-columns-3-plain`
   - `insert-column-break`: `<!-- column -->`
 - **挿入時のエディタ挙動**:
-  - **テキスト未選択時**: 開始・終了コメントを挿入し、その間の空行へカーソルを自動移動（現在行に文字列がある場合はその行を分断せず直下の行へ挿入）。
-  - **テキスト選択時**: 選択範囲の前後を開始・終了コメントで囲む。
+  - **テキスト未選択時**:
+    - カラムブロック挿入時は開始・終了コメントを挿入し、その間の空行へカーソルを自動移動（現在行に文字列がある場合はその行を分断せず直下の行へ挿入）。
+    - デザインテンプレート挿入時はスマート自動判別（`auto`）により、現在のスライド先頭が `## 見出し` で本文がまだ空（またはカーソルが `## 見出し` 行上）の場合は `body-only`、それ以外の場合は `full-slide` を挿入し、挿入先頭行へカーソルを移動してリアルタイムプレビューを即座に同期。
+  - **テキスト選択時**: 選択範囲を置換（カラムブロックの場合は前後を開始・終了コメントで囲む）。
 
 ---
 
@@ -441,7 +451,21 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
 | `export-pptx` | `Presenter: Export presentation as powerpoint (.pptx)` | 編集可能なネイティブPowerPointファイルを出力・保存 |
 | `check-overflow` | `Presenter: Check slide overflow` | スライドはみ出し検査モーダル（警告率一覧・ワンクリック分割）を開く |
 | `copy-presentation-summary` | `Presenter: Copy summary for sharing` | スライド構成と要点をまとめたテキストをクリップボードにコピー |
+| `insert-design-template` | `Presenter: Insert slide design template...` | 全13種のデザインテンプレートをキーワード検索して即座に挿入するクイックピッカーを表示 |
 | `open-template-navigator` | `Presenter: Open slide template navigator...` | 目的別（12種）・全13種のプロフェッショナル・スライドテンプレートナビゲーターを開く |
+| `insert-template-horizontal-flow` | `Presenter: Insert template: Horizontal step flow (ホリゾンタルフロー型)` | 横並びステップフロー（`<!-- columns 3 step -->`）テンプレートを挿入 |
+| `insert-template-vertical-flow` | `Presenter: Insert template: Vertical tower flow (縦並び＋右向きフロー型)` | 全体進行Callout＋3列タワー（`<!-- columns 3 card -->`）テンプレートを挿入 |
+| `insert-template-swimlane` | `Presenter: Insert template: Swimlane timeline (スイムレーン部門別型)` | 部門別マトリクステーブル＋業務改革Calloutテンプレートを挿入 |
+| `insert-template-cycle` | `Presenter: Insert template: Continuous cycle loop (サイクル・循環型)` | 循環ループ図（`<!-- columns cycle -->`）テンプレートを挿入 |
+| `insert-template-two-column` | `Presenter: Insert template: 2-column text & visual (2カラム比較・対比型)` | 左テキスト・右図表の黄金比（`<!-- columns 2 1:2 card -->`）テンプレートを挿入 |
+| `insert-template-three-column` | `Presenter: Insert template: 3-column pillars (3カラム・ピラー型)` | 戦略の3本柱（`<!-- columns 3 card -->`）テンプレートを挿入 |
+| `insert-template-matrix` | `Presenter: Insert template: 2x2 positioning matrix (2軸4象限マトリクス型)` | 2軸4象限マトリクス（`<!-- columns matrix -->`）テンプレートを挿入 |
+| `insert-template-pyramid` | `Presenter: Insert template: Pyramid hierarchy (ピラミッド階層図型)` | 3階層ピラミッド図（`<!-- columns pyramid -->`）テンプレートを挿入 |
+| `insert-template-chart` | `Presenter: Insert template: Chart & insight (チャート＋インサイト抽出型)` | 横棒グラフ（`<!-- chart -->`）＋右インサイト（`2:1`）テンプレートを挿入 |
+| `insert-template-big-number` | `Presenter: Insert template: Big number KPI (ビッグナンバー単一指標型)` | 単一巨大KPI（`<!-- kpi -->`）＋結論Calloutテンプレートを挿入 |
+| `insert-template-funnel` | `Presenter: Insert template: Funnel & conversion (ファネル・転換率分析型)` | 逆台形ファネル図（`<!-- columns funnel -->`）テンプレートを挿入 |
+| `insert-template-bento` | `Presenter: Insert template: Bento box dashboard (弁当箱型ダッシュボード)` | 2段モジュラーダッシュボード（`2:1` ＋ `3カラム`）テンプレートを挿入 |
+| `insert-template-executive` | `Presenter: Insert template: Executive summary (エグゼクティブサマリー型)` | 結論Callout＋3カラム（Situation / Findings / Recommendation）テンプレートを挿入 |
 | `insert-columns` | `Presenter: Insert column layout...` | カラム数・スタイル・比率をインタラクティブに選べるピッカーモーダルを表示 |
 | `insert-columns-2` | `Presenter: Insert 2-column layout` | `<!-- columns 2 -->` ... `<!-- /columns -->` を挿入 |
 | `insert-columns-2-ratio-2-1` | `Presenter: Insert 2-column (2:1 ratio) layout` | `<!-- columns 2:1 -->` ... `<!-- /columns -->` を挿入 |
