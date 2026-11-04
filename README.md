@@ -31,9 +31,9 @@ Keep your natural note-taking workflow and AI-generated Markdown structure (`# H
   - **Non-uniform column ratios**: Supports `<!-- columns 2:1 -->` (wide diagram on the left, explanation on the right) and `<!-- columns 1:2 -->`.
   - **Step flow process**: Use `<!-- columns 3 step -->` to format items as progressive sequence cards (`STEP 01`, `STEP 02`...).
   - Choose between **Card style** and **Plain style** (`<!-- columns 2 plain -->`).
-- **Interactive Slide Template Navigator**:
+- **Interactive Slide Template Navigator & Command Palette Quick Picker**:
   - Built-in visual template navigator featuring **13 consulting-grade slide layouts**, **12 purpose-driven usecases** ("Find by purpose"), CSS wireframe previews, strict layout rules, and **6 core slide design principles**.
-  - Insert complete slide scaffolds (action title + structured columns/tables/callouts) or layout bodies with a single click from the command palette (`Presenter: Open slide template navigator...`) or the live preview toolbar.
+  - Insert complete slide scaffolds (action title + structured columns/tables/callouts) or layout bodies with a single click from the command palette (`Presenter: Insert slide design template...`, `Presenter: Open slide template navigator...`, or any of the 13 direct `Presenter: Insert design template: ...` commands) or the live preview toolbar.
 - **KPI Metrics & Styled Key Takeaway Callouts**:
   - Standalone bold metrics like `**+140%**` or `**3.5x**` are automatically displayed with prominent accent typography.
   - Callouts such as `> [!important]`, `> [!tip]`, and `> [!warning]` are styled as impactful conclusion summary cards.
@@ -230,7 +230,9 @@ Ideal for clean side-by-side lists and image comparisons.
 
 Insert column directives or full consulting slide templates quickly using the Command Palette (`Cmd + P` / `Ctrl + P`), the live preview toolbar (`layout-template` icon), or by binding hotkeys:
 
+- `Presenter: Insert slide design template...` (Quick `SuggestModal` search picker for all 13 design templates with wireframe previews; `Enter` smart-inserts based on cursor context, `Shift+Enter` inserts layout body only, `Cmd/Ctrl+Enter` inserts full slide)
 - `Presenter: Open slide template navigator...` (Visual 3-tab navigator with 13 slide templates, 12 usecases, and design principles)
+- `Presenter: Insert design template: <template name>` (13 direct commands for horizontal flow, vertical flow, swimlane, cycle, 2-column, 3-column, 2x2 matrix, pyramid, chart & insight, big number KPI, funnel, bento box, and executive summary)
 - `Presenter: Insert column layout...` (Interactive modal picker)
 - `Presenter: Insert 2-column layout`
 - `Presenter: Insert 3-column layout`

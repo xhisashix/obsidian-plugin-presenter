@@ -19,11 +19,15 @@ export type TemplatePreviewType =
 	| 'bento'
 	| 'executive';
 
-export type TemplateInsertMode = 'full-slide' | 'body-only';
+export type TemplateInsertMode = 'full-slide' | 'body-only' | 'auto';
 
 export interface SlideTemplateDefinition {
 	id: string;
 	name: string;
+	commandId: string;
+	commandName: string;
+	syntaxHint: string;
+	keywords: string[];
 	category: SlideTemplateCategory;
 	description: string;
 	scene: string;
@@ -57,6 +61,23 @@ export const SLIDE_TEMPLATES: SlideTemplateDefinition[] = [
 	{
 		id: 'horizontal-flow',
 		name: 'ホリゾンタル（横並び）フロー型',
+		commandId: 'insert-template-horizontal-flow',
+		commandName: 'Insert design template: horizontal step flow (ホリゾンタルフロー型)',
+		syntaxHint: '<!-- columns 3 step -->',
+		keywords: [
+			'horizontal',
+			'step',
+			'flow',
+			'process',
+			'phase',
+			'ホリゾンタル',
+			'横並び',
+			'ステップ',
+			'フロー',
+			'プロセス',
+			'手順',
+			'フェーズ',
+		],
 		category: '動的構造（ステップ・フロー）',
 		description: '最も基本的かつ多用される、左から右へと進む横並びのプロセス構造。',
 		scene: '明確な順序を持つ業務プロセスの手順や、プロジェクトのフェーズ展開を示す際に極めて有効。',
@@ -91,6 +112,21 @@ export const SLIDE_TEMPLATES: SlideTemplateDefinition[] = [
 	{
 		id: 'vertical-flow',
 		name: '縦並び要素＋右向きフロー型',
+		commandId: 'insert-template-vertical-flow',
+		commandName: 'Insert design template: vertical tower flow (縦並び＋右向きフロー型)',
+		syntaxHint: '> [!tip] + <!-- columns 3 card -->',
+		keywords: [
+			'vertical',
+			'tower',
+			'flow',
+			'phase',
+			'task',
+			'縦並び',
+			'タワー',
+			'フロー',
+			'タスク一覧',
+			'要件定義',
+		],
 		category: '動的構造（ステップ・フロー）',
 		description: '上部に全体の流れを示し、下半分を縦方向の列（カラム）に分割する構造。',
 		scene: '各ステップに対する「説明テキスト」の分量が多く、横並びでは可読性が落ちる場合。',
@@ -126,6 +162,21 @@ export const SLIDE_TEMPLATES: SlideTemplateDefinition[] = [
 	{
 		id: 'swimlane',
 		name: 'スイムレーン（部門別）タイムライン型',
+		commandId: 'insert-template-swimlane',
+		commandName: 'Insert design template: swimlane timeline (スイムレーン部門別型)',
+		syntaxHint: '| 担当部門 | Step 1 | ... |',
+		keywords: [
+			'swimlane',
+			'timeline',
+			'table',
+			'department',
+			'workflow',
+			'スイムレーン',
+			'部門別',
+			'タイムライン',
+			'業務フロー',
+			'表',
+		],
 		category: '動的構造（ステップ・フロー）',
 		description: '水平・垂直のレーンに部門を割り当て、プロセスを配置してコネクタで結ぶ構造。',
 		scene: '複数の部門やシステムが複雑に絡み合う業務フローを図解する場合。',
@@ -150,6 +201,20 @@ export const SLIDE_TEMPLATES: SlideTemplateDefinition[] = [
 	{
 		id: 'cycle',
 		name: 'サイクル・循環型 / スクエア枠型',
+		commandId: 'insert-template-cycle',
+		commandName: 'Insert design template: continuous cycle loop (サイクル・循環型)',
+		syntaxHint: '<!-- columns cycle -->',
+		keywords: [
+			'cycle',
+			'loop',
+			'pdca',
+			'flywheel',
+			'agile',
+			'サイクル',
+			'循環',
+			'ループ',
+			'フライホイール',
+		],
 		category: '動的構造（ステップ・フロー）',
 		description: '要素を円環状またはスクエア枠に配置し、ループする矢印で繋いだ図解。',
 		scene: 'PDCAサイクル、アジャイル開発、サブスクリプションなど、終わりがなく循環し続けるプロセスを説明する際。',
@@ -187,6 +252,22 @@ export const SLIDE_TEMPLATES: SlideTemplateDefinition[] = [
 	{
 		id: 'two-column',
 		name: '2カラム・テキスト＆ビジュアル型',
+		commandId: 'insert-template-two-column',
+		commandName: 'Insert design template: 2-column text & visual (2カラム比較・対比型)',
+		syntaxHint: '<!-- columns 2 1:2 card -->',
+		keywords: [
+			'2-column',
+			'two-column',
+			'comparison',
+			'before',
+			'after',
+			'versus',
+			'2カラム',
+			'比較',
+			'対比',
+			'ビフォーアフター',
+			'課題と解決策',
+		],
 		category: '静的構造（比較・対比・構造）',
 		description: 'スライドを左右に2分割し、左にテキスト、右にビジュアルを配置するビジネスの主力レイアウト。',
 		scene: '結論と直感的な証拠の提示、因果関係、課題と打ち手、ビフォーアフターを示す際。',
@@ -219,6 +300,21 @@ export const SLIDE_TEMPLATES: SlideTemplateDefinition[] = [
 	{
 		id: 'three-column',
 		name: '3カラム・ピラー型',
+		commandId: 'insert-template-three-column',
+		commandName: 'Insert design template: 3-column pillars (3カラム・ピラー型)',
+		syntaxHint: '<!-- columns 3 card -->',
+		keywords: [
+			'3-column',
+			'three-column',
+			'pillars',
+			'options',
+			'strategy',
+			'3カラム',
+			'ピラー',
+			'3本柱',
+			'選択肢',
+			'並列',
+		],
 		category: '静的構造（比較・対比・構造）',
 		description: 'スライド下部を等間隔の3つの列に分割し、見出しと補足テキストを配置する構造。',
 		scene: '3つの選択肢の比較、戦略の「3本柱」、3段階のフェーズ展開を示す際。',
@@ -254,6 +350,21 @@ export const SLIDE_TEMPLATES: SlideTemplateDefinition[] = [
 	{
 		id: 'matrix',
 		name: '2軸マトリクス型',
+		commandId: 'insert-template-matrix',
+		commandName: 'Insert design template: 2x2 positioning matrix (2軸4象限マトリクス型)',
+		syntaxHint: '<!-- columns matrix -->',
+		keywords: [
+			'matrix',
+			'2x2',
+			'quadrant',
+			'positioning',
+			'priority',
+			'マトリクス',
+			'2軸',
+			'4象限',
+			'ポジショニング',
+			'優先順位',
+		],
 		category: '静的構造（比較・対比・構造）',
 		description: '2つの評価軸でスライドを4つの象限に分割し、要素をマッピングする手法。',
 		scene: '市場における自社のポジショニングや、複数の要素を優先順位付けする際。',
@@ -288,6 +399,23 @@ export const SLIDE_TEMPLATES: SlideTemplateDefinition[] = [
 	{
 		id: 'pyramid',
 		name: 'ピラミッド階層図型',
+		commandId: 'insert-template-pyramid',
+		commandName: 'Insert design template: pyramid hierarchy (ピラミッド階層図型)',
+		syntaxHint: '<!-- columns pyramid -->',
+		keywords: [
+			'pyramid',
+			'hierarchy',
+			'tier',
+			'layer',
+			'top',
+			'middle',
+			'base',
+			'ピラミッド',
+			'階層',
+			'ヒエラルキー',
+			'三角形',
+			'土台',
+		],
 		category: '静的構造（比較・対比・構造）',
 		description: '三角形を複数階層にスライスし、下層から上層に向かって積み上がる構造。',
 		scene: '組織階層、ブランド価値の積み上げ、顧客層のヒエラルキー、目標達成のステップアップを示す際。',
@@ -315,6 +443,23 @@ export const SLIDE_TEMPLATES: SlideTemplateDefinition[] = [
 	{
 		id: 'chart',
 		name: 'チャート主導＋インサイト抽出型',
+		commandId: 'insert-template-chart',
+		commandName: 'Insert design template: chart & insight (チャート＋インサイト抽出型)',
+		syntaxHint: '<!-- chart --> + <!-- columns 2 2:1 -->',
+		keywords: [
+			'chart',
+			'bar',
+			'graph',
+			'insight',
+			'data',
+			'evidence',
+			'チャート',
+			'グラフ',
+			'棒グラフ',
+			'インサイト',
+			'定量分析',
+			'データ',
+		],
 		category: '定量分析構造（データと証拠）',
 		description: '左側70-80%に大きくグラフを配置し、右側に「インサイト（結論）」を明記する構造。',
 		scene: 'データ分析結果から意思決定を迫る場面。',
@@ -351,6 +496,20 @@ export const SLIDE_TEMPLATES: SlideTemplateDefinition[] = [
 	{
 		id: 'big-number',
 		name: 'ビッグナンバー（単一指標）型',
+		commandId: 'insert-template-big-number',
+		commandName: 'Insert design template: big number kpi (ビッグナンバー単一指標型)',
+		syntaxHint: '<!-- kpi -->',
+		keywords: [
+			'big-number',
+			'kpi',
+			'metric',
+			'number',
+			'impact',
+			'ビッグナンバー',
+			'単一指標',
+			'数値',
+			'インパクト',
+		],
 		category: '定量分析構造（データと証拠）',
 		description: '不要な表やテキストをすべて排除し、スライド中央に1つの巨大な数字のみを配置する。',
 		scene: '最も強調したい単一のKPI（売上成長率、コスト削減額、顧客維持率など）がある場合。',
@@ -373,6 +532,22 @@ export const SLIDE_TEMPLATES: SlideTemplateDefinition[] = [
 	{
 		id: 'funnel',
 		name: 'ウォーターフォールとファネル型',
+		commandId: 'insert-template-funnel',
+		commandName: 'Insert design template: funnel & conversion (ファネル・転換率分析型)',
+		syntaxHint: '<!-- columns funnel -->',
+		keywords: [
+			'funnel',
+			'waterfall',
+			'conversion',
+			'bottleneck',
+			'dropoff',
+			'ファネル',
+			'ウォーターフォール',
+			'転換率',
+			'離脱率',
+			'歩留まり',
+			'ボトルネック',
+		],
 		category: '定量分析構造（データと証拠）',
 		description: '増減の内訳を階段状に示す（ウォーターフォール）またはフェーズごとの離脱を示す（ファネル）構造。',
 		scene: '特定の数値の変化要因を分解して説明する場合、営業・採用プロセス等のフェーズ別離脱率を示す場合。',
@@ -403,6 +578,21 @@ export const SLIDE_TEMPLATES: SlideTemplateDefinition[] = [
 	{
 		id: 'bento',
 		name: '弁当箱型グリッド・レイアウト (Bento Box)',
+		commandId: 'insert-template-bento',
+		commandName: 'Insert design template: bento box dashboard (弁当箱型ダッシュボード)',
+		syntaxHint: '<!-- columns 2 2:1 --> + <!-- columns 3 -->',
+		keywords: [
+			'bento',
+			'dashboard',
+			'grid',
+			'modular',
+			'summary',
+			'弁当箱',
+			'ダッシュボード',
+			'グリッド',
+			'サマリー',
+			'一覧',
+		],
 		category: 'サマリー構造（統合と俯瞰）',
 		description: 'スライドを複数の四角形（モジュール）で敷き詰め、サイズの異なる長方形を規則的に配置する。',
 		scene: '複数のKPIダッシュボード、製品機能の包括的サマリー、実績と顧客の声を同居させる情報高密度な場面。',
@@ -444,6 +634,22 @@ export const SLIDE_TEMPLATES: SlideTemplateDefinition[] = [
 	{
 		id: 'executive',
 		name: 'エグゼクティブサマリー型',
+		commandId: 'insert-template-executive',
+		commandName: 'Insert design template: executive summary (エグゼクティブサマリー型)',
+		syntaxHint: '> [!important] + <!-- columns 3 card -->',
+		keywords: [
+			'executive',
+			'summary',
+			'scqa',
+			'recommendation',
+			'findings',
+			'situation',
+			'エグゼクティブ',
+			'サマリー',
+			'結論',
+			'要約',
+			'経営報告',
+		],
 		category: 'サマリー構造（統合と俯瞰）',
 		description: '上部に結論を1行で配置し、下部を3カラム（Situation, Findings, Recommendation）に分割する構造。',
 		scene: '経営陣や決裁者に対するプレゼンの冒頭で、プロジェクトの全容と結論を1枚で把握させる際。',
@@ -566,13 +772,43 @@ export function getSlideTemplateById(id: string): SlideTemplateDefinition | unde
 }
 
 /**
+ * Filters slide templates by a search query across id, name, category, description, scene, syntaxHint, and keywords.
+ */
+export function searchSlideTemplates(query: string): SlideTemplateDefinition[] {
+	const tokens = query
+		.trim()
+		.toLowerCase()
+		.split(/\s+/)
+		.filter((token) => token.length > 0);
+	if (tokens.length === 0) {
+		return [...SLIDE_TEMPLATES];
+	}
+
+	return SLIDE_TEMPLATES.filter((tpl) => {
+		const searchableFields = [
+			tpl.id.toLowerCase(),
+			tpl.name.toLowerCase(),
+			tpl.category.toLowerCase(),
+			tpl.description.toLowerCase(),
+			tpl.scene.toLowerCase(),
+			tpl.syntaxHint.toLowerCase(),
+			...tpl.keywords.map((kw) => kw.toLowerCase()),
+		];
+
+		return tokens.every((token) =>
+			searchableFields.some((field) => field.includes(token))
+		);
+	});
+}
+
+/**
  * Builds the markdown string to insert for a given template and mode.
  * - `full-slide`: Includes the `## Action Title` heading and body snippet.
  * - `body-only`: Includes only the layout/body snippet.
  */
 export function buildTemplateMarkdown(
 	template: SlideTemplateDefinition,
-	mode: TemplateInsertMode = 'full-slide'
+	mode: 'full-slide' | 'body-only' = 'full-slide'
 ): string {
 	if (mode === 'body-only') {
 		return template.bodySnippet;
