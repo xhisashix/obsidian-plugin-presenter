@@ -739,8 +739,35 @@
 }
 
 .presenter-slide-body .callout-title {
+	display: flex;
+	align-items: center;
+	gap: calc(6px * var(--presenter-body-scale, 1));
 	font-weight: 700;
 	font-size: calc(15.5px * var(--presenter-body-scale, 1));
+	line-height: 1.35;
+}
+
+.presenter-slide-body .callout-icon,
+.presenter-slide-body .callout-fold {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	line-height: 1;
+}
+
+.presenter-slide-body .callout-icon svg,
+.presenter-slide-body .callout-fold svg {
+	width: calc(18px * var(--presenter-body-scale, 1));
+	height: calc(18px * var(--presenter-body-scale, 1));
+	flex-shrink: 0;
+	display: block;
+}
+
+.presenter-slide-body .callout-title-inner {
+	flex: 1;
+	min-width: 0;
+	line-height: 1.35;
 }
 
 .presenter-slide-card .presenter-slide-body.markdown-rendered .callout .callout-content p,
