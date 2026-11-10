@@ -99,6 +99,7 @@ cardEl.style.transform = `scale(${Math.max(scale, 0.2)})`;
   - `font-size: 44px`, `font-weight: 800`, アクセントカラー（`--presenter-accent-color`）を適用した巨大インジケーターとして描画。
 - **結論サマリーボックス (`.presenter-slide-card .callout`)**:
   - `> [!important]`, `> [!tip]`, `> [!warning]` などの結論Calloutを、枠線・背景ティント・アイコン付きのサマリーボックスとして配置。
+  - `.callout-title` に Flexbox（`display: flex; align-items: center; gap: 6px`）を適用し、Obsidian ネイティブ表示と単一HTMLエクスポートの双方でアイコン（`.callout-icon`）とタイトル文字列（`.callout-title-inner`）が常に1行で水平整列するよう設計。
 
 ---
 
