@@ -1,7 +1,12 @@
-import type { Editor, Plugin } from 'obsidian';
+import { type Editor, Notice, type Plugin } from 'obsidian';
+import { SLIDE_TEMPLATES } from '../templates/slideTemplates';
 import type { ColumnRatio, ColumnStyle, ColumnVariant, SlideLayout } from '../types';
 import { ColumnPickerModal } from '../ui/columnPickerModal';
-import { TemplateNavigatorModal } from '../ui/templateNavigatorModal';
+import {
+	TemplateNavigatorModal,
+	insertSlideTemplateIntoEditor,
+} from '../ui/templateNavigatorModal';
+import { TemplatePickerModal } from '../ui/templatePickerModal';
 
 /**
  * Formats the opening HTML comment directive for a multi-column region.
@@ -125,10 +130,18 @@ export function insertColumnBreak(editor: Editor): void {
 }
 
 /**
- * Registers all column insertion commands so users can trigger them from the command palette
+ * Registers all template and column insertion commands so users can trigger them from the command palette
  * or bind custom hotkeys in Settings → Hotkeys.
  */
 export function registerColumnCommands(plugin: Plugin): void {
+	plugin.addCommand({
+		id: 'insert-design-template',
+		name: 'Insert slide design template...',
+		editorCallback: (editor: Editor) => {
+			new TemplatePickerModal(plugin.app, editor).open();
+		},
+	});
+
 	plugin.addCommand({
 		id: 'open-template-navigator',
 		name: 'Open slide template navigator...',
@@ -136,6 +149,21 @@ export function registerColumnCommands(plugin: Plugin): void {
 			new TemplateNavigatorModal(plugin.app).open();
 		},
 	});
+
+	for (const template of SLIDE_TEMPLATES) {
+		plugin.addCommand({
+			id: template.commandId,
+			name: template.commandName,
+			editorCallback: (editor: Editor) => {
+				const resolvedMode = insertSlideTemplateIntoEditor(editor, template, 'auto');
+				new Notice(
+					resolvedMode === 'body-only'
+						? `Inserted layout: ${template.name}`
+						: `Inserted slide template: ${template.name}`
+				);
+			},
+		});
+	}
 
 	plugin.addCommand({
 		id: 'insert-columns',

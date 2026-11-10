@@ -462,10 +462,53 @@ export function getExportStyles(params: ExportStyleParams): string {
 			box-sizing: border-box;
 		}
 
+		.presenter-slide-body .callout .callout-title,
 		.callout-title {
+			display: flex;
+			align-items: center;
+			gap: 6px;
 			font-weight: 700;
 			font-size: 15.5px;
+			line-height: 1.35;
 			margin-bottom: 4px;
+		}
+
+		.presenter-slide-body .callout .callout-title:last-child,
+		.callout-title:last-child {
+			margin-bottom: 0;
+		}
+
+		.presenter-slide-body .callout .callout-icon,
+		.presenter-slide-body .callout .callout-fold,
+		.callout-icon,
+		.callout-fold {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			flex-shrink: 0;
+			line-height: 1;
+		}
+
+		.presenter-slide-body .callout .callout-icon svg,
+		.presenter-slide-body .callout .callout-fold svg,
+		.callout-icon svg,
+		.callout-fold svg {
+			width: 18px;
+			height: 18px;
+			flex-shrink: 0;
+			display: block;
+		}
+
+		.presenter-slide-body .callout .callout-title-inner,
+		.callout-title-inner {
+			flex: 1;
+			min-width: 0;
+			line-height: 1.35;
+		}
+
+		.presenter-slide-body .callout .callout-title-inner p,
+		.callout-title-inner p {
+			margin: 0;
 		}
 
 		.presenter-slide-body .callout .callout-content p,
@@ -473,6 +516,11 @@ export function getExportStyles(params: ExportStyleParams): string {
 		.callout-content {
 			font-size: 15.5px;
 			line-height: 1.42;
+		}
+
+		.presenter-slide-body .callout .callout-content p,
+		.callout-content p {
+			margin: 2px 0;
 		}
 
 		.presenter-slide-content h2 {

@@ -1,8 +1,10 @@
 import { type App, type Editor, MarkdownView, Modal, Notice } from 'obsidian';
+import { isSingleLineComment, isThematicBreak, matchAtxHeading } from '../parser/blocks';
+import { FenceTracker } from '../parser/fence';
 import {
 	DESIGN_PRINCIPLES,
 	SLIDE_TEMPLATES,
-	 type SlideTemplateDefinition,
+	type SlideTemplateDefinition,
 	TEMPLATE_CATEGORIES,
 	type TemplateInsertMode,
 	TEMPLATE_USECASES,
@@ -21,16 +23,117 @@ export interface TemplateNavigatorOptions {
 }
 
 /**
+ * Scans lines from the start of the document up to `upToLine` (inclusive) to determine
+ * whether the current slide already has an `## H2` heading and whether any body content
+ * has been written after that heading.
+ */
+function scanCurrentSlideHeadingState(
+	editor: Editor,
+	upToLine: number
+): { hasH2: boolean; hasBodyAfterH2: boolean } {
+	if (upToLine < 0) {
+		return { hasH2: false, hasBodyAfterH2: false };
+	}
+
+	let startLine = 0;
+	if (editor.getLine(0).trim() === '---') {
+		let fmClosedAt = -1;
+		for (let i = 1; i <= upToLine; i++) {
+			const trimmed = editor.getLine(i).trim();
+			if (trimmed === '---' || trimmed === '...') {
+				fmClosedAt = i;
+				break;
+			}
+		}
+		if (fmClosedAt === -1) {
+			return { hasH2: false, hasBodyAfterH2: false };
+		}
+		startLine = fmClosedAt + 1;
+	}
+
+	const fence = new FenceTracker();
+	let hasH2 = false;
+	let hasBodyAfterH2 = false;
+
+	for (let i = startLine; i <= upToLine; i++) {
+		const line = editor.getLine(i);
+		if (fence.feed(line)) {
+			if (hasH2) {
+				hasBodyAfterH2 = true;
+			}
+			continue;
+		}
+
+		const heading = matchAtxHeading(line);
+		if (heading && heading.level === 1) {
+			hasH2 = false;
+			hasBodyAfterH2 = false;
+			continue;
+		}
+		if (heading && heading.level === 2) {
+			hasH2 = true;
+			hasBodyAfterH2 = false;
+			continue;
+		}
+		if (isThematicBreak(line)) {
+			hasH2 = false;
+			hasBodyAfterH2 = false;
+			continue;
+		}
+
+		if (hasH2) {
+			const trimmed = line.trim();
+			if (trimmed.length > 0 && !isSingleLineComment(line)) {
+				hasBodyAfterH2 = true;
+			}
+		}
+	}
+
+	return { hasH2, hasBodyAfterH2 };
+}
+
+/**
+ * Automatically determines whether a template should be inserted as a full slide
+ * (`## Action Title` + body) or body-only (layout block only) based on the editor cursor/selection context.
+ *
+ * - If the current slide already has a `##` heading and no body content has been written yet
+ *   (or the user selected only body lines beneath an existing `##` heading), returns `'body-only'`
+ *   to avoid duplicating the slide heading.
+ * - Otherwise returns `'full-slide'`.
+ */
+export function resolveSmartInsertMode(editor: Editor): 'full-slide' | 'body-only' {
+	const selection = editor.getSelection();
+	if (selection.length > 0) {
+		if (/^\s*#{1,2}[ \t]+\S/.test(selection)) {
+			return 'full-slide';
+		}
+		const from = editor.getCursor('from');
+		const state = scanCurrentSlideHeadingState(editor, from.line - 1);
+		return state.hasH2 ? 'body-only' : 'full-slide';
+	}
+
+	const cursor = editor.getCursor();
+	const state = scanCurrentSlideHeadingState(editor, cursor.line);
+	if (state.hasH2 && !state.hasBodyAfterH2) {
+		return 'body-only';
+	}
+	return 'full-slide';
+}
+
+/**
  * Inserts a slide template snippet into the given Obsidian Editor.
  * Positions the cursor at the start of the newly inserted template so live preview
  * immediately syncs to the new slide.
+ * Returns the resolved insert mode (`'full-slide'` or `'body-only'`).
  */
 export function insertSlideTemplateIntoEditor(
 	editor: Editor,
 	template: SlideTemplateDefinition,
 	mode: TemplateInsertMode = 'full-slide'
-): void {
-	const snippet = buildTemplateMarkdown(template, mode);
+): 'full-slide' | 'body-only' {
+	const resolvedMode: 'full-slide' | 'body-only' =
+		mode === 'auto' ? resolveSmartInsertMode(editor) : mode;
+	const snippet = buildTemplateMarkdown(template, resolvedMode);
 	const selection = editor.getSelection();
 
 	if (selection.length > 0) {
@@ -38,7 +141,7 @@ export function insertSlideTemplateIntoEditor(
 		const to = editor.getCursor('to');
 		editor.replaceRange(snippet, from, to);
 		editor.setCursor({ line: from.line, ch: 0 });
-		return;
+		return resolvedMode;
 	}
 
 	const cursor = editor.getCursor();
@@ -59,6 +162,7 @@ export function insertSlideTemplateIntoEditor(
 		});
 		editor.setCursor({ line: cursor.line + 2, ch: 0 });
 	}
+	return resolvedMode;
 }
 
 /**

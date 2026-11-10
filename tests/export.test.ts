@@ -143,6 +143,13 @@ void test('getExportStyles generates CSS with provided colors, dimensions, and l
 	assert.match(css, /\.handout-toc/);
 	assert.match(css, /\.handout-toc-section-link/);
 	assert.match(css, /\.handout-toc-link/);
+
+	// Verify callout title and icon inline flex alignment styles
+	assert.match(css, /\.callout-title\s*\{[\s\S]*?display:\s*flex/);
+	assert.match(css, /\.callout-title\s*\{[\s\S]*?align-items:\s*center/);
+	assert.match(css, /\.callout-icon[\s\S]*?display:\s*inline-flex/);
+	assert.match(css, /\.callout-icon svg[\s\S]*?width:\s*18px/);
+	assert.match(css, /\.callout-title-inner\s*\{[\s\S]*?flex:\s*1/);
 });
 
 void test('getExportScript includes total slide count and client logic', () => {

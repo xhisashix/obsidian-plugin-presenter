@@ -56,6 +56,7 @@ src/
     ├── overviewGridModal.ts    # スライド俯瞰一覧 (Overview Grid / Slide Sorter)
     ├── lightbox.ts             # 画像・Mermaid図のクリック拡大表示 (Lightbox)
     ├── columnPickerModal.ts    # カラムレイアウト選択クイックピッカー (SuggestModal)
+    ├── templatePickerModal.ts  # デザインテンプレート検索・即時挿入クイックピッカー (SuggestModal)
     ├── templateNavigatorModal.ts # スライド・テンプレート・ナビゲーター (3タブUI・詳細ルール・スニペット挿入Modal)
     ├── templatePreviewIcon.ts  # 13種類のテンプレート用CSSワイヤーフレーム図解レンダラー
     ├── overflowReportModal.ts  # スライドはみ出し検査モーダル (はみ出し率・ワンクリック分割)
