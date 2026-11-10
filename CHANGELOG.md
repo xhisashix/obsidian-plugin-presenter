@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2026-11-11
+
+### Added
+
+- **Command Palette Slide Template Quick Picker & Direct Insertion Commands**:
+  - Added `Presenter: Insert slide template (quick picker)...` fuzzy suggest modal command for fast, keyboard-first search and insertion of slide templates without opening the visual navigator.
+  - Registered direct insertion commands in the Obsidian Command Palette for all 13 consulting slide templates (`Presenter: Insert slide template: <Name>`).
+  - Enabled direct insertion at cursor position in Markdown notes with support for both full slide insertion (`---` separator) and layout body only.
+
+### Changed & Improved
+
+- **Callout Title and Icon Alignment in Styles & Exports**:
+  - Improved alignment and spacing for callout titles, fold icons, and callout icons across presentation views, live preview, and exported documents.
+  - Synchronized callout flex layout styles across `styles.css` and `exportStyles.ts` for consistent visual rendering in HTML/PDF standalone exports.
+
+---
+
 ## [1.6.0] - 2026-11-01
 
 ### Added
