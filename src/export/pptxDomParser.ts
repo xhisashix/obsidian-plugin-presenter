@@ -359,6 +359,8 @@ function parseColumnsElement(el: HTMLElement): PptxBlock {
 	else if (clsList.includes('presenter-cols-ratio-1-2')) ratio = '1:2';
 	else if (clsList.includes('presenter-cols-ratio-3-1')) ratio = '3:1';
 	else if (clsList.includes('presenter-cols-ratio-1-3')) ratio = '1:3';
+	else if (clsList.includes('presenter-cols-ratio-3-2')) ratio = '3:2';
+	else if (clsList.includes('presenter-cols-ratio-2-3')) ratio = '2:3';
 
 	const colEls = Array.from(el.children).filter((child) =>
 		child.classList?.contains('presenter-col')

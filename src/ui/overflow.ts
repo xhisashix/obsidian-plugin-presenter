@@ -271,7 +271,8 @@ export function getPresentationConfigKey(
 	const baseColor = frontmatter?.baseColor ?? settings?.defaultBaseColor ?? '';
 	const mainColor = frontmatter?.mainColor ?? settings?.defaultMainColor ?? '';
 	const accentColor = frontmatter?.accentColor ?? settings?.defaultAccentColor ?? '';
-	return `${theme}|${aspect}|${baseColor}|${mainColor}|${accentColor}|${fit ? 'fit' : 'nofit'}|${sourcePath ?? ''}`;
+	const popColor = frontmatter?.popColor ?? settings?.defaultPopColor ?? '';
+	return `${theme}|${aspect}|${baseColor}|${mainColor}|${accentColor}|${popColor}|${fit ? 'fit' : 'nofit'}|${sourcePath ?? ''}`;
 }
 
 const MAX_OVERFLOW_CACHE_ENTRIES = 300;

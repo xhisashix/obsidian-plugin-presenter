@@ -209,14 +209,21 @@ function renderChartBarsBlock(lines: string[]): string {
 		const pctMatch = pctRaw.match(/(\d+(?:\.\d+)?)/);
 		const pct = pctMatch ? Math.max(6, Math.min(100, Number(pctMatch[1]))) : 50;
 
-		const isAccent =
+		const isPop =
 			content.includes('**') ||
-			/\[(?:牽引|重点|重要|強調|ボトルネック|目標)\]/.test(content) ||
+			/\[(?:牽引|重点|重要|強調|ボトルネック|目標|推奨|最重点)\]/.test(content) ||
 			content.includes('🎯');
+		const isSecondaryMain =
+			!isPop &&
+			(/\[(?:比較|標準|次点)\]/.test(content) || pct >= 55);
 
 		const labelHtml = formatInlineBold(labelRaw);
 		const valHtml = formatInlineBold(valRaw);
-		const accentClass = isAccent ? ' presenter-chart-row-accent' : '';
+		const accentClass = isPop
+			? ' presenter-chart-row-accent presenter-chart-row-pop'
+			: isSecondaryMain
+				? ' presenter-chart-row-main'
+				: '';
 
 		rows.push(
 			`<div class="presenter-chart-row${accentClass}"><div class="presenter-chart-meta"><span class="presenter-chart-label">${labelHtml}</span><span class="presenter-chart-val">${valHtml}</span></div><div class="presenter-chart-track"><div class="presenter-chart-fill" style="width: ${pct}%"></div></div></div>`

@@ -51,6 +51,11 @@ export function extractFrontmatter(content: string): {
 			case 'accentColor':
 				frontmatter.accentColor = val;
 				break;
+			case 'popColor':
+			case 'pop-color':
+			case 'highlightColor':
+				frontmatter.popColor = val;
+				break;
 			case 'header':
 				frontmatter.header = val;
 				break;

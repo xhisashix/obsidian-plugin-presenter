@@ -2,6 +2,7 @@ export interface ExportStyleParams {
 	baseColor: string;
 	mainColor: string;
 	accentColor: string;
+	popColor?: string;
 	baseWidth: number;
 	baseHeight: number;
 }
@@ -10,13 +11,26 @@ export interface ExportStyleParams {
  * Returns the complete CSS styling for the standalone presentation HTML export.
  */
 export function getExportStyles(params: ExportStyleParams): string {
-	const { baseColor, mainColor, accentColor, baseWidth, baseHeight } = params;
+	const {
+		baseColor,
+		mainColor,
+		accentColor,
+		popColor = '#ea580c',
+		baseWidth,
+		baseHeight,
+	} = params;
 
 	return `
 		:root {
 			--presenter-base-color: ${baseColor};
 			--presenter-main-color: ${mainColor};
 			--presenter-accent-color: ${accentColor};
+			--presenter-pop-color: ${popColor};
+			--mp-slide-padding: 56px 72px;
+			--mp-h2-size: 34px;
+			--mp-h3-size: 24px;
+			--mp-body-size: 20px;
+			--mp-card-padding: 28px 32px;
 			--slide-width: ${baseWidth}px;
 			--slide-height: ${baseHeight}px;
 		}
@@ -309,7 +323,7 @@ export function getExportStyles(params: ExportStyleParams): string {
 			color: var(--presenter-main-color);
 			box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
 			border-radius: 12px;
-			padding: 22px 44px;
+			padding: 32px 56px;
 			display: flex;
 			flex-direction: column;
 			overflow: hidden;
@@ -318,6 +332,8 @@ export function getExportStyles(params: ExportStyleParams): string {
 			pointer-events: none;
 			transform-origin: center center;
 			transition: opacity 0.2s ease;
+			font-family: "Plus Jakarta Sans", "Inter", "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			font-variant-numeric: tabular-nums;
 		}
 
 		.slide-card.active {
@@ -441,12 +457,14 @@ export function getExportStyles(params: ExportStyleParams): string {
 
 		/* KPI / Metric styling */
 		.presenter-kpi-value {
-			font-size: 44px;
+			font-family: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+			font-variant-numeric: tabular-nums;
+			font-size: 52px;
 			font-weight: 800;
-			color: var(--presenter-accent-color);
-			line-height: 1.1;
+			color: var(--presenter-pop-color, #ea580c);
+			line-height: 1.08;
 			margin: 10px 0;
-			letter-spacing: -0.02em;
+			letter-spacing: -0.03em;
 			display: block;
 			text-align: center;
 		}
@@ -524,17 +542,18 @@ export function getExportStyles(params: ExportStyleParams): string {
 		}
 
 		.presenter-slide-content h2 {
-			font-size: 28px;
-			font-weight: 700;
-			margin-bottom: 10px;
+			font-size: var(--mp-h2-size, 34px);
+			font-weight: 800;
+			letter-spacing: -0.01em;
+			margin-bottom: 12px;
 			color: var(--presenter-main-color);
 			border-bottom: 3px solid var(--presenter-accent-color);
-			padding-bottom: 5px;
+			padding-bottom: 6px;
 		}
 
 		.presenter-slide-content h3 {
-			font-size: 22px;
-			font-weight: 600;
+			font-size: var(--mp-h3-size, 24px);
+			font-weight: 700;
 			margin: 14px 0 8px 0;
 			color: var(--presenter-main-color);
 		}
@@ -737,11 +756,14 @@ export function getExportStyles(params: ExportStyleParams): string {
 			width: 100%;
 			border-collapse: separate;
 			border-spacing: 0;
+			font-size: 18px;
 			margin-bottom: 16px;
 			border-radius: 8px;
 			overflow: hidden;
-			border: 1px solid color-mix(in srgb, var(--presenter-main-color) 16%, transparent);
-			box-shadow: 0 2px 8px color-mix(in srgb, var(--presenter-main-color) 4%, transparent);
+			border: none;
+			border-top: 2px solid color-mix(in srgb, var(--presenter-main-color) 18%, transparent);
+			border-bottom: 2px solid color-mix(in srgb, var(--presenter-main-color) 18%, transparent);
+			box-shadow: none;
 			background-color: transparent;
 		}
 
@@ -751,13 +773,13 @@ export function getExportStyles(params: ExportStyleParams): string {
 		}
 
 		.presenter-slide-body th {
-			background: color-mix(in srgb, var(--presenter-main-color) 6%, transparent);
+			background: color-mix(in srgb, var(--presenter-main-color) 5%, transparent);
 			color: var(--presenter-main-color);
 			font-weight: 700;
 			border-top: none;
 			border-left: none;
 			border-bottom: 2px solid var(--presenter-accent-color);
-			border-right: 1px solid color-mix(in srgb, var(--presenter-main-color) 12%, transparent);
+			border-right: none;
 		}
 
 		.presenter-slide-body th:last-child {
@@ -768,7 +790,7 @@ export function getExportStyles(params: ExportStyleParams): string {
 			border-top: none;
 			border-left: none;
 			border-bottom: 1px solid color-mix(in srgb, var(--presenter-main-color) 10%, transparent);
-			border-right: 1px solid color-mix(in srgb, var(--presenter-main-color) 10%, transparent);
+			border-right: none;
 			color: var(--presenter-main-color);
 		}
 
@@ -794,6 +816,28 @@ export function getExportStyles(params: ExportStyleParams): string {
 		.presenter-slide-body tbody tr:hover td {
 			background-color: color-mix(in srgb, var(--presenter-accent-color) 6%, var(--presenter-base-color, #ffffff));
 			transition: background-color 0.15s ease;
+		}
+
+		.presenter-table-highlight-col-1 table th:nth-child(1),
+		.presenter-table-highlight-col-2 table th:nth-child(2),
+		.presenter-table-highlight-col-3 table th:nth-child(3),
+		.presenter-table-highlight-col-4 table th:nth-child(4),
+		.presenter-table-highlight-col-5 table th:nth-child(5),
+		.presenter-table-highlight-col-6 table th:nth-child(6) {
+			background-color: color-mix(in srgb, var(--presenter-accent-color) 14%, var(--presenter-base-color, #ffffff));
+			color: var(--presenter-accent-color);
+			border-bottom: 3px solid var(--presenter-pop-color, #ea580c);
+		}
+
+		.presenter-table-highlight-col-1 table tbody tr td:nth-child(1),
+		.presenter-table-highlight-col-2 table tbody tr td:nth-child(2),
+		.presenter-table-highlight-col-3 table tbody tr td:nth-child(3),
+		.presenter-table-highlight-col-4 table tbody tr td:nth-child(4),
+		.presenter-table-highlight-col-5 table tbody tr td:nth-child(5),
+		.presenter-table-highlight-col-6 table tbody tr td:nth-child(6) {
+			background-color: color-mix(in srgb, var(--presenter-accent-color) 8%, var(--presenter-base-color, #ffffff));
+			color: var(--presenter-accent-color);
+			font-weight: 700;
 		}
 
 		/* Badge */
@@ -869,6 +913,31 @@ export function getExportStyles(params: ExportStyleParams): string {
 			grid-template-columns: 1fr 3fr;
 		}
 
+		.presenter-cols.presenter-cols-ratio-3-2 {
+			grid-template-columns: 3fr 2fr;
+			align-items: center;
+		}
+
+		.presenter-cols.presenter-cols-ratio-2-3 {
+			grid-template-columns: 2fr 3fr;
+			align-items: center;
+		}
+
+		.presenter-cols.presenter-cols-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 20px 24px;
+		}
+
+		.presenter-cols.presenter-cols-code-split pre {
+			background: #0f172a;
+			color: #f8fafc;
+			font-size: 18px;
+			line-height: 1.55;
+			padding: 20px 24px;
+			border-radius: 12px;
+			margin: 0;
+		}
+
 		/* Step flow process layout */
 		.presenter-cols.presenter-cols-step {
 			counter-reset: presenter-step-counter;
@@ -899,15 +968,16 @@ export function getExportStyles(params: ExportStyleParams): string {
 			display: flex;
 			flex-direction: column;
 			min-width: 0;
-			background: rgba(120, 120, 120, 0.04);
-			border: 1px solid rgba(120, 120, 120, 0.12);
-			border-radius: 10px;
-			padding: 15px 18px;
+			background: color-mix(in srgb, var(--presenter-main-color) 4%, var(--presenter-base-color, #ffffff));
+			border: none;
+			border-radius: 12px;
+			padding: 18px 22px;
 			box-sizing: border-box;
 		}
 
 		.presenter-slide-content .presenter-col h3 {
-			font-size: 19.5px;
+			font-size: 20px;
+			color: var(--presenter-accent-color);
 			margin: 0 0 6px 0;
 			line-height: 1.3;
 		}
@@ -1206,8 +1276,12 @@ export function getExportStyles(params: ExportStyleParams): string {
 		}
 
 		.presenter-cols.presenter-cols-matrix > .presenter-col:nth-child(2) {
-			border: 2px solid var(--presenter-accent-color);
-			background: rgba(37, 99, 235, 0.05);
+			border: 2px solid var(--presenter-pop-color, #ea580c);
+			background: color-mix(in srgb, var(--presenter-pop-color, #ea580c) 6%, var(--presenter-base-color, #ffffff));
+		}
+
+		.presenter-cols.presenter-cols-matrix > .presenter-col:nth-child(2) h3 {
+			color: var(--presenter-pop-color, #ea580c);
 		}
 
 		/* Cycle / Loop Layout */
@@ -1286,6 +1360,15 @@ export function getExportStyles(params: ExportStyleParams): string {
 			color: var(--presenter-accent-color);
 		}
 
+		.presenter-cols.presenter-cols-cycle > .presenter-col:nth-child(4) {
+			border: 2px solid var(--presenter-pop-color, #ea580c);
+			background: color-mix(in srgb, var(--presenter-pop-color, #ea580c) 6%, var(--presenter-base-color, #ffffff));
+		}
+
+		.presenter-cols.presenter-cols-cycle > .presenter-col:nth-child(4) h3 {
+			color: var(--presenter-pop-color, #ea580c);
+		}
+
 		/* Horizontal Bar Chart */
 		.presenter-chart-bars {
 			display: flex;
@@ -1305,7 +1388,7 @@ export function getExportStyles(params: ExportStyleParams): string {
 			justify-content: space-between;
 			align-items: baseline;
 			gap: 8px;
-			font-size: 15.5px;
+			font-size: 17px;
 			line-height: 1.3;
 		}
 
@@ -1320,8 +1403,15 @@ export function getExportStyles(params: ExportStyleParams): string {
 			white-space: nowrap;
 		}
 
+		.presenter-chart-row-main .presenter-chart-val,
 		.presenter-chart-row-accent .presenter-chart-val {
 			color: var(--presenter-accent-color);
+			opacity: 1;
+			font-weight: 800;
+		}
+
+		.presenter-chart-row-pop .presenter-chart-val {
+			color: var(--presenter-pop-color, #ea580c);
 			opacity: 1;
 			font-weight: 800;
 		}
@@ -1336,12 +1426,70 @@ export function getExportStyles(params: ExportStyleParams): string {
 
 		.presenter-chart-fill {
 			height: 100%;
-			background: rgba(100, 116, 139, 0.55);
+			background: #94a3b8;
 			border-radius: 6px;
 		}
 
+		.presenter-chart-row-main .presenter-chart-fill,
 		.presenter-chart-row-accent .presenter-chart-fill {
 			background: var(--presenter-accent-color);
+		}
+
+		.presenter-chart-row-pop .presenter-chart-fill {
+			background: var(--presenter-pop-color, #ea580c);
+		}
+
+		/* FAQ / Q&A Alignment */
+		.presenter-qa-list {
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+			margin: 12px 0;
+		}
+
+		.presenter-qa-card {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			background: color-mix(in srgb, var(--presenter-main-color) 4%, var(--presenter-base-color, #ffffff));
+			border-radius: 12px;
+			padding: 20px 28px;
+		}
+
+		.presenter-qa-row {
+			display: flex;
+			align-items: flex-start;
+			gap: 14px;
+			line-height: 1.5;
+		}
+
+		.presenter-qa-marker {
+			font-family: "Plus Jakarta Sans", "Inter", sans-serif;
+			font-weight: 800;
+			font-size: 22px;
+			line-height: 1.35;
+			min-width: 32px;
+			flex-shrink: 0;
+		}
+
+		.presenter-qa-marker-q {
+			color: var(--presenter-accent-color);
+		}
+
+		.presenter-qa-marker-a {
+			color: var(--presenter-pop-color, #ea580c);
+		}
+
+		.presenter-qa-question .presenter-qa-text {
+			font-size: 21px;
+			font-weight: 700;
+			color: var(--presenter-main-color);
+		}
+
+		.presenter-qa-answer .presenter-qa-text {
+			font-size: 19px;
+			font-weight: 400;
+			color: color-mix(in srgb, var(--presenter-main-color) 84%, var(--presenter-base-color, #ffffff));
 		}
 
 		.presenter-slide-footer {

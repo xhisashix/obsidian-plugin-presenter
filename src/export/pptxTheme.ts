@@ -158,6 +158,10 @@ export function buildPptxTheme(
 		config.accentColor || settings.defaultAccentColor,
 		'2563EB'
 	);
+	const popColor = normalizeHexColor(
+		config.popColor || settings.defaultPopColor,
+		'EA580C'
+	);
 
 	const isDark = isDarkColor(baseColor);
 	const aspectRatio = config.aspectRatio || settings.aspectRatio || '16:9';
@@ -171,6 +175,7 @@ export function buildPptxTheme(
 		baseColor,
 		mainColor,
 		accentColor,
+		popColor,
 		mutedTextColor: blendHexColors(mainColor, baseColor, 0.65),
 		cardBgColor: blendHexColors(mainColor, baseColor, isDark ? 0.08 : 0.035),
 		cardBorderColor: blendHexColors(mainColor, baseColor, isDark ? 0.18 : 0.11),

@@ -71,6 +71,7 @@ export async function renderSlide(
 	const baseColor = config.baseColor || settings.defaultBaseColor || '#ffffff';
 	const mainColor = config.mainColor || settings.defaultMainColor || '#1e293b';
 	const accentColor = config.accentColor || settings.defaultAccentColor || '#2563eb';
+	const popColor = config.popColor || settings.defaultPopColor || '#ea580c';
 	const headerText = config.header !== undefined ? config.header : settings.defaultHeader;
 	const footerText = config.footer !== undefined ? config.footer : settings.defaultFooter;
 	const logoInput = config.logo !== undefined ? config.logo : settings.defaultLogo;
@@ -90,6 +91,7 @@ export async function renderSlide(
 	slideCardEl.style.setProperty('--presenter-base-color', baseColor);
 	slideCardEl.style.setProperty('--presenter-main-color', mainColor);
 	slideCardEl.style.setProperty('--presenter-accent-color', accentColor);
+	slideCardEl.style.setProperty('--presenter-pop-color', popColor);
 
 	// 1. Header (Logo & Header Text) - only render if present
 	if (headerText || logoUrl) {

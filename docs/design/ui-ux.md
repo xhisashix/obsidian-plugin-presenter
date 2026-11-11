@@ -11,15 +11,24 @@
 
 ---
 
-## 2. デザイントークン・CSS変数 (Design Tokens)
+## 2. デザイントークン・CSS変数 (Design Tokens & 70:25:5 Color System)
 
-スライドカード（`.presenter-slide-card`）に対して、以下の変数が動的にバインドされます。
+『伝わるデザイン』『マネルデザインラボ』『SLIDELAND』の視覚階層に基づき、スライドカード（`.presenter-slide-card`）に対して **70:25:5 の黄金配色比率** と **タイポグラフィ・余白トークン (`--mp-*`)** が動的にバインドされます。
 
 ```css
 .presenter-slide-card {
-  --presenter-base-color: #ffffff;   /* ベースカラー: スライド背景色 */
-  --presenter-main-color: #1e293b;   /* メインカラー: 本文・見出し・基本文字 */
-  --presenter-accent-color: #2563eb; /* アクセントカラー: 強調・ライン・マーカー */
+  /* 70:25:5 カラーシステム */
+  --presenter-base-color: #ffffff;   /* ベースカラー (70%): スライド背景色 */
+  --presenter-main-color: #1e293b;   /* テキスト基本色: Deep Slate 本文・見出し */
+  --presenter-accent-color: #2563eb; /* メインカラー (25%): 構造整理・見出しライン・マーカー */
+  --presenter-pop-color: #ea580c;    /* アクセント/注目色 (5%): 最重要KPI・推奨列・ボトルネック強調 */
+
+  /* 3-Second Clarity タイポグラフィ & 余白トークン */
+  --mp-slide-padding: 56px 72px;     /* スライド外周の聖域余白 (余白率25%以上を確保) */
+  --mp-h2-size: 34px;                /* H2 アクションタイトル */
+  --mp-h3-size: 24px;                /* H3 カード/セクション見出し */
+  --mp-body-size: 20px;              /* 本文・リスト (縮小下限時も18px以上を保証) */
+  --mp-card-padding: 28px 32px;      /* ソフトカード内側余白 */
 }
 ```
 
@@ -27,13 +36,16 @@
 
 | 要素                                    | 適用プロパティ               | 参照変数                                              |
 | :-------------------------------------- | :--------------------------- | :---------------------------------------------------- |
-| **スライド背景**                        | `background-color`           | `--presenter-base-color`                              |
-| **本文・段落**                          | `color`                      | `--presenter-main-color`                              |
+| **スライド背景 (70%)**                  | `background-color`           | `--presenter-base-color` (`#ffffff`)                  |
+| **カードチャンク背景**                  | `background-color`           | `#f8fafc` (外枠線なし・面によるグルーピング)          |
+| **本文・段落**                          | `color`                      | `--presenter-main-color` (`#1e293b`)                  |
 | **H1 (表紙見出し)**                     | `color`                      | `--presenter-accent-color`                            |
-| **H2 (スライド見出し)**                 | `color` / `border-bottom`    | `--presenter-main-color` / `--presenter-accent-color` |
-| **箇条書きマーカー**                    | `li::marker`                 | `--presenter-accent-color`                            |
-| **太字 (`strong`)**                     | `color`                      | `--presenter-accent-color`                            |
-| **引用 (`blockquote`)**                 | `border-left-color`          | `--presenter-accent-color`                            |
+| **H2 (アクションタイトル・25%)**        | `color` / `border-bottom`    | `--presenter-main-color` / `--presenter-accent-color` |
+| **箇条書きマーカー・太字 (`strong`)**   | `color`                      | `--presenter-accent-color`                            |
+| **KPIビッグナンバー (5% Pop)**          | `color`                      | `--presenter-pop-color` (`#ea580c`)                   |
+| **比較テーブル推奨列・最優先象限 (5%)** | `border-top` / `background`  | `--presenter-pop-color` / ソフトオレンジティント      |
+| **横棒グラフ（1位 / 2位 / 基準）**      | `background`                 | `--presenter-pop-color` / `--presenter-accent-color` / `#94a3b8` |
+| **Q&A (`Q.` / `A.`)**                   | `color`                      | `Q.`: `--presenter-accent-color` / `A.`: `--presenter-pop-color` |
 | **ラベル・バッジ (`.presenter-badge`)** | `background-color` / `color` | `--presenter-accent-color` / `#ffffff`                |
 | **進捗バー**                            | `background`                 | `--presenter-accent-color`                            |
 
@@ -76,15 +88,19 @@ cardEl.style.transform = `scale(${Math.max(scale, 0.2)})`;
 
 ### 4.2 通常スライド (`.presenter-slide-content`)
 
-- **H2 (アクションタイトル)**: `font-size: 28px`, `font-weight: 700`, 下部にアクセントボーダー (3px)
-- **H3 (小見出し)**: `font-size: 22px`, `font-weight: 600`
-- **本文 (p, li)**: `font-size: 20px`, `line-height: 1.5`
-- **カラム内密度適応 (`.presenter-col`)**:
-  - **2カラム**: `h3: 19.5px`, `p/li: 17.5px`, `padding: 15px 18px`
-  - **3・4カラム (`.presenter-cols-3`, `.presenter-cols-4`)**: `h3: 18px`, `p/li: 16px`, `padding: 13px 15px`
-  - **2段スタック / Callout併用複合レイアウト**: 行間マージンとパディングを自動圧縮し、Bento・2軸マトリクス・エグゼクティブサマリー等が100%スケールで16:9枠内に収まるよう最適化
-- **テーブル (table)**: `font-size: 17px`（カラム内は `15px`）、均等パディング、薄いグリッド線
-- **コードブロック (pre)**: `font-size: 16px`, 角丸8px
+- **和欧混植フォントと数字の等幅整列**:
+  - 英数字には幾何学的サンセリフ（`"Plus Jakarta Sans", "Inter"`）、日本語には `"Noto Sans JP", "Hiragino Sans"` を優先適用し、数値・テーブルには `font-variant-numeric: tabular-nums` を適用して桁を美しく整列。
+- **H2 (アクションタイトル)**: `font-size: 34px` (`--mp-h2-size`), `font-weight: 800`, `line-height: 1.3`, 下部にアクセントボーダー (3px)
+- **H3 (小見出し)**: `font-size: 24px` (`--mp-h3-size`), `font-weight: 700`
+- **本文 (p, li)**: `font-size: 20px` (`--mp-body-size`), `line-height: 1.55`（Auto-fit 縮小下限時も最小 18px 相当の視認性を維持）
+- **枠線なしソフトカード (`.presenter-col` in `.presenter-cols-card`)**:
+  - 外枠の黒い・濃い実線を廃止（`border: none`）し、背景色 `#F8FAFC`・角丸 `12px`・パディング `28px 32px`（`--mp-card-padding`）の「面」で情報をチャンク化。
+  - **2カラム / 2×2グリッド (`.presenter-cols-grid`)**: 4項目並列時は横一列ではなく2列×2段のグリッドに折り返し、視線移動距離を最小化。
+- **比較テーブル (`table` & `.presenter-table-highlight-col-N`)**:
+  - 縦罫線を完全撤廃し、水平ライン（`#E2E8F0`）のみで整列。
+  - 推奨列（`<!-- table: highlight N -->` または `[推奨]` 列）をソフトオレンジ背景＋上部 `4px` ポップカラーボーダーで浮き彫り化。
+- **コードブロック (`.presenter-cols-code-split` / `pre`)**:
+  - コード＋解説スライドでは左60%にダークテーマ（`#0F172A`）のコードブロック、右40%に解説カードを並列配置。
 
 ### 4.3 スマートスライドレイアウト・タイポグラフィ
 
@@ -96,7 +112,9 @@ cardEl.style.transform = `scale(${Math.max(scale, 0.2)})`;
   - 左ボーダーのアクセントカラー強調とイタリック調の洗練された文字組。
 - **KPIビッグナンバーカード (`.presenter-kpi-metric`)**:
   - 単独行の太字数値（例: `**+140%**`, `**3.5x**`）を自動検知。
-  - `font-size: 44px`, `font-weight: 800`, アクセントカラー（`--presenter-accent-color`）を適用した巨大インジケーターとして描画。
+  - `font-size: 52px`, `font-weight: 800`, 注目色（`--presenter-pop-color`: `#ea580c`）と `tabular-nums` を適用した巨大インジケーターとして描画。
+- **Q&A（よくある質問）ぶら下げインデントカード (`.presenter-qa-list`)**:
+  - `Q.`（`--presenter-accent-color`）と `A.`（`--presenter-pop-color`）のラベル幅を固定し、複数行にわたる質問・回答文の頭文字ラインを垂直に揃えて描画。
 - **結論サマリーボックス (`.presenter-slide-card .callout`)**:
   - `> [!important]`, `> [!tip]`, `> [!warning]` などの結論Calloutを、枠線・背景ティント・アイコン付きのサマリーボックスとして配置。
   - `.callout-title` に Flexbox（`display: flex; align-items: center; gap: 6px`）を適用し、Obsidian ネイティブ表示と単一HTMLエクスポートの双方でアイコン（`.callout-icon`）とタイトル文字列（`.callout-title-inner`）が常に1行で水平整列するよう設計。

@@ -4,6 +4,7 @@ export interface PptxTheme {
 	baseColor: string;
 	mainColor: string;
 	accentColor: string;
+	popColor: string;
 	mutedTextColor: string;
 	cardBgColor: string;
 	cardBorderColor: string;

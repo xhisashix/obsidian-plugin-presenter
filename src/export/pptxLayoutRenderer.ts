@@ -636,7 +636,7 @@ export function renderBlocksInBox(
 					h,
 					fontSize: 36,
 					bold: true,
-					color: theme.accentColor,
+					color: theme.popColor || theme.accentColor,
 					fontFace: theme.fontFace,
 					valign: 'middle',
 					margin: 0,
