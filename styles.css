@@ -124,7 +124,7 @@
 	color: var(--presenter-main-color);
 	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
 	border-radius: 12px;
-	padding: 32px 56px;
+	padding: var(--mp-slide-padding, 56px 72px);
 	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
@@ -176,9 +176,40 @@
 	flex: 1;
 	display: flex;
 	flex-direction: column;
-	overflow-y: auto;
+	overflow-y: hidden;
 	overflow-x: hidden;
-	line-height: calc(1.6 * var(--presenter-body-scale, 1));
+	line-height: calc(1.55 * var(--presenter-body-scale, 1));
+	position: relative;
+	overflow-wrap: break-word;
+	word-break: normal;
+	line-break: loose;
+}
+
+/* Subtle scrollbar on hover or in preview pane if needed */
+.presenter-preview-stage .presenter-slide-body,
+.presenter-slide-body:hover {
+	overflow-y: auto;
+}
+
+.presenter-slide-body::-webkit-scrollbar {
+	width: 4px;
+	height: 4px;
+}
+
+.presenter-slide-body::-webkit-scrollbar-thumb {
+	background: rgba(120, 120, 120, 0.2);
+	border-radius: 4px;
+}
+
+/* Text Word-break Resilience */
+.presenter-slide-body p,
+.presenter-slide-body li,
+.presenter-slide-body td,
+.presenter-slide-body th,
+.presenter-slide-body code,
+.presenter-badge {
+	overflow-wrap: anywhere;
+	word-break: break-word;
 }
 
 /* Typography Inside Slides */
@@ -187,6 +218,8 @@
 .presenter-slide-body h3,
 .presenter-slide-body h4 {
 	color: var(--presenter-main-color);
+	overflow-wrap: break-word;
+	word-break: normal;
 }
 
 .presenter-slide-body h1 {
@@ -197,14 +230,43 @@
 	color: var(--presenter-accent-color);
 }
 
+.presenter-slide-card .presenter-slide-body.markdown-rendered h2,
+.presenter-slide-card .presenter-slide-body h2,
 .presenter-slide-body h2 {
 	font-size: calc(var(--mp-h2-size, 34px) * var(--presenter-body-scale, 1));
 	font-weight: 800;
 	line-height: 1.25;
 	letter-spacing: -0.01em;
-	margin: 0 0 calc(12px * var(--presenter-body-scale, 1)) 0;
-	padding-bottom: calc(6px * var(--presenter-body-scale, 1));
-	border-bottom: 3px solid var(--presenter-accent-color);
+	margin: 0 0 calc(14px * var(--presenter-body-scale, 1)) 0;
+	padding-left: calc(16px * var(--presenter-body-scale, 1));
+	padding-bottom: 0;
+	border-bottom: none;
+	border-left: 6px solid var(--presenter-accent-color);
+	max-width: 100%;
+}
+
+/* Lead Subtitle Paragraph directly under Slide Title */
+.presenter-slide-card .presenter-slide-body.markdown-rendered > h2 + p,
+.presenter-slide-card .presenter-slide-body > h2 + p,
+.presenter-slide-body > h2 + p {
+	font-size: calc(18.5px * var(--presenter-body-scale, 1));
+	color: color-mix(in srgb, var(--presenter-main-color) 72%, transparent);
+	margin-top: calc(-4px * var(--presenter-body-scale, 1));
+	margin-block-start: calc(-4px * var(--presenter-body-scale, 1));
+	margin-bottom: calc(18px * var(--presenter-body-scale, 1));
+	margin-block-end: calc(18px * var(--presenter-body-scale, 1));
+	font-weight: 500;
+	line-height: calc(1.5 * var(--presenter-body-scale, 1));
+}
+
+/* Adaptive Heading for longer titles (prevents occupying vertical body space) */
+.presenter-slide-card .presenter-slide-body.has-long-title h2,
+.presenter-slide-body.has-long-title h2 {
+	font-size: calc(26px * var(--presenter-body-scale, 1));
+	line-height: 1.2;
+	margin-bottom: calc(10px * var(--presenter-body-scale, 1));
+	padding-left: calc(14px * var(--presenter-body-scale, 1));
+	padding-bottom: 0;
 }
 
 .presenter-slide-body h3 {
@@ -239,6 +301,57 @@
 	margin: calc(2px * var(--presenter-body-scale, 1)) 0;
 	margin-block-start: calc(2px * var(--presenter-body-scale, 1));
 	margin-block-end: calc(2px * var(--presenter-body-scale, 1));
+}
+
+/* Short Content Adaptation (centers sparse text so slides don't feel empty) */
+.presenter-slide-body.is-short-content {
+	justify-content: center;
+	padding-bottom: 28px;
+}
+
+.presenter-slide-body.is-short-content p {
+	font-size: calc(22px * var(--presenter-body-scale, 1));
+	line-height: 1.65;
+	margin: calc(8px * var(--presenter-body-scale, 1)) 0;
+}
+
+.presenter-slide-body.is-short-content li {
+	font-size: calc(21px * var(--presenter-body-scale, 1));
+	line-height: 1.6;
+	margin: calc(6px * var(--presenter-body-scale, 1)) 0;
+}
+
+/* Dense Scale Adaptation (when slide content requires heavy scaling) */
+.presenter-slide-body.is-dense-scale {
+	line-height: calc(1.38 * var(--presenter-body-scale, 1));
+}
+
+.presenter-slide-body.is-dense-scale p {
+	margin: calc(2px * var(--presenter-body-scale, 1)) 0;
+}
+
+.presenter-slide-body.is-dense-scale li {
+	margin: calc(1px * var(--presenter-body-scale, 1)) 0;
+}
+
+.presenter-slide-body.is-dense-scale h3 {
+	margin: calc(8px * var(--presenter-body-scale, 1)) 0 calc(4px * var(--presenter-body-scale, 1)) 0;
+}
+
+.presenter-slide-body.is-dense-scale .presenter-cols {
+	gap: calc(12px * var(--presenter-body-scale, 1));
+	margin: calc(6px * var(--presenter-body-scale, 1)) 0;
+}
+
+.presenter-slide-body.is-dense-scale .presenter-col {
+	padding: calc(16px * var(--presenter-body-scale, 1)) calc(20px * var(--presenter-body-scale, 1));
+}
+
+/* Overflow Clamping Guard (prevents ugly visual overflow beyond bottom boundary) */
+.presenter-slide-body.is-overflow-clamped {
+	overflow-y: hidden;
+	mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+	-webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
 }
 
 .presenter-slide-card .presenter-slide-body.markdown-rendered ul,
@@ -290,19 +403,90 @@
 	color: var(--presenter-accent-color);
 }
 
+.presenter-slide-card .presenter-slide-body.markdown-rendered > ol,
+.presenter-slide-card .presenter-slide-body > ol,
+.presenter-slide-body.markdown-rendered > ol,
+.presenter-slide-body > ol {
+	list-style: none;
+	padding-left: 0;
+	padding-inline-start: 0;
+	counter-reset: presenter-ol-counter;
+	display: flex;
+	flex-direction: column;
+	gap: calc(10px * var(--presenter-body-scale, 1));
+	margin: calc(8px * var(--presenter-body-scale, 1)) 0 calc(10px * var(--presenter-body-scale, 1)) 0;
+}
+
+.presenter-slide-card .presenter-slide-body.markdown-rendered > ol > li,
+.presenter-slide-card .presenter-slide-body > ol > li,
+.presenter-slide-body.markdown-rendered > ol > li,
+.presenter-slide-body > ol > li {
+	counter-increment: presenter-ol-counter;
+	position: relative;
+	display: block;
+	background: color-mix(in srgb, var(--presenter-main-color) 4.5%, var(--presenter-base-color, #ffffff));
+	padding: calc(14px * var(--presenter-body-scale, 1)) calc(20px * var(--presenter-body-scale, 1)) calc(14px * var(--presenter-body-scale, 1)) calc(68px * var(--presenter-body-scale, 1));
+	border-radius: 12px;
+	margin: 0;
+	margin-block-start: 0;
+	margin-block-end: 0;
+}
+
+.presenter-slide-card .presenter-slide-body.markdown-rendered > ol > li::before,
+.presenter-slide-card .presenter-slide-body > ol > li::before,
+.presenter-slide-body > ol > li::before {
+	content: counter(presenter-ol-counter, decimal-leading-zero);
+	position: absolute;
+	left: calc(18px * var(--presenter-body-scale, 1));
+	top: 50%;
+	transform: translateY(-50%);
+	background: var(--presenter-accent-color);
+	color: #ffffff;
+	font-size: calc(13px * var(--presenter-body-scale, 1));
+	font-weight: 800;
+	padding: calc(3px * var(--presenter-body-scale, 1)) calc(10px * var(--presenter-body-scale, 1));
+	border-radius: 6px;
+	line-height: 1.3;
+	font-variant-numeric: tabular-nums;
+}
+
+.presenter-slide-card .presenter-slide-body.markdown-rendered > ol > li strong,
+.presenter-slide-card .presenter-slide-body > ol > li strong,
+.presenter-slide-body > ol > li strong {
+	color: var(--presenter-main-color);
+}
+
 .presenter-slide-body strong {
 	color: var(--presenter-accent-color);
 	font-weight: 700;
 }
 
+.presenter-slide-card .presenter-slide-body.markdown-rendered blockquote,
+.presenter-slide-card .presenter-slide-body blockquote,
 .presenter-slide-body blockquote {
 	border-left: 5px solid var(--presenter-accent-color);
-	padding: calc(10px * var(--presenter-body-scale, 1)) calc(20px * var(--presenter-body-scale, 1));
-	background: rgba(120, 120, 120, 0.06);
-	border-radius: 0 8px 8px 0;
-	margin: calc(16px * var(--presenter-body-scale, 1)) 0;
-	font-size: calc(20px * var(--presenter-body-scale, 1));
-	font-style: italic;
+	padding: calc(12px * var(--presenter-body-scale, 1)) calc(20px * var(--presenter-body-scale, 1));
+	background: color-mix(in srgb, var(--presenter-accent-color) 6%, var(--presenter-base-color, #ffffff));
+	border-radius: 10px;
+	margin: calc(14px * var(--presenter-body-scale, 1)) 0;
+	font-size: calc(19px * var(--presenter-body-scale, 1));
+	font-style: normal;
+	font-weight: 600;
+}
+
+.presenter-slide-card .presenter-slide-body.markdown-rendered > blockquote,
+.presenter-slide-card .presenter-slide-body > blockquote,
+.presenter-slide-body > blockquote {
+	margin-top: auto;
+}
+
+.presenter-slide-card .presenter-slide-body.markdown-rendered blockquote p,
+.presenter-slide-card .presenter-slide-body blockquote p,
+.presenter-slide-body blockquote p {
+	margin: 0;
+	margin-block-start: 0;
+	margin-block-end: 0;
+	font-weight: 600;
 }
 
 /* --------------------------------------------------------------------------
@@ -459,11 +643,61 @@
 	margin: calc(8px * var(--presenter-body-scale, 1)) 0;
 }
 
+.presenter-slide-card .presenter-slide-body.markdown-rendered pre,
+.presenter-slide-card .presenter-slide-body pre,
 .presenter-slide-body pre {
-	border-radius: 8px;
+	background: #0f172a;
+	color: #f8fafc;
+	border-radius: 12px;
 	font-size: calc(16px * var(--presenter-body-scale, 1));
-	margin: calc(16px * var(--presenter-body-scale, 1)) 0;
-	padding: calc(14px * var(--presenter-body-scale, 1)) calc(18px * var(--presenter-body-scale, 1));
+	line-height: 1.55;
+	margin: calc(12px * var(--presenter-body-scale, 1)) 0;
+	padding: calc(18px * var(--presenter-body-scale, 1)) calc(22px * var(--presenter-body-scale, 1));
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+	overflow-x: auto;
+	position: relative;
+}
+
+.presenter-slide-card .presenter-slide-body.markdown-rendered pre code,
+.presenter-slide-card .presenter-slide-body pre code,
+.presenter-slide-body pre code {
+	background: transparent;
+	color: inherit;
+	padding: 0;
+	font-size: inherit;
+	border-radius: 0;
+	overflow-wrap: normal;
+	word-break: normal;
+}
+
+.presenter-slide-body pre .token.comment,
+.presenter-slide-body pre .token.prolog,
+.presenter-slide-body pre .token.doctype {
+	color: #94a3b8;
+}
+
+.presenter-slide-body pre .token.keyword,
+.presenter-slide-body pre .token.operator,
+.presenter-slide-body pre .token.tag {
+	color: #7dd3fc;
+}
+
+.presenter-slide-body pre .token.string,
+.presenter-slide-body pre .token.attr-value {
+	color: #86efac;
+}
+
+.presenter-slide-body pre .token.function,
+.presenter-slide-body pre .token.class-name {
+	color: #fde047;
+}
+
+.presenter-slide-body pre .token.punctuation {
+	color: #cbd5e1;
+}
+
+.presenter-slide-body pre .copy-code-button {
+	display: none;
 }
 
 /* --------------------------------------------------------------------------
@@ -692,14 +926,33 @@
 	align-items: center;
 }
 
+.presenter-slide-card.presenter-slide-cover .presenter-slide-body.markdown-rendered h1,
+.presenter-slide-cover .presenter-slide-body h1,
 .presenter-slide-cover h1 {
-	font-size: 54px;
-	margin-bottom: 20px;
+	font-size: calc(52px * var(--presenter-body-scale, 1));
+	font-weight: 800;
+	letter-spacing: -0.02em;
+	color: var(--presenter-main-color);
+	margin: 0 0 calc(16px * var(--presenter-body-scale, 1)) 0;
+	line-height: 1.2;
 }
 
-.presenter-slide-cover p {
-	font-size: 24px;
-	opacity: 0.85;
+.presenter-slide-card.presenter-slide-cover .presenter-slide-body.markdown-rendered h1 + p,
+.presenter-slide-cover .presenter-slide-body h1 + p,
+.presenter-slide-cover h1 + p {
+	font-size: calc(24px * var(--presenter-body-scale, 1));
+	font-weight: 700;
+	color: var(--presenter-accent-color);
+	margin: 0 0 calc(24px * var(--presenter-body-scale, 1)) 0;
+	opacity: 1;
+}
+
+.presenter-slide-card.presenter-slide-cover .presenter-slide-body.markdown-rendered h1 + p ~ p,
+.presenter-slide-cover .presenter-slide-body h1 + p ~ p,
+.presenter-slide-cover h1 + p ~ p {
+	font-size: calc(16px * var(--presenter-body-scale, 1));
+	opacity: 0.65;
+	margin: calc(2px * var(--presenter-body-scale, 1)) 0;
 }
 
 /* Section Divider Slide Layout */
@@ -715,14 +968,18 @@
 	text-align: center;
 }
 
+.presenter-slide-card.presenter-slide-section .presenter-slide-body.markdown-rendered h2,
 .presenter-slide-section .presenter-slide-body h2 {
 	font-size: calc(46px * var(--presenter-body-scale, 1));
 	font-weight: 800;
 	border-bottom: none;
+	border-left: none;
+	padding-left: 0;
 	color: var(--presenter-accent-color);
 	margin-bottom: calc(16px * var(--presenter-body-scale, 1));
 }
 
+.presenter-slide-card.presenter-slide-section .presenter-slide-body.markdown-rendered p,
 .presenter-slide-section .presenter-slide-body p {
 	font-size: calc(24px * var(--presenter-body-scale, 1));
 	opacity: 0.85;
@@ -741,12 +998,21 @@
 	align-items: center;
 }
 
+.presenter-slide-card.presenter-slide-quote .presenter-slide-body.markdown-rendered h2,
+.presenter-slide-quote .presenter-slide-body h2 {
+	border-left: none;
+	padding-left: 0;
+}
+
+.presenter-slide-card.presenter-slide-quote .presenter-slide-body.markdown-rendered blockquote,
 .presenter-slide-quote .presenter-slide-body blockquote {
 	border-left: none;
 	background: transparent;
 	padding: 0 40px;
+	margin: calc(16px * var(--presenter-body-scale, 1)) 0;
 	font-size: calc(28px * var(--presenter-body-scale, 1));
 	font-style: italic;
+	font-weight: 500;
 	line-height: 1.5;
 	position: relative;
 	color: var(--presenter-main-color);
@@ -775,6 +1041,14 @@
 	letter-spacing: -0.03em;
 	display: block;
 	text-align: center;
+	overflow-wrap: break-word;
+	word-break: normal;
+	max-width: 100%;
+}
+
+.presenter-kpi-value.presenter-kpi-value-long {
+	font-size: calc(36px * var(--presenter-body-scale, 1));
+	letter-spacing: -0.01em;
 }
 
 /* Enhanced Callouts in Slide Body */
@@ -925,13 +1199,24 @@
 	border-radius: 4px;
 }
 
+.presenter-cols,
+.presenter-cols > * {
+	min-width: 0;
+	min-height: 0;
+}
+
 .presenter-col {
 	display: flex;
 	flex-direction: column;
-	background: color-mix(in srgb, var(--presenter-main-color) 4%, var(--presenter-base-color, #ffffff));
+	min-width: 0;
+	min-height: 0;
+	height: 100%;
+	overflow-wrap: anywhere;
+	word-break: normal;
+	background: color-mix(in srgb, var(--presenter-main-color) 4.5%, var(--presenter-base-color, #ffffff));
 	border: none;
-	border-radius: 12px;
-	padding: calc(18px * var(--presenter-body-scale, 1)) calc(22px * var(--presenter-body-scale, 1));
+	border-radius: 14px;
+	padding: calc(26px * var(--presenter-body-scale, 1)) calc(30px * var(--presenter-body-scale, 1));
 	box-sizing: border-box;
 }
 
@@ -939,10 +1224,27 @@
 .presenter-slide-card .presenter-slide-body.markdown-rendered .presenter-col h3,
 .presenter-slide-card .presenter-slide-body .presenter-col h3,
 .presenter-slide-body .presenter-col h3 {
-	font-size: calc(20px * var(--presenter-body-scale, 1));
-	color: var(--presenter-accent-color);
-	margin: 0 0 calc(6px * var(--presenter-body-scale, 1)) 0;
+	font-size: calc(21px * var(--presenter-body-scale, 1));
+	font-weight: 800;
+	color: var(--presenter-main-color);
+	margin: 0 0 calc(10px * var(--presenter-body-scale, 1)) 0;
 	line-height: 1.3;
+}
+
+.presenter-card-eyebrow {
+	display: block;
+	font-size: calc(12px * var(--presenter-body-scale, 1));
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	color: var(--presenter-accent-color);
+	text-transform: uppercase;
+	margin-bottom: calc(4px * var(--presenter-body-scale, 1));
+	line-height: 1.2;
+}
+
+.presenter-card-title {
+	display: block;
+	color: inherit;
 }
 
 .presenter-slide-card .presenter-slide-body.markdown-rendered .presenter-col p,
@@ -959,7 +1261,7 @@
 .presenter-slide-card .presenter-slide-body .presenter-cols-3 .presenter-col,
 .presenter-slide-card .presenter-slide-body.markdown-rendered .presenter-cols-4 .presenter-col,
 .presenter-slide-card .presenter-slide-body .presenter-cols-4 .presenter-col {
-	padding: calc(13px * var(--presenter-body-scale, 1)) calc(15px * var(--presenter-body-scale, 1));
+	padding: calc(16px * var(--presenter-body-scale, 1)) calc(18px * var(--presenter-body-scale, 1));
 }
 
 .presenter-slide-card .presenter-slide-body.markdown-rendered .presenter-cols-3 .presenter-col h3,
@@ -1004,9 +1306,45 @@
 	padding: calc(12px * var(--presenter-body-scale, 1)) calc(15px * var(--presenter-body-scale, 1));
 }
 
+.presenter-col:has(.presenter-kpi-value) {
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	padding: calc(28px * var(--presenter-body-scale, 1)) calc(24px * var(--presenter-body-scale, 1));
+}
+
+.presenter-slide-card .presenter-slide-body.markdown-rendered .presenter-col:has(.presenter-kpi-value) h3,
+.presenter-slide-card .presenter-slide-body .presenter-col:has(.presenter-kpi-value) h3,
+.presenter-slide-body .presenter-col:has(.presenter-kpi-value) h3 {
+	font-size: calc(18px * var(--presenter-body-scale, 1));
+	color: color-mix(in srgb, var(--presenter-main-color) 70%, transparent);
+	font-weight: 700;
+	margin-bottom: calc(6px * var(--presenter-body-scale, 1));
+}
+
 .presenter-col .presenter-kpi-value {
-	font-size: calc(32px * var(--presenter-body-scale, 1));
-	margin: calc(4px * var(--presenter-body-scale, 1)) 0;
+	font-size: calc(56px * var(--presenter-body-scale, 1));
+	margin: calc(6px * var(--presenter-body-scale, 1)) 0;
+}
+
+.presenter-col .presenter-kpi-value.presenter-kpi-value-long {
+	font-size: calc(36px * var(--presenter-body-scale, 1));
+}
+
+.presenter-cols-hero-kpi .presenter-col .presenter-kpi-value {
+	font-size: calc(84px * var(--presenter-body-scale, 1));
+}
+
+.presenter-cols-hero-kpi .presenter-col .presenter-kpi-value.presenter-kpi-value-long {
+	font-size: calc(52px * var(--presenter-body-scale, 1));
+}
+
+.presenter-slide-card .presenter-slide-body.markdown-rendered .presenter-col:has(.presenter-kpi-value) p,
+.presenter-slide-card .presenter-slide-body .presenter-col:has(.presenter-kpi-value) p,
+.presenter-slide-body .presenter-col:has(.presenter-kpi-value) p {
+	font-size: calc(16px * var(--presenter-body-scale, 1));
+	color: color-mix(in srgb, var(--presenter-main-color) 78%, transparent);
+	margin: calc(4px * var(--presenter-body-scale, 1)) 0 0 0;
 }
 
 /* Tables inside columns */

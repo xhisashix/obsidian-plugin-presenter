@@ -78,9 +78,15 @@ export function applyContentScale(bodyEl: HTMLElement, scale: number): void {
 	if (scale < 0.999) {
 		bodyEl.style.setProperty('--presenter-body-scale', String(scale));
 		bodyEl.addClass('is-autofitted');
+		if (scale <= 0.82) {
+			bodyEl.addClass('is-dense-scale');
+		} else {
+			bodyEl.removeClass('is-dense-scale');
+		}
 	} else {
 		bodyEl.style.removeProperty('--presenter-body-scale');
 		bodyEl.removeClass('is-autofitted');
+		bodyEl.removeClass('is-dense-scale');
 	}
 }
 
@@ -97,6 +103,8 @@ export function fitContentToSlideBody(bodyEl: HTMLElement): {
 	fittedScale: number;
 } {
 	applyContentScale(bodyEl, 1.0);
+	bodyEl.removeClass('is-overflow-clamped');
+
 	const initial = calculateOverflow(bodyEl);
 	if (!initial.isOverflowing) {
 		return {
@@ -127,6 +135,12 @@ export function fitContentToSlideBody(bodyEl: HTMLElement): {
 		applyContentScale(bodyEl, currentScale);
 		recheck = calculateOverflow(bodyEl);
 		steps++;
+	}
+
+	if (recheck.isOverflowing) {
+		bodyEl.addClass('is-overflow-clamped');
+	} else {
+		bodyEl.removeClass('is-overflow-clamped');
 	}
 
 	return {

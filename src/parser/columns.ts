@@ -2,6 +2,7 @@ import type { ColumnRatio, ColumnStyle, ColumnVariant } from '../types';
 import { matchAtxHeading } from './blocks';
 import { parseDirective, MAX_COLUMNS } from './directives';
 import { FenceTracker } from './fence';
+import { formatCardHeadingEyebrow } from './tsutawaruTransforms';
 
 /**
  * Preprocesses HTML comment column directives:
@@ -243,7 +244,8 @@ function renderColumnRegion(
 		.map((c) => {
 			const isHighlight = HIGHLIGHT_MARKER_REGEX.test(c);
 			const hiClass = isHighlight ? ' presenter-col-highlight' : '';
-			return `<div class="presenter-col${hiClass}">\n\n${c}\n\n</div>`;
+			const formattedCol = effectiveVariant === 'step' ? c : formatCardHeadingEyebrow(c);
+			return `<div class="presenter-col${hiClass}">\n\n${formattedCol}\n\n</div>`;
 		})
 		.join('\n');
 

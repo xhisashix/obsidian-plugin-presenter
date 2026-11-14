@@ -90,9 +90,14 @@ cardEl.style.transform = `scale(${Math.max(scale, 0.2)})`;
 
 - **和欧混植フォントと数字の等幅整列**:
   - 英数字には幾何学的サンセリフ（`"Plus Jakarta Sans", "Inter"`）、日本語には `"Noto Sans JP", "Hiragino Sans"` を優先適用し、数値・テーブルには `font-variant-numeric: tabular-nums` を適用して桁を美しく整列。
-- **H2 (アクションタイトル)**: `font-size: 34px` (`--mp-h2-size`), `font-weight: 800`, `line-height: 1.3`, 下部にアクセントボーダー (3px)
+- **H2 (アクションタイトル)**: `font-size: 34px` (`--mp-h2-size`), `font-weight: 800`, `line-height: 1.3`, 下部にアクセントボーダー (3px)。25文字以上の長文タイトル時は `.has-long-title` により自動で `26px`（`line-height: 1.2`）へ最適化し本文の垂直領域を保護。
 - **H3 (小見出し)**: `font-size: 24px` (`--mp-h3-size`), `font-weight: 700`
 - **本文 (p, li)**: `font-size: 20px` (`--mp-body-size`), `line-height: 1.55`（Auto-fit 縮小下限時も最小 18px 相当の視認性を維持）
+- **文字数耐性（Content-Adaptive Resilience）**:
+  - 全要素に `overflow-wrap: anywhere; word-break: normal;` を適用し、長いURLや英単語の枠外突き抜けを完全防止。
+  - すべてのカラム・グリッド要素に `min-width: 0; min-height: 0;` を明示し、Grid blowout（列幅の勝手な伸張）を遮断。
+  - 短文スライド（1〜3行）は `.is-short-content` により垂直中央揃え＋行間1.65で堂々としたメッセージカードへ自動適応。
+  - 長文過多スライドは `.is-dense-scale` により余白と行間をコンパクトに引き締め、不快な縦スクロールバーを抑止。
 - **枠線なしソフトカード (`.presenter-col` in `.presenter-cols-card`)**:
   - 外枠の黒い・濃い実線を廃止（`border: none`）し、背景色 `#F8FAFC`・角丸 `12px`・パディング `28px 32px`（`--mp-card-padding`）の「面」で情報をチャンク化。
   - **2カラム / 2×2グリッド (`.presenter-cols-grid`)**: 4項目並列時は横一列ではなく2列×2段のグリッドに折り返し、視線移動距離を最小化。

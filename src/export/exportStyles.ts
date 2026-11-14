@@ -323,7 +323,7 @@ export function getExportStyles(params: ExportStyleParams): string {
 			color: var(--presenter-main-color);
 			box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
 			border-radius: 12px;
-			padding: 32px 56px;
+			padding: var(--mp-slide-padding, 56px 72px);
 			display: flex;
 			flex-direction: column;
 			overflow: hidden;
@@ -376,8 +376,22 @@ export function getExportStyles(params: ExportStyleParams): string {
 			display: flex;
 			flex-direction: column;
 			overflow: hidden;
-			font-size: 20px;
-			line-height: 1.6;
+			font-size: calc(20px * var(--presenter-body-scale, 1));
+			line-height: calc(1.55 * var(--presenter-body-scale, 1));
+			position: relative;
+			overflow-wrap: break-word;
+			word-break: normal;
+			line-break: loose;
+		}
+
+		.presenter-slide-body p,
+		.presenter-slide-body li,
+		.presenter-slide-body td,
+		.presenter-slide-body th,
+		.presenter-slide-body code,
+		.presenter-badge {
+			overflow-wrap: anywhere;
+			word-break: break-word;
 		}
 
 		.presenter-slide-cover .presenter-slide-body {
@@ -387,11 +401,26 @@ export function getExportStyles(params: ExportStyleParams): string {
 		}
 
 		.presenter-slide-cover h1 {
-			font-size: 46px;
+			font-size: 52px;
 			font-weight: 800;
-			margin-bottom: 20px;
-			line-height: 1.25;
+			letter-spacing: -0.02em;
+			margin-bottom: 16px;
+			line-height: 1.2;
 			color: var(--presenter-main-color);
+		}
+
+		.presenter-slide-cover h1 + p {
+			font-size: 24px;
+			font-weight: 700;
+			color: var(--presenter-accent-color);
+			margin-bottom: 24px;
+			opacity: 1;
+		}
+
+		.presenter-slide-cover h1 + p ~ p {
+			font-size: 16px;
+			opacity: 0.65;
+			margin: 2px 0;
 		}
 
 		/* Section Divider Slide Layout */
@@ -411,6 +440,8 @@ export function getExportStyles(params: ExportStyleParams): string {
 			font-size: 46px;
 			font-weight: 800;
 			border-bottom: none;
+			border-left: none;
+			padding-left: 0;
 			color: var(--presenter-accent-color);
 			margin-bottom: 16px;
 		}
@@ -420,6 +451,27 @@ export function getExportStyles(params: ExportStyleParams): string {
 			opacity: 0.85;
 			max-width: 800px;
 			margin: 0 auto;
+		}
+
+		/* Takeaway Blockquote Banner (Non-Quote Content Slides) */
+		.presenter-slide-body blockquote {
+			border-left: 5px solid var(--presenter-accent-color);
+			padding: calc(12px * var(--presenter-body-scale, 1)) calc(20px * var(--presenter-body-scale, 1));
+			background: color-mix(in srgb, var(--presenter-accent-color) 6%, var(--presenter-base-color, #ffffff));
+			border-radius: 10px;
+			margin: calc(14px * var(--presenter-body-scale, 1)) 0;
+			font-size: calc(19px * var(--presenter-body-scale, 1));
+			font-style: normal;
+			font-weight: 600;
+		}
+
+		.presenter-slide-body > blockquote {
+			margin-top: auto;
+		}
+
+		.presenter-slide-body blockquote p {
+			margin: 0;
+			font-weight: 600;
 		}
 
 		/* Quote / Big Statement Slide Layout */
@@ -433,12 +485,19 @@ export function getExportStyles(params: ExportStyleParams): string {
 			align-items: center;
 		}
 
+		.presenter-slide-quote .presenter-slide-body h2 {
+			border-left: none;
+			padding-left: 0;
+		}
+
 		.presenter-slide-quote .presenter-slide-body blockquote {
 			border-left: none;
 			background: transparent;
 			padding: 0 40px;
+			margin: 16px 0;
 			font-size: 28px;
 			font-style: italic;
+			font-weight: 500;
 			line-height: 1.5;
 			position: relative;
 			color: var(--presenter-main-color);
@@ -459,14 +518,22 @@ export function getExportStyles(params: ExportStyleParams): string {
 		.presenter-kpi-value {
 			font-family: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
 			font-variant-numeric: tabular-nums;
-			font-size: 52px;
+			font-size: calc(52px * var(--presenter-body-scale, 1));
 			font-weight: 800;
 			color: var(--presenter-pop-color, #ea580c);
 			line-height: 1.08;
-			margin: 10px 0;
+			margin: calc(10px * var(--presenter-body-scale, 1)) 0;
 			letter-spacing: -0.03em;
 			display: block;
 			text-align: center;
+			overflow-wrap: break-word;
+			word-break: normal;
+			max-width: 100%;
+		}
+
+		.presenter-kpi-value.presenter-kpi-value-long {
+			font-size: calc(36px * var(--presenter-body-scale, 1));
+			letter-spacing: -0.01em;
 		}
 
 		/* Callouts */
@@ -541,26 +608,52 @@ export function getExportStyles(params: ExportStyleParams): string {
 			margin: 2px 0;
 		}
 
-		.presenter-slide-content h2 {
-			font-size: var(--mp-h2-size, 34px);
+		.presenter-slide-content h2,
+		.presenter-slide-body h2 {
+			font-size: calc(var(--mp-h2-size, 34px) * var(--presenter-body-scale, 1));
 			font-weight: 800;
 			letter-spacing: -0.01em;
-			margin-bottom: 12px;
+			margin: 0 0 calc(14px * var(--presenter-body-scale, 1)) 0;
 			color: var(--presenter-main-color);
-			border-bottom: 3px solid var(--presenter-accent-color);
-			padding-bottom: 6px;
+			border-bottom: none;
+			border-left: 6px solid var(--presenter-accent-color);
+			padding-left: calc(16px * var(--presenter-body-scale, 1));
+			padding-bottom: 0;
+			overflow-wrap: break-word;
+			word-break: normal;
+			max-width: 100%;
 		}
 
-		.presenter-slide-content h3 {
-			font-size: var(--mp-h3-size, 24px);
+		.presenter-slide-body > h2 + p {
+			font-size: calc(18.5px * var(--presenter-body-scale, 1));
+			color: color-mix(in srgb, var(--presenter-main-color) 72%, transparent);
+			margin-top: calc(-4px * var(--presenter-body-scale, 1));
+			margin-bottom: calc(18px * var(--presenter-body-scale, 1));
+			font-weight: 500;
+			line-height: calc(1.5 * var(--presenter-body-scale, 1));
+		}
+
+		.presenter-slide-body.has-long-title h2 {
+			font-size: calc(26px * var(--presenter-body-scale, 1));
+			line-height: 1.2;
+			margin-bottom: calc(10px * var(--presenter-body-scale, 1));
+			padding-left: calc(14px * var(--presenter-body-scale, 1));
+			padding-bottom: 0;
+		}
+
+		.presenter-slide-content h3,
+		.presenter-slide-body h3 {
+			font-size: calc(var(--mp-h3-size, 24px) * var(--presenter-body-scale, 1));
 			font-weight: 700;
-			margin: 14px 0 8px 0;
+			margin: calc(14px * var(--presenter-body-scale, 1)) 0 calc(8px * var(--presenter-body-scale, 1)) 0;
 			color: var(--presenter-main-color);
+			overflow-wrap: break-word;
+			word-break: normal;
 		}
 
 		.presenter-slide-body p {
-			margin-bottom: 6px;
-			margin-top: 4px;
+			margin-bottom: calc(6px * var(--presenter-body-scale, 1));
+			margin-top: calc(4px * var(--presenter-body-scale, 1));
 		}
 
 		.presenter-slide-body ul, .presenter-slide-body ol {
@@ -571,9 +664,97 @@ export function getExportStyles(params: ExportStyleParams): string {
 			margin-bottom: 5px;
 		}
 
+		.presenter-slide-body > ol {
+			list-style: none;
+			padding-left: 0;
+			padding-inline-start: 0;
+			counter-reset: presenter-ol-counter;
+			display: flex;
+			flex-direction: column;
+			gap: calc(10px * var(--presenter-body-scale, 1));
+			margin: calc(8px * var(--presenter-body-scale, 1)) 0 calc(10px * var(--presenter-body-scale, 1)) 0;
+		}
+
+		.presenter-slide-body > ol > li {
+			counter-increment: presenter-ol-counter;
+			position: relative;
+			display: block;
+			background: color-mix(in srgb, var(--presenter-main-color) 4.5%, var(--presenter-base-color, #ffffff));
+			padding: calc(14px * var(--presenter-body-scale, 1)) calc(20px * var(--presenter-body-scale, 1)) calc(14px * var(--presenter-body-scale, 1)) calc(68px * var(--presenter-body-scale, 1));
+			border-radius: 12px;
+			margin: 0;
+		}
+
+		.presenter-slide-body > ol > li::before {
+			content: counter(presenter-ol-counter, decimal-leading-zero);
+			position: absolute;
+			left: calc(18px * var(--presenter-body-scale, 1));
+			top: 50%;
+			transform: translateY(-50%);
+			background: var(--presenter-accent-color);
+			color: #ffffff;
+			font-size: calc(13px * var(--presenter-body-scale, 1));
+			font-weight: 800;
+			padding: calc(3px * var(--presenter-body-scale, 1)) calc(10px * var(--presenter-body-scale, 1));
+			border-radius: 6px;
+			line-height: 1.3;
+			font-variant-numeric: tabular-nums;
+		}
+
+		.presenter-slide-body > ol > li strong {
+			color: var(--presenter-main-color);
+		}
+
 		.presenter-slide-body li {
-			margin-bottom: 2px;
-			line-height: 1.45;
+			margin-bottom: calc(2px * var(--presenter-body-scale, 1));
+			line-height: calc(1.45 * var(--presenter-body-scale, 1));
+		}
+
+		/* Short Content Adaptation */
+		.presenter-slide-body.is-short-content {
+			justify-content: center;
+			padding-bottom: 28px;
+		}
+
+		.presenter-slide-body.is-short-content p {
+			font-size: calc(22px * var(--presenter-body-scale, 1));
+			line-height: 1.65;
+			margin: calc(8px * var(--presenter-body-scale, 1)) 0;
+		}
+
+		.presenter-slide-body.is-short-content li {
+			font-size: calc(21px * var(--presenter-body-scale, 1));
+			line-height: 1.6;
+			margin: calc(6px * var(--presenter-body-scale, 1)) 0;
+		}
+
+		/* Dense Scale Adaptation */
+		.presenter-slide-body.is-dense-scale {
+			line-height: calc(1.38 * var(--presenter-body-scale, 1));
+		}
+
+		.presenter-slide-body.is-dense-scale p {
+			margin: calc(2px * var(--presenter-body-scale, 1)) 0;
+		}
+
+		.presenter-slide-body.is-dense-scale li {
+			margin: calc(1px * var(--presenter-body-scale, 1)) 0;
+		}
+
+		.presenter-slide-body.is-dense-scale .presenter-cols {
+			gap: calc(12px * var(--presenter-body-scale, 1));
+			margin: calc(6px * var(--presenter-body-scale, 1)) 0;
+		}
+
+		.presenter-slide-body.is-dense-scale .presenter-col {
+			padding: calc(16px * var(--presenter-body-scale, 1)) calc(20px * var(--presenter-body-scale, 1));
+		}
+
+		/* Overflow Clamping Guard */
+		.presenter-slide-body.is-overflow-clamped {
+			overflow-y: hidden;
+			mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+			-webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
 		}
 
 		.presenter-slide-body li > ul, .presenter-slide-body li > ol {
@@ -596,13 +777,17 @@ export function getExportStyles(params: ExportStyleParams): string {
 		}
 
 		.presenter-slide-body pre {
-			background: rgba(0, 0, 0, 0.06);
-			padding: 16px;
-			border-radius: 8px;
+			background: #0f172a;
+			color: #f8fafc;
+			padding: calc(18px * var(--presenter-body-scale, 1)) calc(22px * var(--presenter-body-scale, 1));
+			border-radius: 12px;
 			overflow-x: auto;
-			font-size: 15px;
+			font-size: calc(16px * var(--presenter-body-scale, 1));
+			line-height: 1.55;
 			font-family: monospace;
-			margin-bottom: 16px;
+			margin: calc(12px * var(--presenter-body-scale, 1)) 0;
+			box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+			position: relative;
 		}
 
 		.presenter-slide-body code {
@@ -610,6 +795,46 @@ export function getExportStyles(params: ExportStyleParams): string {
 			padding: 2px 6px;
 			border-radius: 4px;
 			font-size: 0.9em;
+		}
+
+		.presenter-slide-body pre code {
+			background: transparent;
+			color: inherit;
+			padding: 0;
+			font-size: inherit;
+			border-radius: 0;
+			overflow-wrap: normal;
+			word-break: normal;
+		}
+
+		.presenter-slide-body pre .token.comment,
+		.presenter-slide-body pre .token.prolog,
+		.presenter-slide-body pre .token.doctype {
+			color: #94a3b8;
+		}
+
+		.presenter-slide-body pre .token.keyword,
+		.presenter-slide-body pre .token.operator,
+		.presenter-slide-body pre .token.tag {
+			color: #7dd3fc;
+		}
+
+		.presenter-slide-body pre .token.string,
+		.presenter-slide-body pre .token.attr-value {
+			color: #86efac;
+		}
+
+		.presenter-slide-body pre .token.function,
+		.presenter-slide-body pre .token.class-name {
+			color: #fde047;
+		}
+
+		.presenter-slide-body pre .token.punctuation {
+			color: #cbd5e1;
+		}
+
+		.presenter-slide-body pre .copy-code-button {
+			display: none;
 		}
 
 		/* Mermaid Diagrams */
@@ -964,22 +1189,50 @@ export function getExportStyles(params: ExportStyleParams): string {
 			border-radius: 4px;
 		}
 
+		.presenter-cols,
+		.presenter-cols > * {
+			min-width: 0;
+			min-height: 0;
+		}
+
 		.presenter-col {
 			display: flex;
 			flex-direction: column;
 			min-width: 0;
-			background: color-mix(in srgb, var(--presenter-main-color) 4%, var(--presenter-base-color, #ffffff));
+			min-height: 0;
+			height: 100%;
+			overflow-wrap: anywhere;
+			word-break: normal;
+			background: color-mix(in srgb, var(--presenter-main-color) 4.5%, var(--presenter-base-color, #ffffff));
 			border: none;
-			border-radius: 12px;
-			padding: 18px 22px;
+			border-radius: 14px;
+			padding: calc(26px * var(--presenter-body-scale, 1)) calc(30px * var(--presenter-body-scale, 1));
 			box-sizing: border-box;
 		}
 
-		.presenter-slide-content .presenter-col h3 {
-			font-size: 20px;
-			color: var(--presenter-accent-color);
-			margin: 0 0 6px 0;
+		.presenter-slide-content .presenter-col h3,
+		.presenter-slide-body .presenter-col h3 {
+			font-size: calc(21px * var(--presenter-body-scale, 1));
+			font-weight: 800;
+			color: var(--presenter-main-color);
+			margin: 0 0 calc(10px * var(--presenter-body-scale, 1)) 0;
 			line-height: 1.3;
+		}
+
+		.presenter-card-eyebrow {
+			display: block;
+			font-size: calc(12px * var(--presenter-body-scale, 1));
+			font-weight: 800;
+			letter-spacing: 0.08em;
+			color: var(--presenter-accent-color);
+			text-transform: uppercase;
+			margin-bottom: calc(4px * var(--presenter-body-scale, 1));
+			line-height: 1.2;
+		}
+
+		.presenter-card-title {
+			display: block;
+			color: inherit;
 		}
 
 		.presenter-slide-body .presenter-col p,
@@ -990,7 +1243,7 @@ export function getExportStyles(params: ExportStyleParams): string {
 
 		.presenter-slide-body .presenter-cols-3 .presenter-col,
 		.presenter-slide-body .presenter-cols-4 .presenter-col {
-			padding: 13px 15px;
+			padding: 16px 18px;
 		}
 
 		.presenter-slide-content .presenter-cols-3 .presenter-col h3,
@@ -1028,9 +1281,41 @@ export function getExportStyles(params: ExportStyleParams): string {
 			padding: 12px 15px;
 		}
 
+		.presenter-col:has(.presenter-kpi-value) {
+			align-items: center;
+			justify-content: center;
+			text-align: center;
+			padding: calc(28px * var(--presenter-body-scale, 1)) calc(24px * var(--presenter-body-scale, 1));
+		}
+
+		.presenter-slide-body .presenter-col:has(.presenter-kpi-value) h3 {
+			font-size: calc(18px * var(--presenter-body-scale, 1));
+			color: color-mix(in srgb, var(--presenter-main-color) 70%, transparent);
+			font-weight: 700;
+			margin-bottom: calc(6px * var(--presenter-body-scale, 1));
+		}
+
 		.presenter-col .presenter-kpi-value {
-			font-size: 32px;
-			margin: 4px 0;
+			font-size: calc(56px * var(--presenter-body-scale, 1));
+			margin: calc(6px * var(--presenter-body-scale, 1)) 0;
+		}
+
+		.presenter-col .presenter-kpi-value.presenter-kpi-value-long {
+			font-size: calc(36px * var(--presenter-body-scale, 1));
+		}
+
+		.presenter-cols-hero-kpi .presenter-col .presenter-kpi-value {
+			font-size: calc(84px * var(--presenter-body-scale, 1));
+		}
+
+		.presenter-cols-hero-kpi .presenter-col .presenter-kpi-value.presenter-kpi-value-long {
+			font-size: calc(52px * var(--presenter-body-scale, 1));
+		}
+
+		.presenter-slide-body .presenter-col:has(.presenter-kpi-value) p {
+			font-size: calc(16px * var(--presenter-body-scale, 1));
+			color: color-mix(in srgb, var(--presenter-main-color) 78%, transparent);
+			margin: calc(4px * var(--presenter-body-scale, 1)) 0 0 0;
 		}
 
 		.presenter-slide-body .presenter-col table {
@@ -1846,8 +2131,10 @@ export function getExportStyles(params: ExportStyleParams): string {
 		.handout-slide-preview h2 {
 			font-size: 26px;
 			margin-bottom: 16px;
-			border-bottom: 2px solid var(--presenter-accent-color);
-			padding-bottom: 6px;
+			border-bottom: none;
+			border-left: 5px solid var(--presenter-accent-color);
+			padding-left: 12px;
+			padding-bottom: 0;
 		}
 
 		.handout-notes-box {

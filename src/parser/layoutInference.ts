@@ -101,7 +101,7 @@ export function inferSlideLayout(
 	return 'content';
 }
 
-const KPI_REGEX = /^\s*\*\*([+-]?[$¥€£]?\s*[\d,.]+\s*(?:%|倍|社|人|円|万|億|k|m|b|ms|s|fps|pt|pts|x|件|点)?|[¥$€£][\d,.]+[a-zA-Z万億]?)\*\*\s*$/i;
+export const KPI_REGEX = /^\s*\*\*([+-]?[$¥€£]?\s*[\d,.]+\s*(?:%|倍|社|人|円|万|億|k|m|b|ms|s|fps|pt|pts|x|件|点)?|[¥$€£][\d,.]+[a-zA-Z万億]?)\*\*\s*$/i;
 
 /**
  * Preprocesses KPI metrics: transforms standalone bold numeric metric lines
@@ -161,9 +161,14 @@ export function preprocessKpi(markdown: string, enableSmartLayouts: boolean = tr
 		}
 
 		if (inExplicitKpi) {
+			if (!trimmed) {
+				output.push(line);
+				continue;
+			}
 			const boldMatch = trimmed.match(/^\*\*(.*?)\*\*$/);
 			const value = boldMatch && boldMatch[1] ? boldMatch[1] : trimmed;
-			output.push(`<div class="presenter-kpi-value">${value}</div>`);
+			const longCls = value.length > 8 ? ' presenter-kpi-value-long' : '';
+			output.push('', `<div class="presenter-kpi-value${longCls}">${value}</div>`, '');
 			continue;
 		}
 
@@ -173,7 +178,8 @@ export function preprocessKpi(markdown: string, enableSmartLayouts: boolean = tr
 				const value = match[1].trim();
 				// Ensure not a plain short number in a numbered list
 				if (!/^\d+\.$/.test(value)) {
-					output.push(`<div class="presenter-kpi-value">${value}</div>`);
+					const longCls = value.length > 8 ? ' presenter-kpi-value-long' : '';
+					output.push('', `<div class="presenter-kpi-value${longCls}">${value}</div>`, '');
 					continue;
 				}
 			}

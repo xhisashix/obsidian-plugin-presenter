@@ -328,3 +328,50 @@ void test('fitContentToSlideBody iteratively steps down scale when initial estim
 	assert.equal(fitRes.fittedScale, 0.82); // stepped down 0.88 -> 0.85 -> 0.82
 	assert.equal(styles.get('--presenter-body-scale'), '0.82');
 });
+
+void test('applyContentScale toggles is-dense-scale when scale is <= 0.82', () => {
+	const classes = new Set<string>();
+	const styles = new Map<string, string>();
+
+	const mockBodyEl = {
+		style: {
+			setProperty: (k: string, v: string) => styles.set(k, v),
+			removeProperty: (k: string) => styles.delete(k),
+		},
+		addClass: (cls: string) => classes.add(cls),
+		removeClass: (cls: string) => classes.delete(cls),
+	} as unknown as HTMLElement;
+
+	applyContentScale(mockBodyEl, 0.85);
+	assert.equal(classes.has('is-autofitted'), true);
+	assert.equal(classes.has('is-dense-scale'), false);
+
+	applyContentScale(mockBodyEl, 0.80);
+	assert.equal(classes.has('is-autofitted'), true);
+	assert.equal(classes.has('is-dense-scale'), true);
+
+	applyContentScale(mockBodyEl, 1.0);
+	assert.equal(classes.has('is-autofitted'), false);
+	assert.equal(classes.has('is-dense-scale'), false);
+});
+
+void test('fitContentToSlideBody adds is-overflow-clamped when content exceeds limit', () => {
+	const styles = new Map<string, string>();
+	const classes = new Set<string>();
+
+	const mockSevereBodyEl = {
+		scrollHeight: 1000,
+		clientHeight: 400,
+		style: {
+			setProperty: (k: string, v: string) => styles.set(k, v),
+			removeProperty: (k: string) => styles.delete(k),
+		},
+		addClass: (cls: string) => classes.add(cls),
+		removeClass: (cls: string) => classes.delete(cls),
+	} as unknown as HTMLElement;
+
+	const fitRes = fitContentToSlideBody(mockSevereBodyEl);
+	assert.equal(fitRes.wasOverflowing, true);
+	assert.equal(fitRes.isStillOverflowing, true);
+	assert.equal(classes.has('is-overflow-clamped'), true);
+});

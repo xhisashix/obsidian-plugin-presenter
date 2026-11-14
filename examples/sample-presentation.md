@@ -3,7 +3,8 @@
 # 配色・ヘッダー・フッター・ロゴ等は「設定 → Presenter」のデフォルト値が自動適用されます。
 # ノート固有で個別に上書きしたい項目のみを記述してください。
 header: "Presenter Plugin Demo"
-accentColor: "#38bdf8"
+accentColor: "#2563eb"
+popColor: "#ea580c"
 ---
 
 # Obsidian Presenter

@@ -1,6 +1,7 @@
 import type { ColumnStyle } from '../types';
 import { matchAtxHeading } from './blocks';
 import { FenceTracker } from './fence';
+import { KPI_REGEX } from './layoutInference';
 
 const STANDALONE_IMAGE_REGEX =
 	/^(?:!\[[^\]]*\]\([^)]+\)|!\[\[[^\]]+\]\])$/;
@@ -12,6 +13,8 @@ const TABLE_HIGHLIGHT_DIRECTIVE_REGEX =
 	/^ {0,3}<!--\s*(?:presenter:)?table:?\s+highlight\s+(\d+)\s*-->[ \t]*$/i;
 const RECOMMENDED_HEADER_REGEX =
 	/\[(?:推奨|おすすめ|Recommended|Best|最適)\]|★|🎯/i;
+const BOLD_LABEL_BULLET_REGEX =
+	/^[-*+]\s+\*\*([^*]+?)\*\*\s*[:：—-]\s*(.+)$/;
 
 function formatInlineMarkdown(text: string): string {
 	return text
@@ -223,10 +226,97 @@ function detectRecommendedColumnIndex(headerLine: string): number | null {
 }
 
 /**
+ * Extracts a leading number or step prefix (e.g. `01. 視認性`, `ステップ 1: 記述`, `POINT 01 一貫性`)
+ * from `### H3` card headings into a separate eyebrow badge span above the dark slate heading title.
+ */
+export function formatCardHeadingEyebrow(colMarkdown: string): string {
+	const lines = colMarkdown.split(/\r?\n/);
+	const fence = new FenceTracker();
+	let formattedFirstHeading = false;
+
+	const outLines = lines.map((line) => {
+		if (fence.feed(line) || formattedFirstHeading) {
+			return line;
+		}
+		const heading = matchAtxHeading(line);
+		if (!heading || heading.level !== 3) {
+			return line;
+		}
+
+		const rawTitle = heading.text.trim();
+		if (!rawTitle || rawTitle.includes('presenter-card-eyebrow')) {
+			return line;
+		}
+
+		// Pattern A: STEP / POINT / PHASE / PART / ステップ / ポイント + number + title
+		const keywordMatch = rawTitle.match(
+			/^(STEP|POINT|PHASE|PART|ステップ|ポイント)\s*0*(\d+)\s*(?:[:：.．-]\s*|\s+)(.+)$/i
+		);
+		if (keywordMatch && keywordMatch[1] && keywordMatch[2] && keywordMatch[3]) {
+			const rawKeyword = keywordMatch[1];
+			let normalizedKeyword = rawKeyword.toUpperCase();
+			if (rawKeyword === 'ステップ') normalizedKeyword = 'STEP';
+			else if (rawKeyword === 'ポイント') normalizedKeyword = 'POINT';
+
+			const paddedNum = String(Number(keywordMatch[2])).padStart(2, '0');
+			const cleanTitle = keywordMatch[3].trim();
+			formattedFirstHeading = true;
+			return `### <span class="presenter-card-eyebrow">${normalizedKeyword} ${paddedNum}</span> <span class="presenter-card-title">${cleanTitle}</span>`;
+		}
+
+		// Pattern B: Leading zero-padded or delimited number (e.g. `01. Title`, `1: Title`, `01 Title`)
+		const numDelimMatch = rawTitle.match(
+			/^(0?\d{1,2})(?:[.．]\s*|\s*[:：—-]\s+)(.+)$/
+		);
+		if (numDelimMatch && numDelimMatch[1] && numDelimMatch[2]) {
+			const paddedNum = String(Number(numDelimMatch[1])).padStart(2, '0');
+			const cleanTitle = numDelimMatch[2].trim();
+			formattedFirstHeading = true;
+			return `### <span class="presenter-card-eyebrow">${paddedNum}</span> <span class="presenter-card-title">${cleanTitle}</span>`;
+		}
+
+		const zeroPaddedSpaceMatch = rawTitle.match(/^(0\d)\s+(.+)$/);
+		if (zeroPaddedSpaceMatch && zeroPaddedSpaceMatch[1] && zeroPaddedSpaceMatch[2]) {
+			formattedFirstHeading = true;
+			return `### <span class="presenter-card-eyebrow">${zeroPaddedSpaceMatch[1]}</span> <span class="presenter-card-title">${zeroPaddedSpaceMatch[2].trim()}</span>`;
+		}
+
+		return line;
+	});
+
+	return outLines.join('\n');
+}
+
+function extractTrailingBlockquote(
+	lines: string[],
+	minBoundaryIdx: number
+): { effectiveEndIdx: number; trailingLines: string[] } {
+	let scanIdx = lines.length - 1;
+	while (scanIdx > minBoundaryIdx && lines[scanIdx]!.trim() === '') {
+		scanIdx--;
+	}
+	if (scanIdx > minBoundaryIdx && lines[scanIdx]!.trim().startsWith('>')) {
+		let quoteStart = scanIdx;
+		while (quoteStart > minBoundaryIdx && lines[quoteStart]!.trim().startsWith('>')) {
+			quoteStart--;
+		}
+		if (quoteStart + 1 <= scanIdx && lines[quoteStart + 1]!.trim().startsWith('>')) {
+			return {
+				effectiveEndIdx: quoteStart + 1,
+				trailingLines: lines.slice(quoteStart + 1),
+			};
+		}
+	}
+	return { effectiveEndIdx: lines.length, trailingLines: [] };
+}
+
+/**
  * Automatically applies "Tsutawaru Design" multi-column layouts to standard Markdown slides
  * when `enableSmartLayouts` is active and no explicit `<!-- columns -->` directive is present:
  * - 2 or 3 concise `### H3` sections -> 2 or 3 card columns
  * - 4 concise `### H3` sections -> 2x2 grid (`presenter-cols-2 presenter-cols-grid`)
+ * - 2 to 4 `- **Title**: Description` bullets -> card columns / 2x2 grid
+ * - Single Hero KPI metric + caption -> centered hero KPI card (`presenter-cols-hero-kpi`)
  * - Standalone image + bullet/H3 points -> 6:4 golden ratio split (`presenter-cols-ratio-3-2`)
  * - Single code block + explanatory bullets/H3 -> 2-column code split (`presenter-cols-code-split`)
  */
@@ -249,6 +339,14 @@ export function preprocessAutoLayouts(
 	// Try 2-4 H3 sections auto-column / 2x2 grid
 	const h3Split = tryInferH3AutoColumns(markdown, defaultColumnStyle);
 	if (h3Split) return h3Split;
+
+	// Try 2-4 bold-label bullets (`- **Title**: Description`) auto-card layout
+	const boldListCards = tryInferBoldLabelListCards(markdown, defaultColumnStyle);
+	if (boldListCards) return boldListCards;
+
+	// Try single Hero KPI card layout
+	const heroKpi = tryInferHeroKpiCard(markdown);
+	if (heroKpi) return heroKpi;
 
 	return markdown;
 }
@@ -412,6 +510,34 @@ function tryInferCodeExplanationSplit(markdown: string): string | null {
 	return `${prefix}<div class="presenter-cols presenter-cols-2 presenter-cols-plain presenter-cols-ratio-3-2 presenter-cols-code-split">\n<div class="presenter-col">\n\n${codeBlock}\n\n</div>\n<div class="presenter-col">\n\n${explanationBlock}\n\n</div>\n</div>`;
 }
 
+function renderAutoCardGrid(
+	sections: string[],
+	defaultColumnStyle: ColumnStyle,
+	prefix: string,
+	suffix: string,
+	extraColsClass: string = ''
+): string {
+	const styleClass =
+		defaultColumnStyle === 'plain' ? ' presenter-cols-plain' : ' presenter-cols-card';
+	const isGrid2x2 = sections.length === 4;
+	const colCount = isGrid2x2 ? 2 : sections.length;
+	const gridClass = isGrid2x2 ? ' presenter-cols-grid' : '';
+	const extraClass = extraColsClass ? ` ${extraColsClass}` : '';
+
+	const colDivs = sections
+		.map((sec) => `<div class="presenter-col">\n\n${formatCardHeadingEyebrow(sec)}\n\n</div>`)
+		.join('\n');
+
+	const parts: string[] = [];
+	if (prefix) parts.push(prefix);
+	parts.push(
+		`<div class="presenter-cols presenter-cols-${colCount}${styleClass}${gridClass}${extraClass}">\n${colDivs}\n</div>`
+	);
+	if (suffix) parts.push(suffix);
+
+	return parts.join('\n\n');
+}
+
 function tryInferH3AutoColumns(
 	markdown: string,
 	defaultColumnStyle: ColumnStyle
@@ -442,28 +568,10 @@ function tryInferH3AutoColumns(
 
 	const firstH3Idx = h3Indices[0]!;
 	const prefixLines = lines.slice(0, firstH3Idx);
-	const trailingCalloutLines: string[] = [];
-
-	// Check if there are trailing callout lines (> [!important] etc.) at the end of the slide
-	let effectiveEndIdx = lines.length;
-	let scanIdx = lines.length - 1;
-	while (scanIdx > h3Indices[h3Indices.length - 1]! && lines[scanIdx]!.trim() === '') {
-		scanIdx--;
-	}
-	if (scanIdx > h3Indices[h3Indices.length - 1]!) {
-		let calloutStart = scanIdx;
-		while (
-			calloutStart > h3Indices[h3Indices.length - 1]! &&
-			lines[calloutStart]!.trim().startsWith('>')
-		) {
-			calloutStart--;
-		}
-		const firstQuoteLine = lines[calloutStart + 1]?.trim() ?? '';
-		if (/^>\s*\[![a-z0-9_-]+\]/i.test(firstQuoteLine)) {
-			trailingCalloutLines.push(...lines.slice(calloutStart + 1));
-			effectiveEndIdx = calloutStart + 1;
-		}
-	}
+	const { effectiveEndIdx, trailingLines } = extractTrailingBlockquote(
+		lines,
+		h3Indices[h3Indices.length - 1]!
+	);
 
 	const sections: string[] = [];
 	for (let s = 0; s < h3Indices.length; s++) {
@@ -484,23 +592,176 @@ function tryInferH3AutoColumns(
 		sections.push(sectionLines.join('\n').trim());
 	}
 
-	const styleClass =
-		defaultColumnStyle === 'plain' ? ' presenter-cols-plain' : ' presenter-cols-card';
-	const isGrid2x2 = sections.length === 4;
-	const colCount = isGrid2x2 ? 2 : sections.length;
-	const gridClass = isGrid2x2 ? ' presenter-cols-grid' : '';
+	return renderAutoCardGrid(
+		sections,
+		defaultColumnStyle,
+		prefixLines.join('\n').trim(),
+		trailingLines.join('\n').trim()
+	);
+}
 
-	const colDivs = sections
-		.map((sec) => `<div class="presenter-col">\n\n${sec}\n\n</div>`)
-		.join('\n');
+function tryInferBoldLabelListCards(
+	markdown: string,
+	defaultColumnStyle: ColumnStyle
+): string | null {
+	const lines = markdown.split(/\r?\n/);
+	const fence = new FenceTracker();
+	let firstBulletIdx = -1;
+
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i]!;
+		if (fence.feed(line)) return null; // Has code fence
+		const trimmed = line.trim();
+		if (trimmed.startsWith('|') && trimmed.endsWith('|')) return null; // Has table
+		if (KPI_REGEX.test(line) || /^ {0,3}<!--\s*(?:presenter:)?kpi\s*-->/i.test(trimmed)) {
+			return null;
+		}
+		const heading = matchAtxHeading(line);
+		if (heading && heading.level >= 3) {
+			return null; // H3+ slides are handled by tryInferH3AutoColumns or kept vertical
+		}
+		if (firstBulletIdx === -1 && /^[-*+]\s+/.test(line.trimStart())) {
+			firstBulletIdx = i;
+		}
+	}
+
+	if (firstBulletIdx === -1) return null;
+
+	const { effectiveEndIdx, trailingLines } = extractTrailingBlockquote(lines, firstBulletIdx);
+	const items: { title: string; desc: string }[] = [];
+
+	for (let i = firstBulletIdx; i < effectiveEndIdx; i++) {
+		const rawLine = lines[i]!;
+		const trimmed = rawLine.trim();
+		if (trimmed === '') continue;
+
+		// Disqualify indented sub-lists or stray non-matching content after the list begins
+		if (/^\s{2,}/.test(rawLine)) {
+			return null;
+		}
+		const match = trimmed.match(BOLD_LABEL_BULLET_REGEX);
+		if (!match || !match[1] || !match[2]) {
+			return null;
+		}
+		items.push({
+			title: match[1].trim(),
+			desc: match[2].trim(),
+		});
+	}
+
+	if (items.length < 2 || items.length > 4) {
+		return null;
+	}
+
+	const sections = items.map((item) => `### ${item.title}\n\n${item.desc}`);
+	const prefix = lines.slice(0, firstBulletIdx).join('\n').trim();
+	const suffix = trailingLines.join('\n').trim();
+
+	return renderAutoCardGrid(sections, defaultColumnStyle, prefix, suffix);
+}
+
+function tryInferHeroKpiCard(markdown: string): string | null {
+	const lines = markdown.split(/\r?\n/);
+	const fence = new FenceTracker();
+
+	let h2Idx = -1;
+	const h3Indices: number[] = [];
+
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i]!;
+		if (fence.feed(line)) return null;
+		const trimmed = line.trim();
+		if (trimmed.startsWith('|') && trimmed.endsWith('|')) return null;
+
+		const heading = matchAtxHeading(line);
+		if (heading) {
+			if (heading.level <= 2 && h2Idx === -1 && h3Indices.length === 0) {
+				h2Idx = i;
+			} else if (heading.level === 3) {
+				h3Indices.push(i);
+			} else if (heading.level > 3) {
+				return null;
+			}
+		}
+	}
+
+	if (h3Indices.length > 1) return null;
+
+	const minBoundaryIdx = h3Indices.length === 1 ? h3Indices[0]! : Math.max(0, h2Idx);
+	const { effectiveEndIdx, trailingLines } = extractTrailingBlockquote(lines, minBoundaryIdx);
+
+	const splitIdx = h3Indices.length === 1 ? h3Indices[0]! : h2Idx + 1;
+	const prefixLines = lines.slice(0, splitIdx);
+	const kpiLines = lines.slice(splitIdx, effectiveEndIdx);
+
+	// Validate kpiLines: must contain 1 KPI (explicit block or KPI_REGEX), no lists/images, <= 3 captions
+	let explicitKpiBlocks = 0;
+	let autoKpiCount = 0;
+	let inExplicitKpi = false;
+	let linesBeforeKpi = 0;
+	let linesAfterKpi = 0;
+	let seenKpi = false;
+
+	for (const rawLine of kpiLines) {
+		const trimmed = rawLine.trim();
+		if (!trimmed) continue;
+
+		if (/^ {0,3}<!--\s*(?:presenter:)?kpi\s*-->[ \t]*$/i.test(trimmed)) {
+			if (inExplicitKpi) return null;
+			inExplicitKpi = true;
+			explicitKpiBlocks++;
+			seenKpi = true;
+			continue;
+		}
+		if (/^ {0,3}<!--\s*\/\s*(?:presenter:)?kpi\s*-->[ \t]*$/i.test(trimmed)) {
+			inExplicitKpi = false;
+			continue;
+		}
+		if (inExplicitKpi) continue;
+
+		if (
+			trimmed.startsWith('<!--') ||
+			/^(?:[-*+]|\d+\.)\s+/.test(trimmed) ||
+			STANDALONE_IMAGE_REGEX.test(trimmed) ||
+			trimmed.startsWith('>')
+		) {
+			return null;
+		}
+
+		const heading = matchAtxHeading(rawLine);
+		if (heading && heading.level === 3) {
+			if (seenKpi) return null;
+			continue;
+		}
+
+		if (KPI_REGEX.test(rawLine)) {
+			autoKpiCount++;
+			seenKpi = true;
+			continue;
+		}
+
+		if (!seenKpi) {
+			linesBeforeKpi++;
+		} else {
+			linesAfterKpi++;
+		}
+	}
+
+	const totalKpis = explicitKpiBlocks + autoKpiCount;
+	if (totalKpis !== 1 || linesBeforeKpi > 1 || linesAfterKpi > 3) {
+		return null;
+	}
+
+	const cardContent = formatCardHeadingEyebrow(kpiLines.join('\n').trim());
+	if (!cardContent) return null;
 
 	const prefix = prefixLines.join('\n').trim();
-	const suffix = trailingCalloutLines.join('\n').trim();
+	const suffix = trailingLines.join('\n').trim();
 
 	const parts: string[] = [];
 	if (prefix) parts.push(prefix);
 	parts.push(
-		`<div class="presenter-cols presenter-cols-${colCount}${styleClass}${gridClass}">\n${colDivs}\n</div>`
+		`<div class="presenter-cols presenter-cols-1 presenter-cols-card presenter-cols-hero-kpi">\n<div class="presenter-col">\n\n${cardContent}\n\n</div>\n</div>`
 	);
 	if (suffix) parts.push(suffix);
 

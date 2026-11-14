@@ -116,6 +116,29 @@ export async function renderSlide(
 		cls: 'presenter-slide-body markdown-rendered',
 	});
 
+	// Text density & length resilience classes
+	if (slide.title && slide.title.length > 24) {
+		bodyEl.addClass('has-long-title');
+	}
+
+	const rawMarkdown = slide.markdown.replace(/<!--[\s\S]*?-->/g, '').trim();
+	const nonHeadingLines = rawMarkdown
+		.split('\n')
+		.map((l) => l.trim())
+		.filter((l) => l.length > 0 && !/^#{1,6}\s/.test(l));
+	if (
+		slide.layout === 'content' &&
+		!rawMarkdown.includes('<table') &&
+		!rawMarkdown.includes('|') &&
+		!rawMarkdown.includes('```') &&
+		!rawMarkdown.includes('class="presenter-') &&
+		nonHeadingLines.length > 0 &&
+		nonHeadingLines.length <= 3 &&
+		rawMarkdown.length < 140
+	) {
+		bodyEl.addClass('is-short-content');
+	}
+
 	// Render Markdown using Obsidian's native parser
 	await MarkdownRenderer.render(
 		app,

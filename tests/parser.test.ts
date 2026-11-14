@@ -21,6 +21,7 @@ import {
 	preprocessAutoLayouts,
 	preprocessQaBlocks,
 	preprocessTableHighlights,
+	formatCardHeadingEyebrow,
 } from '../src/parser/slideParser';
 
 void test('FenceTracker tracks 3-backtick, 4-backtick, and tilde fences accurately', () => {
@@ -838,6 +839,90 @@ void test('preprocessKpi chart bars distinguish pop highlight and secondary main
 	const out = preprocessKpi(chartMd, true);
 	assert.ok(out.includes('presenter-chart-row-pop'));
 	assert.ok(out.includes('presenter-chart-row-main'));
+});
+
+void test('preprocessKpi adds blank lines around KPI div so following captions remain Markdown paragraphs', () => {
+	const autoKpi = [
+		'### 資料作成スピード',
+		'**3.5x**',
+		'Markdownによる圧倒的時短',
+	].join('\n');
+	const autoOut = preprocessKpi(autoKpi, true);
+	assert.ok(
+		autoOut.includes('\n\n<div class="presenter-kpi-value">3.5x</div>\n\nMarkdownによる圧倒的時短'),
+		`Unexpected auto KPI output:\n${autoOut}`,
+	);
+
+	const explicitKpi = [
+		'<!-- kpi -->',
+		'**-40% 削減**',
+		'<!-- /kpi -->',
+		'導入3ヶ月目の実測値',
+	].join('\n');
+	const explicitOut = preprocessKpi(explicitKpi, false);
+	assert.ok(
+		explicitOut.includes('<div class="presenter-kpi-value">-40% 削減</div>\n\n導入3ヶ月目の実測値'),
+		`Unexpected explicit KPI output:\n${explicitOut}`,
+	);
+});
+
+void test('preprocessAutoLayouts converts 4-item bold-label lists into a 2x2 card grid while keeping lead text and trailing blockquote', () => {
+	const md = [
+		'## プラグインのコンセプト',
+		'シンプルさと表現力を両立するための設計方針です。',
+		'',
+		'- **標準Markdown互換**: 独自の複雑記法を強制しない',
+		'- **自動レイアウト**: 構造に合わせて最適配置',
+		'- **マルチエクスポート**: HTML・PDF・PPTXへ展開',
+		'- **ライブプレビュー**: 書きながら仕上がりを確認',
+		'',
+		'> 思考の速度でスライドを作成し、そのままプレゼンへ。',
+	].join('\n');
+
+	const out = preprocessAutoLayouts(md, 'card', true);
+	assert.ok(out.includes('シンプルさと表現力を両立するための設計方針です。'));
+	assert.ok(out.includes('class="presenter-cols presenter-cols-2 presenter-cols-card presenter-cols-grid"'));
+	assert.ok(out.includes('### 標準Markdown互換'));
+	assert.ok(out.includes('### ライブプレビュー'));
+	assert.ok(out.includes('> 思考の速度でスライドを作成し、そのままプレゼンへ。'));
+});
+
+void test('preprocessAutoLayouts wraps standalone Hero KPI blocks in presenter-cols-hero-kpi', () => {
+	const md = [
+		'## KPI数値と重要サマリー',
+		'単独行の太字数値を自動検知してKPIカード化します。',
+		'',
+		'### 資料作成スピード',
+		'**3.5x**',
+		'Markdownによる圧倒的時短',
+		'',
+		'> [!TIP] 導入効果',
+		'> チーム全体の会議準備時間を大幅削減。',
+	].join('\n');
+
+	const out = preprocessAutoLayouts(md, 'card', true);
+	assert.ok(out.includes('presenter-cols-hero-kpi'));
+	assert.ok(out.includes('### 資料作成スピード'));
+	assert.ok(out.includes('**3.5x**'));
+	assert.ok(out.includes('> [!TIP] 導入効果'));
+});
+
+void test('formatCardHeadingEyebrow extracts eyebrow badges cleanly without false positives', () => {
+	const numbered = formatCardHeadingEyebrow('### 01. 課題の特定\n詳細説明');
+	assert.ok(numbered.includes('presenter-card-eyebrow'));
+	assert.ok(numbered.includes('01'));
+	assert.ok(numbered.includes('課題の特定'));
+
+	const step = formatCardHeadingEyebrow('### STEP 2: 検証と改善\n詳細説明');
+	assert.ok(step.includes('presenter-card-eyebrow'));
+	assert.ok(step.includes('STEP 02') || step.includes('STEP 2'));
+	assert.ok(step.includes('検証と改善'));
+
+	const ratio = '### 16:9 ワイド画面に対応\n詳細説明';
+	assert.equal(formatCardHeadingEyebrow(ratio), ratio);
+
+	const bareStep = '### Step 1\n詳細説明';
+	assert.equal(formatCardHeadingEyebrow(bareStep), bareStep);
 });
 
 

@@ -18,6 +18,7 @@ export { preprocessBadges } from './badges';
 export { extractSlideNotes } from './notes';
 export { inferSlideLayout, preprocessKpi, findExplicitSlideLayout } from './layoutInference';
 export {
+	formatCardHeadingEyebrow,
 	preprocessAutoLayouts,
 	preprocessQaBlocks,
 	preprocessTableHighlights,
