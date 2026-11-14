@@ -460,17 +460,15 @@ export function getExportStyles(params: ExportStyleParams): string {
 			background: color-mix(in srgb, var(--presenter-accent-color) 6%, var(--presenter-base-color, #ffffff));
 			border-radius: 10px;
 			margin: calc(14px * var(--presenter-body-scale, 1)) 0;
+			color: var(--presenter-main-color);
 			font-size: calc(19px * var(--presenter-body-scale, 1));
 			font-style: normal;
 			font-weight: 600;
 		}
 
-		.presenter-slide-body > blockquote {
-			margin-top: auto;
-		}
-
 		.presenter-slide-body blockquote p {
 			margin: 0;
+			color: var(--presenter-main-color);
 			font-weight: 600;
 		}
 
