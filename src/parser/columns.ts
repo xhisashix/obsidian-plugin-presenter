@@ -2,7 +2,7 @@ import type { ColumnRatio, ColumnStyle, ColumnVariant } from '../types';
 import { matchAtxHeading } from './blocks';
 import { parseDirective, MAX_COLUMNS } from './directives';
 import { FenceTracker } from './fence';
-import { formatCardHeadingEyebrow } from './tsutawaruTransforms';
+import { formatCardHeadingEyebrow } from './smartTransforms';
 
 /**
  * Preprocesses HTML comment column directives:

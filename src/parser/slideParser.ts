@@ -10,7 +10,7 @@ import {
 	preprocessAutoLayouts,
 	preprocessQaBlocks,
 	preprocessTableHighlights,
-} from './tsutawaruTransforms';
+} from './smartTransforms';
 
 export { extractFrontmatter } from './frontmatter';
 export { preprocessColumns } from './columns';
@@ -22,7 +22,7 @@ export {
 	preprocessAutoLayouts,
 	preprocessQaBlocks,
 	preprocessTableHighlights,
-} from './tsutawaruTransforms';
+} from './smartTransforms';
 
 interface RawSlide {
 	type: SlideType;

@@ -30,7 +30,7 @@ src/
 ├── parser/
 │   ├── slideParser.ts          # スライド分割、見出し自動継承・連番統合ロジック
 │   ├── layoutInference.ts      # 中扉 (section)、引用 (quote)、KPIメトリクス、チャート3階層配色の自動推論
-│   ├── tsutawaruTransforms.ts  # 『伝わるデザイン』自動構造変換 (H3自動カラム/2x2グリッド、画像・コード6:4分割、比較表推奨列ハイライト、Q&A整列)
+│   ├── smartTransforms.ts      # 『伝わるデザイン』自動構造変換 (H3自動カラム/2x2グリッド、画像・コード6:4分割、比較表推奨列ハイライト、Q&A整列)
 │   ├── frontmatter.ts          # YAMLフロントマター抽出
 │   ├── directives.ts           # HTMLコメント指示子の抽出・解析
 │   ├── columns.ts              # カラムレイアウト・比率(6:4等)・2x2グリッド・ステップの前処理
