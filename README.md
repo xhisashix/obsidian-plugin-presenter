@@ -19,18 +19,21 @@ Keep your natural note-taking workflow and AI-generated Markdown structure (`# H
   - `## H2`: New slide title and delimiter.
   - `### H3` / `#### H4`: Subsections and column headers within slides.
   - Explicit slide delimiters using horizontal rules (`---`) automatically inherit and number the parent `## H2` section heading as `Title 1-1, Title 1-2, ... Title 1-N` (configurable via Settings or frontmatter `inheritHeadings: false`).
-- **Smart Slide Layouts & Auto-Inference**:
-  - Automatically identifies header-only slides as centered **Section Divider** slides.
-  - Formats single-blockquote slides as elegant **Quote / Big Statement** cards.
+- **Smart Slide Layouts & "Tsutawaru Design" Auto-Transforms**:
+  - Automatically identifies header-only slides as centered **Section Divider** slides and single-blockquote slides as **Quote / Big Statement** cards.
+  - **Zero-directive auto-layouts**: Writing 2–3 concise `### H3` sections automatically arranges them into borderless soft-surface cards (`#F8FAFC`); writing 4 `### H3` sections automatically forms a **2×2 grid** to minimize eye movement.
+  - **Golden ratio (`6:4`) media & code splits**: A standalone image or fenced code block paired with explanatory bullet points automatically transforms into a `6:4` split layout (with dark syntax surface `#0F172A` for code).
+  - **Vertical-borderless comparison tables with column highlight**: Eliminates visual noise by removing vertical borders, right-aligning numbers (`tabular-nums`), and highlighting the recommended column via `<!-- table: highlight N -->` or `[Recommended]` / `[推奨]` / `★` headers.
+  - **Q&A hanging indent alignment**: Consecutive `Q.` and `A.` lines are automatically formatted into aligned FAQ cards.
   - Full override support with explicit directives (`<!-- slide: section -->`, `<!-- slide: quote -->`, `<!-- slide: content -->`) and configurable toggle in Settings or frontmatter (`smartLayouts: false`).
-- **Flexible Styling & Color Themes (Settings & Frontmatter)**:
-  - Configure default color palettes, headers, footers, and logos in the plugin settings.
+- **70:25:5 Color System & Flexible Themes (Settings & Frontmatter)**:
+  - Built on the golden **70:25:5 color hierarchy**: Base background (`baseColor`: `#ffffff`), Main structure (`accentColor`: `#2563eb`), and 5% Pop highlight (`popColor`: `#ea580c`) for hero KPIs, recommended table columns, and priority quadrants.
   - Zero-configuration required: notes convert to slides instantly, and any property can be overridden per note via frontmatter.
 - **Multi-Column Grid Layouts & Ratio/Step Options**:
-  - Uses standard Markdown-compatible HTML comments (`<!-- columns 2 -->`, `<!-- columns 3 -->`) for cross-platform compatibility.
-  - **Non-uniform column ratios**: Supports `<!-- columns 2:1 -->` (wide diagram on the left, explanation on the right) and `<!-- columns 1:2 -->`.
+  - Uses standard Markdown-compatible HTML comments (`<!-- columns 2 -->`, `<!-- columns 3 -->`, `<!-- columns 2x2 -->`) for cross-platform compatibility.
+  - **Non-uniform column ratios**: Supports `<!-- columns 6:4 -->` (`3:2`), `<!-- columns 4:6 -->` (`2:3`), `<!-- columns 2:1 -->`, and `<!-- columns 1:2 -->`.
   - **Step flow process**: Use `<!-- columns 3 step -->` to format items as progressive sequence cards (`STEP 01`, `STEP 02`...).
-  - Choose between **Card style** and **Plain style** (`<!-- columns 2 plain -->`).
+  - Choose between borderless **Card style** (`#F8FAFC` soft surface) and **Plain style** (`<!-- columns 2 plain -->`).
 - **Interactive Slide Template Navigator & Command Palette Quick Picker**:
   - Built-in visual template navigator featuring **13 consulting-grade slide layouts**, **12 purpose-driven usecases** ("Find by purpose"), CSS wireframe previews, strict layout rules, and **6 core slide design principles**.
   - Insert complete slide scaffolds (action title + structured columns/tables/callouts) or layout bodies with a single click from the command palette (`Presenter: Insert slide design template...`, `Presenter: Open slide template navigator...`, or any of the 13 direct `Presenter: Insert design template: ...` commands) or the live preview toolbar.

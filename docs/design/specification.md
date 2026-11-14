@@ -70,9 +70,10 @@ accentColor: "#e11d48"
 
 | フロントマターキー | 設定画面の対応項目 | 型 | デフォルト値 | 説明 |
 | :--- | :--- | :--- | :--- | :--- |
-| `baseColor` (または `background`) | Default base color (background) | string (HEX/RGB) | `#ffffff` | スライドの背景色（ベースカラー） |
+| `baseColor` (または `background`) | Default base color (background) | string (HEX/RGB) | `#ffffff` | スライドの背景色（ベースカラー：面積比 70%） |
 | `mainColor` (または `color`) | Default main color (text) | string (HEX/RGB) | `#1e293b` | 本文テキスト・見出しの基本文字色 |
-| `accentColor` | Default accent color | string (HEX/RGB) | `#2563eb` | 強調テキスト、境界線、マーカーの色 |
+| `accentColor` | Default accent color | string (HEX/RGB) | `#2563eb` | メイン構造カラー（見出しライン・マーカー・テーブルヘッダー等：面積比 25%） |
+| `popColor` (または `pop-color`, `highlightColor`) | Default pop color (highlight) | string (HEX/RGB) | `#ea580c` | 強調・注目色（KPI数値・最重要バッジ・推奨列/象限ハイライト等：面積比 5%） |
 | `header` | Default header | string | 空文字 | スライド上部に表示するヘッダーテキスト |
 | `footer` | Default footer | string | 空文字 | スライド下部に表示するフッターテキスト |
 | `logo` | Default logo | string | 空文字 | Vault内画像パス (`attachments/logo.png`) または外部URL |
@@ -136,7 +137,7 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
 
 | スタイル | 特徴 | 適用方法 |
 | :--- | :--- | :--- |
-| **`card`** (デフォルト) | 背景色（`rgba(120, 120, 120, 0.04)`）、枠線、角丸、内側パディングを持つカード風 | `<!-- columns 2 card -->` または `columnStyle: card` |
+| **`card`** (デフォルト) | 『伝わるデザイン』の「面で囲み、線を消す」原則に基づき、外枠線を廃したソフト背景（`#F8FAFC`）、角丸 `12px`、内側パディング（`28px 32px`）、微細なドロップシャドウを持つカードチャンク | `<!-- columns 2 card -->` または `columnStyle: card` |
 | **`plain`** | 背景色なし（透明）、枠線なし、パディング `0`。カラム間の余白（gap）のみで並ぶプレーンなテキスト配置 | `<!-- columns 2 plain -->` または `columnStyle: plain` |
 
 > [!NOTE]
@@ -385,26 +386,52 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
 - **コマンドパレット**:
   `Presenter: Check slide overflow`（`check-overflow`）からいつでも即時検査が可能。
 
+### 10.5 文字数適応・スタイル崩れ防止仕様 (Content-Adaptive Resilience Engine)
+スライドごとに文字数が大幅に異なる実務環境において、文字数の多寡による視覚的レイアウト崩れを全自動で防ぐ5段階の防御機構を提供します：
+1. **横方向の突き抜け・グリッド破壊防止 (Grid & Text Containment)**:
+   - 全文・パラグラフ・テーブル・コードに `overflow-wrap: anywhere; word-break: normal;` を適用し、長い英単語・URL・コードの枠外突き抜けを阻止。
+   - すべてのカラム・グリッド要素に `min-width: 0; min-height: 0;` を明示し、子要素の文字長でグリッド列幅が勝手に広がる現象（Grid blowout）を完全遮断。
+2. **長文見出し（H2）の自動フォント調整 (`has-long-title`)**:
+   - スライドタイトルが25文字以上の長文アクションタイトルの場合、フォントサイズを自動で `34px` → `26px`（`line-height: 1.2`）へ最適化し、上部タイトルだけでスライド垂直領域が圧迫されるのを防ぐ。
+3. **長文スライドの高密度余白圧縮 (`is-dense-scale`)**:
+   - スケールが `0.82` 以下に縮小された文字数過多スライドでは、フォントを過度に潰さず、行間（1.38）や段落間マージン、カード内パディングをキュッと引き締める高密度モードへ自動移行。
+4. **極端な長文スライドのフェードガード (`is-overflow-clamped`)**:
+   - 70%縮小でも収まらない1000文字超の限界スライドでは、不快な縦スクロールバーを抑止し、下部フェードアウトグラデーションでカード境界を保護した上でスライド分割を案内。
+5. **短文スライド（ショートコンテンツ）の美観保持 (`is-short-content`)**:
+   - 本文が1〜3行しかないスライドでは、上部に文字がポツンと固定されて下部に広大な空隙が生じるのを防ぎ、垂直中央揃え（`justify-content: center`）とゆったりした行間（1.65）で力強いステートメントカードとして成立。
+6. **単一HTMLエクスポートでのAuto-fit完全同期**:
+   - Obsidian内だけでなく、エクスポートされた配布用HTML上でもクライアントJSにより文字数に応じたAuto-fitが自動作動し、受け取り手のブラウザ環境でのスタイル崩れをゼロ化。
+
 ---
 
-## 11. スマートスライドレイアウト仕様 (Smart Slide Layouts Specification)
+## 11. スマートスライドレイアウト仕様 (Smart Slide Layouts & "Tsutawaru Design" Auto-Transforms)
 
 ### 11.1 優先順位ルール
 1. **最高優先（明示的指示子）**: スライド内に `<!-- slide: section -->`, `<!-- slide: quote -->`, `<!-- slide: content -->` がある場合、設定のON/OFFに関わらず強制適用。
 2. **自動推論（設定 `enableSmartLayouts: true` 時）**:
    - `section`（中扉）: H2見出しのみで本文を持たないスライドを自動検知し、中央配置・アクセントタイトルの章扉デザインとして描画。
    - `quote`（引用・ビッグメッセージ）: H2見出し＋単一の引用ブロック（`> ...`）で構成されるスライドを中央大文字の引用デザインとして描画。
-   - `KPIメトリクス`: 単独行の太字数値（`**+140%**`, `**3.5x**` 等）を自動検知し、`.presenter-kpi-value`（44pxアクセントカラー）で強調表示。
+   - `KPIメトリクス`: 単独行の太字数値（`**+140%**`, `**3.5x**` 等）を自動検知し、`.presenter-kpi-value`（52px・注目色 `--presenter-pop-color` `#ea580c`・等幅数字 `tabular-nums`）で強調表示。
+   - **『伝わるデザイン』自動構造変換 (`smartTransforms.ts`)**:
+     明示的な `<!-- columns -->` 指示子を書かなくても、標準Markdownの自然な構造から視線誘導に優れたスライドレイアウトへ自動変換します：
+     - **H3見出し群の自動カード・2×2グリッド化**: スライド内に簡潔な `### H3` セクションが **2〜3個** 並ぶ場合は自動的に2〜3カラムのソフトカード（`#F8FAFC`）へ横並び配置。**4個** 並ぶ場合は横一列の視線移動距離を抑えるため自動的に **`2×2` グリッド (`presenter-cols-grid`)** へ変換（末尾の `> [!important]` Calloutはグリッド外の下部全幅サマリーとして維持）。
+     - **画像＋解説テキストの黄金比（6:4）自動分割**: スライド内に単独画像（`![]()` または `![[]]`）と箇条書き/小見出しが共存する場合、自動的に `<!-- columns 6:4 plain -->` 相当の左右分割レイアウト（`presenter-cols-media-split`）へ変換。
+     - **コードブロック＋解説の黄金比（6:4）ダーク分割**: 単一のフェンスコードブロック（18行以下）と解説リストが共存する場合、左60%にダークテーマ（`#0F172A`）コード枠、右40%に解説カードを並べる `presenter-cols-code-split` レイアウトへ自動変換。
+     - **比較テーブルの縦罫線排除 ＆ 推奨列ハイライト**: 表の縦罫線を排除して横罫線のみとし、数値右揃え（`tabular-nums`）を適用。さらに `<!-- table: highlight N -->` 指示子、または列ヘッダー内の `[推奨]` / `[おすすめ]` / `[Recommended]` / `★` / `🎯`（あるいは唯一の太字ヘッダー列）を自動検知して該当列全体をソフトオレンジ背景＋上部アクセントボーダーでハイライト（`.presenter-table-highlight-col-N`）。
+     - **Q&A（よくある質問）の自動ぶら下げインデント整列**: `Q. ...` / `A. ...` の連続行を検知し、`Q.`（メインブルー）と `A.`（ポップオレンジ）の頭文字位置を揃えた `.presenter-qa-list` カードへ自動変換。
 3. **フォールバック**: 設定OFFかつ明示コメント未指定時は、すべてのスライドを標準の `content` レイアウトとして描画。
 
 ---
 
 ## 12. 非均等カラム比率 & コンサル図解バリアント仕様
 
-### 12.1 非均等カラム比率 (`<!-- columns 2:1 -->` 等)
-- `<!-- columns 2:1 -->`: 左カラム幅 2fr、右カラム幅 1fr の黄金比グリッドを生成（図＋解説に最適）。
+### 12.1 非均等カラム比率 (`<!-- columns 2:1 -->` / `<!-- columns 6:4 -->` 等)
+- `<!-- columns 6:4 -->` (または `<!-- columns 3:2 -->`): 左カラム幅 3fr (60%)、右カラム幅 2fr (40%) の『伝わるデザイン』黄金比グリッドを生成（図表・画像・コード＋解説に最適）。
+- `<!-- columns 4:6 -->` (または `<!-- columns 2:3 -->`): 左 40%・右 60% の黄金比グリッド。
+- `<!-- columns 2:1 -->`: 左カラム幅 2fr、右カラム幅 1fr のグリッドを生成。
 - `<!-- columns 1:2 -->`: 右カラムを広めに確保。
-- `card` / `plain` スタイルとも併用可能（例: `<!-- columns 2:1 plain -->`）。
+- `<!-- columns 2x2 -->` (または `<!-- columns grid -->`): 4つの要素を2列×2段のグリッド（`.presenter-cols-grid`）として配置。
+- `card` / `plain` スタイルとも併用可能（例: `<!-- columns 6:4 plain -->`）。
 
 ### 12.2 ステップフロー (`<!-- columns 3 step -->`)
 - `<!-- columns 3 step -->` または `<!-- columns 4 step -->`:

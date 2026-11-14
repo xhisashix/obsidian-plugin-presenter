@@ -72,6 +72,14 @@ export class PresenterSettingTab extends PluginSettingTab {
 							key: 'defaultAccentColor',
 						},
 					},
+					{
+						name: 'Default pop color (highlight)',
+						desc: '5% focal highlight color for KPI metrics, primary chart bars, and key conclusions (override with frontmatter `popColor`).',
+						control: {
+							type: 'color',
+							key: 'defaultPopColor',
+						},
+					},
 				],
 			},
 			{
@@ -269,6 +277,26 @@ export class PresenterSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.defaultAccentColor)
 					.onChange(async (val) => {
 						this.plugin.settings.defaultAccentColor = val;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName('Default pop color (highlight)')
+			.setDesc('5% focal highlight color for KPI metrics, primary chart bars, and key conclusions (override with frontmatter `popColor`).')
+			.addColorPicker((picker) =>
+				picker
+					.setValue(this.plugin.settings.defaultPopColor)
+					.onChange(async (val) => {
+						this.plugin.settings.defaultPopColor = val;
+						await this.plugin.saveSettings();
+					})
+			)
+			.addText((text) =>
+				text
+					.setValue(this.plugin.settings.defaultPopColor)
+					.onChange(async (val) => {
+						this.plugin.settings.defaultPopColor = val;
 						await this.plugin.saveSettings();
 					})
 			);

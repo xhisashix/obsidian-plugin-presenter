@@ -1,6 +1,6 @@
 export type ColumnStyle = 'card' | 'plain';
-export type ColumnRatio = '2:1' | '1:2' | '3:1' | '1:3';
-export type ColumnVariant = 'normal' | 'step' | 'pyramid' | 'funnel' | 'matrix' | 'cycle';
+export type ColumnRatio = '2:1' | '1:2' | '3:1' | '1:3' | '3:2' | '2:3';
+export type ColumnVariant = 'normal' | 'step' | 'pyramid' | 'funnel' | 'matrix' | 'cycle' | 'grid';
 
 export type SlideLayout = 'cover' | 'content' | 'section' | 'quote';
 export type SlideType = SlideLayout;
@@ -9,6 +9,7 @@ export interface PresenterSettings {
 	defaultBaseColor: string;
 	defaultMainColor: string;
 	defaultAccentColor: string;
+	defaultPopColor: string;
 	defaultHeader: string;
 	defaultFooter: string;
 	defaultLogo: string;
@@ -26,6 +27,7 @@ export const DEFAULT_SETTINGS: PresenterSettings = {
 	defaultBaseColor: '#ffffff',
 	defaultMainColor: '#1e293b',
 	defaultAccentColor: '#2563eb',
+	defaultPopColor: '#ea580c',
 	defaultHeader: '',
 	defaultFooter: '',
 	defaultLogo: '',
@@ -43,6 +45,7 @@ export interface SlideFrontmatter {
 	baseColor?: string;
 	mainColor?: string;
 	accentColor?: string;
+	popColor?: string;
 	header?: string;
 	footer?: string;
 	logo?: string;

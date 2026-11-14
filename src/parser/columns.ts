@@ -2,6 +2,7 @@ import type { ColumnRatio, ColumnStyle, ColumnVariant } from '../types';
 import { matchAtxHeading } from './blocks';
 import { parseDirective, MAX_COLUMNS } from './directives';
 import { FenceTracker } from './fence';
+import { formatCardHeadingEyebrow } from './smartTransforms';
 
 /**
  * Preprocesses HTML comment column directives:
@@ -211,12 +212,27 @@ function renderColumnRegion(
 		return `<div class="presenter-cols presenter-cols-1${styleClass}${variantClass}">\n${rowDivs}\n</div>`;
 	}
 
+	if (
+		(!effectiveVariant || effectiveVariant === 'normal') &&
+		specifiedCount === undefined &&
+		cols.length === 4
+	) {
+		effectiveVariant = 'grid';
+	}
+
 	const defaultCountForVariant =
-		effectiveVariant === 'matrix' || effectiveVariant === 'cycle' ? 2 : cols.length;
-	const count = Math.min(
-		MAX_COLUMNS,
-		Math.max(1, specifiedCount ?? defaultCountForVariant)
-	);
+		effectiveVariant === 'matrix' ||
+		effectiveVariant === 'cycle' ||
+		effectiveVariant === 'grid'
+			? 2
+			: cols.length;
+	const count =
+		effectiveVariant === 'grid'
+			? 2
+			: Math.min(
+					MAX_COLUMNS,
+					Math.max(1, specifiedCount ?? defaultCountForVariant)
+			  );
 
 	const styleClass = style === 'plain' ? ' presenter-cols-plain' : ' presenter-cols-card';
 	const ratioClass = ratio ? ` presenter-cols-ratio-${ratio.replace(':', '-')}` : '';
@@ -228,7 +244,8 @@ function renderColumnRegion(
 		.map((c) => {
 			const isHighlight = HIGHLIGHT_MARKER_REGEX.test(c);
 			const hiClass = isHighlight ? ' presenter-col-highlight' : '';
-			return `<div class="presenter-col${hiClass}">\n\n${c}\n\n</div>`;
+			const formattedCol = effectiveVariant === 'step' ? c : formatCardHeadingEyebrow(c);
+			return `<div class="presenter-col${hiClass}">\n\n${formattedCol}\n\n</div>`;
 		})
 		.join('\n');
 

@@ -71,6 +71,7 @@ export async function renderSlide(
 	const baseColor = config.baseColor || settings.defaultBaseColor || '#ffffff';
 	const mainColor = config.mainColor || settings.defaultMainColor || '#1e293b';
 	const accentColor = config.accentColor || settings.defaultAccentColor || '#2563eb';
+	const popColor = config.popColor || settings.defaultPopColor || '#ea580c';
 	const headerText = config.header !== undefined ? config.header : settings.defaultHeader;
 	const footerText = config.footer !== undefined ? config.footer : settings.defaultFooter;
 	const logoInput = config.logo !== undefined ? config.logo : settings.defaultLogo;
@@ -90,6 +91,7 @@ export async function renderSlide(
 	slideCardEl.style.setProperty('--presenter-base-color', baseColor);
 	slideCardEl.style.setProperty('--presenter-main-color', mainColor);
 	slideCardEl.style.setProperty('--presenter-accent-color', accentColor);
+	slideCardEl.style.setProperty('--presenter-pop-color', popColor);
 
 	// 1. Header (Logo & Header Text) - only render if present
 	if (headerText || logoUrl) {
@@ -113,6 +115,29 @@ export async function renderSlide(
 	const bodyEl = slideCardEl.createDiv({
 		cls: 'presenter-slide-body markdown-rendered',
 	});
+
+	// Text density & length resilience classes
+	if (slide.title && slide.title.length > 24) {
+		bodyEl.addClass('has-long-title');
+	}
+
+	const rawMarkdown = slide.markdown.replace(/<!--[\s\S]*?-->/g, '').trim();
+	const nonHeadingLines = rawMarkdown
+		.split('\n')
+		.map((l) => l.trim())
+		.filter((l) => l.length > 0 && !/^#{1,6}\s/.test(l));
+	if (
+		slide.layout === 'content' &&
+		!rawMarkdown.includes('<table') &&
+		!rawMarkdown.includes('|') &&
+		!rawMarkdown.includes('```') &&
+		!rawMarkdown.includes('class="presenter-') &&
+		nonHeadingLines.length > 0 &&
+		nonHeadingLines.length <= 3 &&
+		rawMarkdown.length < 140
+	) {
+		bodyEl.addClass('is-short-content');
+	}
 
 	// Render Markdown using Obsidian's native parser
 	await MarkdownRenderer.render(
