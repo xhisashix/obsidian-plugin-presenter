@@ -41,16 +41,45 @@ export function getExportScript(params: ExportScriptParams): string {
 			const notesContent = document.getElementById('notes-content');
 			const stageContainer = document.getElementById('stage-container');
 
+			function autoFitSlideCard(card) {
+				if (!card) return;
+				const bodyEl = card.querySelector('.presenter-slide-body');
+				if (!bodyEl) return;
+				bodyEl.style.removeProperty('--presenter-body-scale');
+				bodyEl.classList.remove('is-autofitted', 'is-dense-scale', 'is-overflow-clamped');
+
+				const scrollH = bodyEl.scrollHeight;
+				const clientH = bodyEl.clientHeight;
+				if (clientH <= 0 || scrollH <= clientH + 4) return;
+
+				let scale = Math.max(0.70, Math.floor((clientH / scrollH) * 100) / 100);
+				bodyEl.style.setProperty('--presenter-body-scale', String(scale));
+				bodyEl.classList.add('is-autofitted');
+				if (scale <= 0.82) bodyEl.classList.add('is-dense-scale');
+
+				let steps = 0;
+				while (bodyEl.scrollHeight > bodyEl.clientHeight + 4 && scale > 0.70 && steps < 8) {
+					scale = Math.max(0.70, Math.round((scale - 0.03) * 100) / 100);
+					bodyEl.style.setProperty('--presenter-body-scale', String(scale));
+					steps++;
+				}
+				if (bodyEl.scrollHeight > bodyEl.clientHeight + 4) {
+					bodyEl.classList.add('is-overflow-clamped');
+				}
+			}
+
 			function showSlide(index) {
 				if (index < 0 || index >= total) return;
 				currentIndex = index;
 
+				let activeCard = null;
 				// Update active slide
 				for (let i = 0; i < total; i++) {
 					const card = document.getElementById('slide-' + i);
 					if (card) {
 						if (i === index) {
 							card.classList.add('active');
+							activeCard = card;
 						} else {
 							card.classList.remove('active');
 						}
@@ -64,6 +93,10 @@ export function getExportScript(params: ExportScriptParams): string {
 							thumb.classList.remove('is-active');
 						}
 					}
+				}
+
+				if (activeCard) {
+					autoFitSlideCard(activeCard);
 				}
 
 				// Update counter & progress

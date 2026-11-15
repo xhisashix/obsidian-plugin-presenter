@@ -81,11 +81,19 @@ export function parseDirective(line: string): Directive | null {
 				if (count >= 1 && count <= MAX_COLUMNS) directive.count = count;
 			} else if (token === 'card' || token === 'plain') {
 				directive.style = token;
-			} else if (token === '2:1' || token === '1:2' || token === '3:1' || token === '1:3') {
+			} else if (token === '2:1' || token === '1:2' || token === '3:1' || token === '1:3' || token === '3:2' || token === '2:3') {
 				directive.ratio = token;
+				if (!directive.count) directive.count = 2;
+			} else if (token === '6:4') {
+				directive.ratio = '3:2';
+				if (!directive.count) directive.count = 2;
+			} else if (token === '4:6') {
+				directive.ratio = '2:3';
 				if (!directive.count) directive.count = 2;
 			} else if (token === 'step' || token === 'steps') {
 				directive.variant = 'step';
+			} else if (token === 'grid' || token === '2x2') {
+				directive.variant = 'grid';
 			} else if (
 				token === 'pyramid' ||
 				token === 'funnel' ||

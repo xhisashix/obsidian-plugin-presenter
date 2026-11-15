@@ -156,6 +156,7 @@ void test('buildPptxTheme resolves frontmatter overrides and dimensions', () => 
 	assert.equal(theme.baseColor, '0F172A');
 	assert.equal(theme.mainColor, 'F8FAFC');
 	assert.equal(theme.accentColor, '38BDF8');
+	assert.equal(theme.popColor, 'EA580C');
 	assert.equal(theme.isDark, true);
 	assert.equal(theme.aspectRatio, '4:3');
 	assert.equal(theme.width, 10.0);
@@ -273,6 +274,11 @@ void test('computeColumnWidths and spansToTextProps calculate layout and text ru
 	assert.equal(widths.length, 2);
 	assert.ok(Math.abs((widths[0] ?? 0) - 6.0) < 0.01);
 	assert.ok(Math.abs((widths[1] ?? 0) - 3.0) < 0.01);
+
+	const goldenWidths = computeColumnWidths(10.2, 2, 0.2, '3:2');
+	assert.equal(goldenWidths.length, 2);
+	assert.ok(Math.abs((goldenWidths[0] ?? 0) - 6.0) < 0.01);
+	assert.ok(Math.abs((goldenWidths[1] ?? 0) - 4.0) < 0.01);
 
 	const theme = buildPptxTheme({}, DEFAULT_SETTINGS);
 	const props = spansToTextProps(

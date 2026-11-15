@@ -101,7 +101,7 @@ export function inferSlideLayout(
 	return 'content';
 }
 
-const KPI_REGEX = /^\s*\*\*([+-]?[$¥€£]?\s*[\d,.]+\s*(?:%|倍|社|人|円|万|億|k|m|b|ms|s|fps|pt|pts|x|件|点)?|[¥$€£][\d,.]+[a-zA-Z万億]?)\*\*\s*$/i;
+export const KPI_REGEX = /^\s*\*\*([+-]?[$¥€£]?\s*[\d,.]+\s*(?:%|倍|社|人|円|万|億|k|m|b|ms|s|fps|pt|pts|x|件|点)?|[¥$€£][\d,.]+[a-zA-Z万億]?)\*\*\s*$/i;
 
 /**
  * Preprocesses KPI metrics: transforms standalone bold numeric metric lines
@@ -161,9 +161,14 @@ export function preprocessKpi(markdown: string, enableSmartLayouts: boolean = tr
 		}
 
 		if (inExplicitKpi) {
+			if (!trimmed) {
+				output.push(line);
+				continue;
+			}
 			const boldMatch = trimmed.match(/^\*\*(.*?)\*\*$/);
 			const value = boldMatch && boldMatch[1] ? boldMatch[1] : trimmed;
-			output.push(`<div class="presenter-kpi-value">${value}</div>`);
+			const longCls = value.length > 8 ? ' presenter-kpi-value-long' : '';
+			output.push('', `<div class="presenter-kpi-value${longCls}">${value}</div>`, '');
 			continue;
 		}
 
@@ -173,7 +178,8 @@ export function preprocessKpi(markdown: string, enableSmartLayouts: boolean = tr
 				const value = match[1].trim();
 				// Ensure not a plain short number in a numbered list
 				if (!/^\d+\.$/.test(value)) {
-					output.push(`<div class="presenter-kpi-value">${value}</div>`);
+					const longCls = value.length > 8 ? ' presenter-kpi-value-long' : '';
+					output.push('', `<div class="presenter-kpi-value${longCls}">${value}</div>`, '');
 					continue;
 				}
 			}
@@ -209,14 +215,21 @@ function renderChartBarsBlock(lines: string[]): string {
 		const pctMatch = pctRaw.match(/(\d+(?:\.\d+)?)/);
 		const pct = pctMatch ? Math.max(6, Math.min(100, Number(pctMatch[1]))) : 50;
 
-		const isAccent =
+		const isPop =
 			content.includes('**') ||
-			/\[(?:牽引|重点|重要|強調|ボトルネック|目標)\]/.test(content) ||
+			/\[(?:牽引|重点|重要|強調|ボトルネック|目標|推奨|最重点)\]/.test(content) ||
 			content.includes('🎯');
+		const isSecondaryMain =
+			!isPop &&
+			(/\[(?:比較|標準|次点)\]/.test(content) || pct >= 55);
 
 		const labelHtml = formatInlineBold(labelRaw);
 		const valHtml = formatInlineBold(valRaw);
-		const accentClass = isAccent ? ' presenter-chart-row-accent' : '';
+		const accentClass = isPop
+			? ' presenter-chart-row-accent presenter-chart-row-pop'
+			: isSecondaryMain
+				? ' presenter-chart-row-main'
+				: '';
 
 		rows.push(
 			`<div class="presenter-chart-row${accentClass}"><div class="presenter-chart-meta"><span class="presenter-chart-label">${labelHtml}</span><span class="presenter-chart-val">${valHtml}</span></div><div class="presenter-chart-track"><div class="presenter-chart-fill" style="width: ${pct}%"></div></div></div>`

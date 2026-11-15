@@ -6,12 +6,23 @@ import { FenceTracker } from './fence';
 import { extractFrontmatter } from './frontmatter';
 import { findExplicitSlideLayout, inferSlideLayout, preprocessKpi } from './layoutInference';
 import { extractSlideNotes } from './notes';
+import {
+	preprocessAutoLayouts,
+	preprocessQaBlocks,
+	preprocessTableHighlights,
+} from './smartTransforms';
 
 export { extractFrontmatter } from './frontmatter';
 export { preprocessColumns } from './columns';
 export { preprocessBadges } from './badges';
 export { extractSlideNotes } from './notes';
 export { inferSlideLayout, preprocessKpi, findExplicitSlideLayout } from './layoutInference';
+export {
+	formatCardHeadingEyebrow,
+	preprocessAutoLayouts,
+	preprocessQaBlocks,
+	preprocessTableHighlights,
+} from './smartTransforms';
 
 interface RawSlide {
 	type: SlideType;
@@ -283,13 +294,19 @@ export function parsePresentation(
 		}
 	}
 
-	// Map to SlideData, extract notes, preprocess columns, kpi, and badges
+	// Map to SlideData, extract notes, preprocess columns, auto layouts, tables, Q&A, kpi, and badges
 	const slides: SlideData[] = rawSlides.map((s, idx) => {
 		const { bodyLines, notesMarkdown } = extractSlideNotes(s.lines);
-		const columnProcessed = preprocessColumns(bodyLines.join('\n'), resolvedDefaultStyle);
-		const kpiProcessed = preprocessKpi(columnProcessed, resolvedSmartLayouts);
-		const badgeProcessed = preprocessBadges(kpiProcessed, enableBadges);
 		const layout = inferSlideLayout(s.lines, s.type, resolvedSmartLayouts);
+		const columnProcessed = preprocessColumns(bodyLines.join('\n'), resolvedDefaultStyle);
+		const autoLayoutProcessed =
+			layout === 'content'
+				? preprocessAutoLayouts(columnProcessed, resolvedDefaultStyle, resolvedSmartLayouts)
+				: columnProcessed;
+		const tableProcessed = preprocessTableHighlights(autoLayoutProcessed, resolvedSmartLayouts);
+		const qaProcessed = preprocessQaBlocks(tableProcessed, resolvedSmartLayouts);
+		const kpiProcessed = preprocessKpi(qaProcessed, resolvedSmartLayouts);
+		const badgeProcessed = preprocessBadges(kpiProcessed, enableBadges);
 
 		return {
 			index: idx,

@@ -72,6 +72,14 @@ export class PresenterSettingTab extends PluginSettingTab {
 							key: 'defaultAccentColor',
 						},
 					},
+					{
+						name: 'Default pop color (highlight)',
+						desc: '5% focal highlight color for KPI metrics, primary chart bars, and key conclusions (override with frontmatter `popColor`).',
+						control: {
+							type: 'color',
+							key: 'defaultPopColor',
+						},
+					},
 				],
 			},
 			{
@@ -134,7 +142,7 @@ export class PresenterSettingTab extends PluginSettingTab {
 				items: [
 					{
 						name: 'Show notes by default',
-						desc: 'Display presenter notes panel (`> [!note]`) by default during presentations.',
+						desc: 'Display speaker script & presenter notes (`> [!note]`) by default in live preview and fullscreen presentations.',
 						control: {
 							type: 'toggle',
 							key: 'showNotes',
@@ -273,6 +281,26 @@ export class PresenterSettingTab extends PluginSettingTab {
 					})
 			);
 
+		new Setting(containerEl)
+			.setName('Default pop color (highlight)')
+			.setDesc('5% focal highlight color for KPI metrics, primary chart bars, and key conclusions (override with frontmatter `popColor`).')
+			.addColorPicker((picker) =>
+				picker
+					.setValue(this.plugin.settings.defaultPopColor)
+					.onChange(async (val) => {
+						this.plugin.settings.defaultPopColor = val;
+						await this.plugin.saveSettings();
+					})
+			)
+			.addText((text) =>
+				text
+					.setValue(this.plugin.settings.defaultPopColor)
+					.onChange(async (val) => {
+						this.plugin.settings.defaultPopColor = val;
+						await this.plugin.saveSettings();
+					})
+			);
+
 		new Setting(containerEl).setName('Layout & grid').setHeading();
 
 		new Setting(containerEl)
@@ -343,7 +371,7 @@ export class PresenterSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Show notes by default')
-			.setDesc('Display presenter notes panel (`> [!note]`) by default during presentations.')
+			.setDesc('Display speaker script & presenter notes (`> [!note]`) by default in live preview and fullscreen presentations.')
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.showNotes)

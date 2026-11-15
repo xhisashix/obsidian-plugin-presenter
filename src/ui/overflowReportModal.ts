@@ -25,7 +25,7 @@ export class OverflowReportModal extends Modal {
 		contentEl.addClass('presenter-overflow-report-modal');
 
 		const headerEl = contentEl.createDiv({ cls: 'presenter-overflow-report-header' });
-		headerEl.createEl('h2', { text: 'Slide overflow inspection' });
+		headerEl.createEl('h2', { text: 'Slide density & overflow inspection' });
 
 		const overflowingSlides = this.reports.filter((r) => r.isOverflowing);
 
@@ -34,7 +34,7 @@ export class OverflowReportModal extends Modal {
 			const iconEl = emptyEl.createDiv({ cls: 'presenter-overflow-good-icon' });
 			setIcon(iconEl, 'check-circle');
 			emptyEl.createEl('p', {
-				text: `All ${this.reports.length} slides fit comfortably within the presentation card boundaries!`,
+				text: `All ${this.reports.length} slides fit comfortably within 1-slide-1-message boundaries!`,
 			});
 			new Setting(contentEl).addButton((btn) =>
 				btn.setButtonText('Close').setCta().onClick(() => this.close())
@@ -44,7 +44,7 @@ export class OverflowReportModal extends Modal {
 
 		contentEl.createEl('p', {
 			cls: 'setting-item-description',
-			text: `Found ${overflowingSlides.length} out of ${this.reports.length} slides exceeding card boundaries. Jump to a slide to adjust text or split it by a sub-heading.`,
+			text: `Found ${overflowingSlides.length} out of ${this.reports.length} slides exceeding 1-slide-1-message density. Split the slide or move detailed talking points into > [!note] speaker script.`,
 		});
 
 		const listEl = contentEl.createDiv({ cls: 'presenter-overflow-report-list' });
@@ -77,7 +77,7 @@ export class OverflowReportModal extends Modal {
 			if (item.canSplitByHeading && item.splitHeadingTitle) {
 				metaEl.setText(`Can split into 2 slides at: "${item.splitHeadingTitle}"`);
 			} else {
-				metaEl.setText('Consider shortening text or dividing into multiple slides.');
+				metaEl.setText('Tip: Move spoken details into > [!note] speaker script, or divide into multiple slides.');
 			}
 
 			const actionsEl = itemEl.createDiv({ cls: 'presenter-overflow-item-actions' });

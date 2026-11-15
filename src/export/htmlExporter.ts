@@ -229,6 +229,7 @@ export async function exportPresentationToHtml(
 	const baseColor = config.baseColor || settings.defaultBaseColor || '#ffffff';
 	const mainColor = config.mainColor || settings.defaultMainColor || '#1e293b';
 	const accentColor = config.accentColor || settings.defaultAccentColor || '#2563eb';
+	const popColor = config.popColor || settings.defaultPopColor || '#ea580c';
 	const headerText = config.header !== undefined ? config.header : settings.defaultHeader;
 	const footerText = config.footer !== undefined ? config.footer : settings.defaultFooter;
 	const aspectRatio = config.aspectRatio || settings.aspectRatio || '16:9';
@@ -290,6 +291,7 @@ export async function exportPresentationToHtml(
 		baseColor,
 		mainColor,
 		accentColor,
+		popColor,
 		baseWidth,
 		baseHeight,
 	});

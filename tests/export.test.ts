@@ -111,6 +111,7 @@ void test('getExportStyles generates CSS with provided colors, dimensions, and l
 		baseColor: '#123456',
 		mainColor: '#abcdef',
 		accentColor: '#fe5722',
+		popColor: '#ea580c',
 		baseWidth: 1920,
 		baseHeight: 1080,
 	});
@@ -118,6 +119,9 @@ void test('getExportStyles generates CSS with provided colors, dimensions, and l
 	assert.match(css, /--presenter-base-color:\s*#123456/);
 	assert.match(css, /--presenter-main-color:\s*#abcdef/);
 	assert.match(css, /--presenter-accent-color:\s*#fe5722/);
+	assert.match(css, /--presenter-pop-color:\s*#ea580c/);
+	assert.match(css, /--mp-slide-padding:\s*56px 72px/);
+	assert.match(css, /--mp-h2-size:\s*34px/);
 	assert.match(css, /--slide-width:\s*1920px/);
 	assert.match(css, /--slide-height:\s*1080px/);
 
@@ -126,10 +130,16 @@ void test('getExportStyles generates CSS with provided colors, dimensions, and l
 	assert.match(css, /counter-reset:\s*presenter-step-counter/);
 	assert.match(css, /STEP\s*"\s*counter\(presenter-step-counter/);
 
-	// Verify column ratios and plain style
+	// Verify column ratios, 2x2 grid, table highlight, Q&A, and plain style
 	assert.match(css, /\.presenter-cols-ratio-2-1/);
 	assert.match(css, /\.presenter-cols-ratio-1-2/);
+	assert.match(css, /\.presenter-cols-ratio-3-2/);
+	assert.match(css, /\.presenter-cols-grid/);
+	assert.match(css, /\.presenter-table-highlight-col-2/);
+	assert.match(css, /\.presenter-qa-list/);
+	assert.match(css, /\.presenter-chart-row-pop/);
 	assert.match(css, /\.presenter-cols-plain/);
+	assert.equal(css.includes('!important'), false);
 
 	// Verify overview modal styles
 	assert.match(css, /\.presenter-overview-overlay/);

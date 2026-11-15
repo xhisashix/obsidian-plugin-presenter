@@ -6,7 +6,14 @@ import {
 	insertColumnBlock,
 	insertColumnBreak,
 } from '../src/commands/insertColumns';
-import { extractPresentationSummary } from '../src/commands/exportSummary';
+import {
+	cleanSlideMarkdownForBlueprint,
+	cleanSpeakerNotesForBlueprint,
+	estimateScriptMetrics,
+	extractAiSlideBlueprint,
+	extractPresentationSummary,
+	inferSlideLayoutBlueprint,
+} from '../src/commands/exportSummary';
 import { FenceTracker } from '../src/parser/fence';
 import { parseDirective } from '../src/parser/directives';
 import { preprocessColumns } from '../src/parser/columns';
@@ -17,6 +24,11 @@ import {
 	getSlideIndexAtLine,
 	inferSlideLayout,
 	preprocessKpi,
+	extractFrontmatter,
+	preprocessAutoLayouts,
+	preprocessQaBlocks,
+	preprocessTableHighlights,
+	formatCardHeadingEyebrow,
 } from '../src/parser/slideParser';
 
 void test('FenceTracker tracks 3-backtick, 4-backtick, and tilde fences accurately', () => {
@@ -572,6 +584,78 @@ Section overview
 	assert.ok(summary.includes('[重要]**: 締切は来週水曜日まで'));
 });
 
+void test('extractAiSlideBlueprint generates structured storyboard and speaker script blueprint for AI tools', () => {
+	const md = `
+---
+header: "2026 Strategy"
+aspectRatio: "16:9"
+---
+
+# AI Era Presentation Studio
+Direct the story, let AI do the rendering.
+
+## Executive Conclusion
+> [!important] Consolidating 3 systems cuts annual costs by 35%.
+
+<!-- columns 3 card -->
+### 1. Situation
+- 3 legacy systems running in parallel
+
+### 2. Findings
+- **450 hours/month** wasted on manual sync
+
+### 3. Recommendation
+- [重要] Approve migration budget
+<!-- /columns -->
+
+> [!note] Speaker Script
+> まず結論から申し上げます。現在の3系統を単一基盤へ統合することで、年間35%のコスト削減を実現します。
+
+## Process Roadmap
+<!-- columns 3 step -->
+### Phase 1
+- Audit
+### Phase 2
+- Migration
+### Phase 3
+- Cutover
+<!-- /columns -->
+`.trim();
+
+	const presentation = parsePresentation(md);
+	const blueprint = extractAiSlideBlueprint(presentation);
+
+	assert.ok(blueprint.includes('# 🎬 Presentation Storyboard & Master Script Blueprint'));
+	assert.ok(blueprint.includes('- **Title**: AI Era Presentation Studio'));
+	assert.ok(blueprint.includes('- **Total Slides**: 3'));
+	assert.ok(blueprint.includes('### Slide 1 / 3 [Cover Slide]'));
+	assert.ok(blueprint.includes('### Slide 2 / 3 [Executive Summary (結論＋3カラム SCQA型)]'));
+	assert.ok(blueprint.includes('- **Action Title**: Executive Conclusion'));
+	assert.ok(blueprint.includes('[重要] Approve migration budget'));
+	assert.ok(blueprint.includes('🎙 Speaker Script & Context'));
+	assert.ok(blueprint.includes('まず結論から申し上げます'));
+	assert.ok(blueprint.includes('### Slide 3 / 3 [Horizontal Step Flow (ホリゾンタルフロー型)]'));
+
+	// Verify helper functions directly
+	const metrics = estimateScriptMetrics(presentation.slides[1]?.notes);
+	assert.ok(metrics.charCount > 20);
+	assert.ok(metrics.estimatedSeconds >= 5);
+
+	const emptyMetrics = estimateScriptMetrics(undefined);
+	assert.deepEqual(emptyMetrics, { charCount: 0, estimatedSeconds: 0 });
+
+	const cleanedNotes = cleanSpeakerNotesForBlueprint('> [!note] Speaker Note\n> Hello world');
+	assert.equal(cleanedNotes, 'Hello world');
+
+	const cleanedBody = cleanSlideMarkdownForBlueprint(presentation.slides[1]!.markdown);
+	assert.ok(!cleanedBody.includes('<div class="presenter-cols'));
+	assert.ok(!cleanedBody.includes('<span class="presenter-card-eyebrow'));
+	assert.ok(cleanedBody.includes('### 01. Situation'));
+
+	const stepArchetype = inferSlideLayoutBlueprint(presentation.slides[2]!);
+	assert.equal(stepArchetype.archetype, 'Horizontal Step Flow (ホリゾンタルフロー型)');
+});
+
 void test('parsePresentation inherits H2 heading with 1-1, 1-2, 1-N numbering on multi-slide sections', () => {
 	const markdown = `
 # Main Presentation
@@ -688,8 +772,236 @@ Intro content
 `.trim();
 
 	const presentation = parsePresentation(markdown);
+	//Slide 2: quotes
 	assert.equal(presentation.slides.length, 3);
 	assert.equal(presentation.slides[2]?.type, 'quote');
 	assert.ok(!presentation.slides[2]?.markdown.includes('Section A'));
 });
+
+void test('extractFrontmatter parses popColor and aliases', () => {
+	assert.equal(extractFrontmatter('---\npopColor: "#ff5500"\n---').frontmatter.popColor, '#ff5500');
+	assert.equal(extractFrontmatter('---\npop-color: "#ea580c"\n---').frontmatter.popColor, '#ea580c');
+	assert.equal(extractFrontmatter('---\nhighlightColor: "#f97316"\n---').frontmatter.popColor, '#f97316');
+});
+
+void test('parseDirective supports 6:4 / 3:2 ratios and 2x2 grid variant', () => {
+	assert.deepEqual(parseDirective('<!-- columns 6:4 plain -->'), {
+		kind: 'columns',
+		count: 2,
+		ratio: '3:2',
+		style: 'plain',
+	});
+	assert.deepEqual(parseDirective('<!-- columns 4:6 card -->'), {
+		kind: 'columns',
+		count: 2,
+		ratio: '2:3',
+		style: 'card',
+	});
+	assert.deepEqual(parseDirective('<!-- columns 4 grid -->'), {
+		kind: 'columns',
+		count: 4,
+		variant: 'grid',
+	});
+});
+
+void test('preprocessAutoLayouts automatically converts 2, 3, and 4 H3 sections into columns and 2x2 grid', () => {
+	const fourH3Markdown = `
+## 4つの評価基準
+
+### 01. 視認性
+- 18px以上の文字サイズ保証
+- 明快なジャンプ率
+
+### 02. 配色ルール
+- 70:25:5の黄金比
+- オレンジは5%の最重要箇所のみ
+
+### 03. 余白と整列
+- 枠線を排したカードチャンク
+- 左揃えの徹底
+
+### 04. 図解とグラフ
+- 2x2グリッドへの自動折り返し
+- ノイズレスな横棒グラフ
+
+> [!important] 結論
+> 聴衆が3秒で構造を理解できるスライドを標準化します。
+`.trim();
+
+	const output = preprocessAutoLayouts(fourH3Markdown, 'card', true);
+	assert.ok(output.includes('presenter-cols presenter-cols-2 presenter-cols-card presenter-cols-grid'));
+	assert.equal(output.match(/class="presenter-col"/g)?.length, 4);
+	// Trailing callout stays outside the column grid
+	assert.ok(output.endsWith('聴衆が3秒で構造を理解できるスライドを標準化します。'));
+});
+
+void test('preprocessAutoLayouts converts standalone image + bullets into 6:4 split and code + bullets into code split', () => {
+	const imageSlide = `
+## ビジュアルとテキストの黄金比
+
+![プロダクト画面](https://example.com/screen.png)
+
+- 画面キャプチャを60%の幅で大きく配置
+- 右側40%に重要ポイントを3点以内で整理
+- 視線が左の画像から右の結論へ自然に移動
+`.trim();
+
+	const imgOut = preprocessAutoLayouts(imageSlide, 'card', true);
+	assert.ok(imgOut.includes('presenter-cols-ratio-3-2 presenter-cols-media-split'));
+
+	const codeSlide = `
+## プラグイン起動の仕組み
+
+\`\`\`typescript
+const file = activeView.file;
+const content = await this.app.vault.read(file);
+const presentation = parsePresentation(content);
+\`\`\`
+
+- Vault内のMarkdownファイルを非破壊で読み込み
+- 表示時にメモリ上でのみスライド構造へ変換
+`.trim();
+
+	const codeOut = preprocessAutoLayouts(codeSlide, 'card', true);
+	assert.ok(codeOut.includes('presenter-cols-ratio-3-2 presenter-cols-code-split'));
+});
+
+void test('preprocessTableHighlights wraps comparison tables with recommended column highlight', () => {
+	const tableMd = `
+| 比較項目 | 従来ツール | **Obsidian Presenter [推奨]** | 手動作成 |
+| :--- | :--- | :--- | :--- |
+| 学習コスト | 高い | **ゼロ（標準MD）** | 低い |
+| 保守性 | 低い | **Git完全対応** | 困難 |
+`.trim();
+
+	const out = preprocessTableHighlights(tableMd, true);
+	assert.ok(out.includes('presenter-table-highlight-col-3'));
+
+	const explicitMd = `
+<!-- table: highlight 2 -->
+| 項目 | プランA | プランB |
+| :--- | :--- | :--- |
+| 価格 | 1,000円 | 2,000円 |
+`.trim();
+
+	const explicitOut = preprocessTableHighlights(explicitMd, true);
+	assert.ok(explicitOut.includes('presenter-table-highlight-col-2'));
+});
+
+void test('preprocessQaBlocks formats Q. and A. pairs into aligned Q&A cards', () => {
+	const qaMd = `
+## よくあるご質問（FAQ）
+
+Q. 既存のMarkdownノートを書き換える必要はありますか？
+A. いいえ。見出し（H1/H2）と箇条書きがあれば、そのままスライドとして表示されます。
+
+Q. 他のエディタやGitHubで開いたときに表示は崩れませんか？
+A. 標準のCommonMark/GFM記法に完全準拠しているため、通常のドキュメントとして美しく読めます。
+`.trim();
+
+	const out = preprocessQaBlocks(qaMd, true);
+	assert.ok(out.includes('presenter-qa-list'));
+	assert.ok(out.includes('presenter-qa-marker-q'));
+	assert.ok(out.includes('presenter-qa-marker-a'));
+	assert.equal(out.match(/class="presenter-qa-card"/g)?.length, 2);
+});
+
+void test('preprocessKpi chart bars distinguish pop highlight and secondary main bars', () => {
+	const chartMd = `
+<!-- chart -->
+- **クラウド事業 [牽引]** | **+42%** | 92%
+- エンタープライズ [比較] | +24% | 65%
+- レガシー保守 | +5% | 25%
+<!-- /chart -->
+`.trim();
+
+	const out = preprocessKpi(chartMd, true);
+	assert.ok(out.includes('presenter-chart-row-pop'));
+	assert.ok(out.includes('presenter-chart-row-main'));
+});
+
+void test('preprocessKpi adds blank lines around KPI div so following captions remain Markdown paragraphs', () => {
+	const autoKpi = [
+		'### 資料作成スピード',
+		'**3.5x**',
+		'Markdownによる圧倒的時短',
+	].join('\n');
+	const autoOut = preprocessKpi(autoKpi, true);
+	assert.ok(
+		autoOut.includes('\n\n<div class="presenter-kpi-value">3.5x</div>\n\nMarkdownによる圧倒的時短'),
+		`Unexpected auto KPI output:\n${autoOut}`,
+	);
+
+	const explicitKpi = [
+		'<!-- kpi -->',
+		'**-40% 削減**',
+		'<!-- /kpi -->',
+		'導入3ヶ月目の実測値',
+	].join('\n');
+	const explicitOut = preprocessKpi(explicitKpi, false);
+	assert.ok(
+		explicitOut.includes('<div class="presenter-kpi-value">-40% 削減</div>\n\n導入3ヶ月目の実測値'),
+		`Unexpected explicit KPI output:\n${explicitOut}`,
+	);
+});
+
+void test('preprocessAutoLayouts converts 4-item bold-label lists into a 2x2 card grid while keeping lead text and trailing blockquote', () => {
+	const md = [
+		'## プラグインのコンセプト',
+		'シンプルさと表現力を両立するための設計方針です。',
+		'',
+		'- **標準Markdown互換**: 独自の複雑記法を強制しない',
+		'- **自動レイアウト**: 構造に合わせて最適配置',
+		'- **マルチエクスポート**: HTML・PDF・PPTXへ展開',
+		'- **ライブプレビュー**: 書きながら仕上がりを確認',
+		'',
+		'> 思考の速度でスライドを作成し、そのままプレゼンへ。',
+	].join('\n');
+
+	const out = preprocessAutoLayouts(md, 'card', true);
+	assert.ok(out.includes('シンプルさと表現力を両立するための設計方針です。'));
+	assert.ok(out.includes('class="presenter-cols presenter-cols-2 presenter-cols-card presenter-cols-grid"'));
+	assert.ok(out.includes('### 標準Markdown互換'));
+	assert.ok(out.includes('### ライブプレビュー'));
+	assert.ok(out.includes('> 思考の速度でスライドを作成し、そのままプレゼンへ。'));
+});
+
+void test('preprocessAutoLayouts wraps standalone Hero KPI blocks in presenter-cols-hero-kpi', () => {
+	const md = [
+		'## KPI数値と重要サマリー',
+		'単独行の太字数値を自動検知してKPIカード化します。',
+		'',
+		'### 資料作成スピード',
+		'**3.5x**',
+		'Markdownによる圧倒的時短',
+		'',
+		'> [!TIP] 導入効果',
+		'> チーム全体の会議準備時間を大幅削減。',
+	].join('\n');
+
+	const out = preprocessAutoLayouts(md, 'card', true);
+	assert.ok(out.includes('presenter-cols-hero-kpi'));
+	assert.ok(out.includes('### 資料作成スピード'));
+	assert.ok(out.includes('**3.5x**'));
+	assert.ok(out.includes('> [!TIP] 導入効果'));
+});
+
+void test('formatCardHeadingEyebrow extracts eyebrow badges cleanly without false positives', () => {
+	const numbered = formatCardHeadingEyebrow('### 01. 課題の特定\n詳細説明');
+	assert.ok(numbered.includes('presenter-card-eyebrow'));
+	assert.ok(numbered.includes('01'));
+	assert.ok(numbered.includes('課題の特定'));
+
+	const step = formatCardHeadingEyebrow('### STEP 2: 検証と改善\n詳細説明');
+	assert.ok(step.includes('presenter-card-eyebrow'));
+	assert.ok(step.includes('STEP 02') || step.includes('STEP 2'));
+	assert.ok(step.includes('検証と改善'));
+
+	const ratio = '### 16:9 ワイド画面に対応\n詳細説明';
+	assert.equal(formatCardHeadingEyebrow(ratio), ratio);
+
+	const bareStep = '### Step 1\n詳細説明';
+	assert.equal(formatCardHeadingEyebrow(bareStep), bareStep);
+});
+
 
