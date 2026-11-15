@@ -6,7 +6,14 @@ import {
 	insertColumnBlock,
 	insertColumnBreak,
 } from '../src/commands/insertColumns';
-import { extractPresentationSummary } from '../src/commands/exportSummary';
+import {
+	cleanSlideMarkdownForBlueprint,
+	cleanSpeakerNotesForBlueprint,
+	estimateScriptMetrics,
+	extractAiSlideBlueprint,
+	extractPresentationSummary,
+	inferSlideLayoutBlueprint,
+} from '../src/commands/exportSummary';
 import { FenceTracker } from '../src/parser/fence';
 import { parseDirective } from '../src/parser/directives';
 import { preprocessColumns } from '../src/parser/columns';
@@ -575,6 +582,77 @@ Section overview
 	assert.ok(summary.includes('5. Metrics'));
 	assert.ok(summary.includes('30% reduction in lead time'));
 	assert.ok(summary.includes('[重要]**: 締切は来週水曜日まで'));
+});
+
+void test('extractAiSlideBlueprint generates structured storyboard and speaker script blueprint for AI tools', () => {
+	const md = `
+---
+header: "2026 Strategy"
+aspectRatio: "16:9"
+---
+
+# AI Era Presentation Studio
+Direct the story, let AI do the rendering.
+
+## Executive Conclusion
+> [!important] Consolidating 3 systems cuts annual costs by 35%.
+
+<!-- columns 3 card -->
+### 1. Situation
+- 3 legacy systems running in parallel
+
+### 2. Findings
+- **450 hours/month** wasted on manual sync
+
+### 3. Recommendation
+- [重要] Approve migration budget
+<!-- /columns -->
+
+> [!note] Speaker Script
+> まず結論から申し上げます。現在の3系統を単一基盤へ統合することで、年間35%のコスト削減を実現します。
+
+## Process Roadmap
+<!-- columns 3 step -->
+### Phase 1
+- Audit
+### Phase 2
+- Migration
+### Phase 3
+- Cutover
+<!-- /columns -->
+`.trim();
+
+	const presentation = parsePresentation(md);
+	const blueprint = extractAiSlideBlueprint(presentation);
+
+	assert.ok(blueprint.includes('# 🎬 Presentation Storyboard & Master Script Blueprint'));
+	assert.ok(blueprint.includes('- **Title**: AI Era Presentation Studio'));
+	assert.ok(blueprint.includes('- **Total Slides**: 3'));
+	assert.ok(blueprint.includes('### Slide 1 / 3 [Cover Slide]'));
+	assert.ok(blueprint.includes('### Slide 2 / 3 [Executive Summary (結論＋3カラム SCQA型)]'));
+	assert.ok(blueprint.includes('- **Action Title**: Executive Conclusion'));
+	assert.ok(blueprint.includes('[重要] Approve migration budget'));
+	assert.ok(blueprint.includes('🎙 Speaker Script & Context'));
+	assert.ok(blueprint.includes('まず結論から申し上げます'));
+	assert.ok(blueprint.includes('### Slide 3 / 3 [Horizontal Step Flow (ホリゾンタルフロー型)]'));
+
+	// Verify helper functions directly
+	const metrics = estimateScriptMetrics(presentation.slides[1]?.notes);
+	assert.ok(metrics.charCount > 20);
+	assert.ok(metrics.estimatedSeconds >= 5);
+
+	const emptyMetrics = estimateScriptMetrics(undefined);
+	assert.deepEqual(emptyMetrics, { charCount: 0, estimatedSeconds: 0 });
+
+	const cleanedNotes = cleanSpeakerNotesForBlueprint('> [!note] Speaker Note\n> Hello world');
+	assert.equal(cleanedNotes, 'Hello world');
+
+	const cleanedBody = cleanSlideMarkdownForBlueprint(presentation.slides[1]!.markdown);
+	assert.ok(!cleanedBody.includes('<div class="presenter-cols'));
+	assert.ok(cleanedBody.includes('### 1. Situation'));
+
+	const stepArchetype = inferSlideLayoutBlueprint(presentation.slides[2]!);
+	assert.equal(stepArchetype.archetype, 'Horizontal Step Flow (ホリゾンタルフロー型)');
 });
 
 void test('parsePresentation inherits H2 heading with 1-1, 1-2, 1-N numbering on multi-slide sections', () => {

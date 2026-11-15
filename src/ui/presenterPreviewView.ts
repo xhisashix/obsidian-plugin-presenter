@@ -2,17 +2,25 @@ import {
 	Component,
 	ItemView,
 	MarkdownView,
+	Menu,
+	Notice,
 	type TFile,
 	type WorkspaceLeaf,
 	setIcon,
 } from 'obsidian';
+import {
+	estimateScriptMetrics,
+	extractAiSlideBlueprint,
+	extractPresentationSummary,
+} from '../commands/exportSummary';
 import { getSlideIndexAtLine, parsePresentation } from '../parser/slideParser';
 import {
 	type PresentationData,
+	type SlideData,
 	type SlideOverflowInfo,
 	VIEW_TYPE_PRESENTER_PREVIEW,
 } from '../types';
-import { renderSlide } from './slideRenderer';
+import { renderSlide, renderSlideNotes } from './slideRenderer';
 import {
 	type SlideOverflowCache,
 	checkPresentationOverflow,
@@ -33,13 +41,18 @@ export class PresenterPreviewView extends ItemView {
 	private currentFile: TFile | null = null;
 	private currentIndex = 0;
 	private followCursor = true;
+	private showScriptDock = true;
 	private cachedRawMarkdown = '';
 
 	private stageEl!: HTMLElement;
 	private counterButtonEl!: HTMLElement;
 	private pinButtonEl!: HTMLElement;
+	private notesToggleBtnEl!: HTMLButtonElement;
 	private emptyMessageEl!: HTMLElement;
 	private stageWrapperEl!: HTMLElement;
+	private scriptDockEl!: HTMLElement;
+	private scriptMetaEl!: HTMLElement;
+	private scriptBodyEl!: HTMLElement;
 	private overflowBtn!: HTMLElement;
 	private overflowReports: SlideOverflowInfo[] = [];
 	private overflowCache: SlideOverflowCache = new Map();
@@ -53,6 +66,7 @@ export class PresenterPreviewView extends ItemView {
 	constructor(leaf: WorkspaceLeaf, plugin: PresenterPlugin) {
 		super(leaf);
 		this.plugin = plugin;
+		this.showScriptDock = plugin.settings.showNotes ?? true;
 		this.component = new Component();
 	}
 
@@ -61,7 +75,7 @@ export class PresenterPreviewView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return 'Presenter preview';
+		return 'Presenter storyboard & script';
 	}
 
 	getIcon(): string {
@@ -78,23 +92,26 @@ export class PresenterPreviewView extends ItemView {
 		// 1. Build Preview Toolbar
 		this.buildToolbar(contentEl);
 
-		// 2. Stage wrapper and Stage
+		// 2. Stage wrapper and Stage (16:9 Visual Storyboard)
 		this.stageWrapperEl = contentEl.createDiv({ cls: 'presenter-preview-stage-wrapper' });
 		this.stageEl = this.stageWrapperEl.createDiv({ cls: 'presenter-stage presenter-preview-stage' });
 
 		// 3. Empty placeholder message
 		this.emptyMessageEl = this.stageWrapperEl.createDiv({
 			cls: 'presenter-preview-empty',
-			text: 'Open a Markdown note to preview presentation slides.',
+			text: 'Open a Markdown note to preview your slide storyboard & speaker script.',
 		});
 
-		// 4. Setup responsive scaling
+		// 4. Speaker Script & Context Dock
+		this.buildScriptDock(contentEl);
+
+		// 5. Setup responsive scaling
 		this.setupResponsiveScaling();
 
-		// 5. Register workspace and DOM events
+		// 6. Register workspace and DOM events
 		this.setupEventListeners();
 
-		// 6. Initial render from active file
+		// 7. Initial render from active file
 		await this.syncFromActiveView();
 	}
 
@@ -123,16 +140,51 @@ export class PresenterPreviewView extends ItemView {
 		this.pinButtonEl.onclick = () => this.toggleFollowCursor();
 		this.updateFollowCursorUi();
 
-		// Open Slide Template Navigator
+		// Speaker Script Dock toggle
+		this.notesToggleBtnEl = toolbarEl.createEl('button', {
+			cls: `presenter-toolbar-btn presenter-btn-notes${this.showScriptDock ? ' is-active' : ''}`,
+			attr: { 'aria-label': 'Toggle speaker script dock' },
+		});
+		setIcon(this.notesToggleBtnEl, 'file-text');
+		this.notesToggleBtnEl.onclick = () => this.toggleScriptDock();
+
+		// Open Slide Storyboard & Logic Template Navigator
 		const templateBtn = toolbarEl.createEl('button', {
 			cls: 'presenter-toolbar-btn presenter-btn-templates',
-			attr: { 'aria-label': 'Open slide template navigator' },
+			attr: { 'aria-label': 'Open storyboard & logic template navigator' },
 		});
 		setIcon(templateBtn, 'layout-template');
 		templateBtn.onclick = () => {
 			new TemplateNavigatorModal(this.app, {
 				targetFilePath: this.currentFile?.path ?? null,
 			}).open();
+		};
+
+		// Copy AI Blueprint / Summary menu button
+		const blueprintBtn = toolbarEl.createEl('button', {
+			cls: 'presenter-toolbar-btn presenter-btn-blueprint',
+			attr: { 'aria-label': 'Copy AI slide blueprint or executive summary' },
+		});
+		setIcon(blueprintBtn, 'sparkles');
+		blueprintBtn.onclick = (e: MouseEvent) => {
+			const menu = new Menu();
+			menu.addItem((item) => {
+				item
+					.setTitle('Copy AI slide prompt & storyboard blueprint')
+					.setIcon('sparkles')
+					.onClick(() => {
+						void this.copyAiBlueprint();
+					});
+			});
+			menu.addItem((item) => {
+				item
+					.setTitle('Copy executive summary for sharing')
+					.setIcon('clipboard-copy')
+					.onClick(() => {
+						void this.copySummary();
+					});
+			});
+			menu.showAtMouseEvent(e);
 		};
 
 		// Start fullscreen presentation
@@ -146,6 +198,96 @@ export class PresenterPreviewView extends ItemView {
 				void this.plugin.startPresentationForFile(this.currentFile, this.currentIndex);
 			}
 		};
+	}
+
+	private buildScriptDock(parentEl: HTMLElement) {
+		this.scriptDockEl = parentEl.createDiv({
+			cls: `presenter-preview-script-dock${this.showScriptDock ? '' : ' is-hidden'}`,
+		});
+
+		const headerEl = this.scriptDockEl.createDiv({ cls: 'presenter-preview-script-header' });
+		const titleEl = headerEl.createDiv({ cls: 'presenter-preview-script-title' });
+		const iconSpan = titleEl.createSpan({ cls: 'presenter-preview-script-icon' });
+		setIcon(iconSpan, 'file-text');
+		titleEl.createSpan({ text: 'Speaker script & context' });
+
+		this.scriptMetaEl = headerEl.createDiv({ cls: 'presenter-preview-script-meta' });
+
+		this.scriptBodyEl = this.scriptDockEl.createDiv({ cls: 'presenter-preview-script-body' });
+	}
+
+	private toggleScriptDock() {
+		this.showScriptDock = !this.showScriptDock;
+		if (this.showScriptDock) {
+			this.scriptDockEl.removeClass('is-hidden');
+			this.notesToggleBtnEl.addClass('is-active');
+		} else {
+			this.scriptDockEl.addClass('is-hidden');
+			this.notesToggleBtnEl.removeClass('is-active');
+		}
+		window.setTimeout(() => {
+			this.applySlideScale();
+		}, 30);
+	}
+
+	private async copyAiBlueprint() {
+		if (!this.presentation) {
+			new Notice('Please open a presentation note first.');
+			return;
+		}
+		try {
+			const blueprint = extractAiSlideBlueprint(this.presentation);
+			await navigator.clipboard.writeText(blueprint);
+			new Notice('AI slide blueprint & speaker script copied to clipboard!');
+		} catch (err) {
+			console.error('Failed to copy AI slide blueprint:', err);
+			new Notice('Failed to copy AI slide blueprint.');
+		}
+	}
+
+	private async copySummary() {
+		if (!this.presentation) {
+			new Notice('Please open a presentation note first.');
+			return;
+		}
+		try {
+			const summary = extractPresentationSummary(this.presentation);
+			await navigator.clipboard.writeText(summary);
+			new Notice('Presentation summary copied to clipboard!');
+		} catch (err) {
+			console.error('Failed to copy presentation summary:', err);
+			new Notice('Failed to copy presentation summary.');
+		}
+	}
+
+	private async updateScriptDock(slide: SlideData) {
+		this.scriptBodyEl.empty();
+		this.scriptMetaEl.empty();
+
+		if (slide.notes && slide.notes.trim() && this.currentFile) {
+			this.notesToggleBtnEl.addClass('has-notes');
+			const { charCount, estimatedSeconds } = estimateScriptMetrics(slide.notes);
+			if (charCount > 0) {
+				this.scriptMetaEl.setText(`${charCount} chars · ~${estimatedSeconds}s`);
+			}
+			await renderSlideNotes(this.scriptBodyEl, {
+				app: this.app,
+				markdown: slide.notes,
+				sourcePath: this.currentFile.path,
+				component: this.component,
+			});
+		} else {
+			this.notesToggleBtnEl.removeClass('has-notes');
+			this.scriptMetaEl.setText('No script');
+			const emptyHintEl = this.scriptBodyEl.createDiv({
+				cls: 'presenter-preview-script-empty',
+			});
+			emptyHintEl.createSpan({
+				text: 'No speaker script for this slide. Keep slide visuals concise and add talking points using ',
+			});
+			emptyHintEl.createEl('code', { text: '> [!note]' });
+			emptyHintEl.createSpan({ text: '.' });
+		}
 	}
 
 	private updateFollowCursorUi() {
@@ -361,6 +503,11 @@ export class PresenterPreviewView extends ItemView {
 		this.counterButtonEl.setText('0 / 0');
 		this.overflowReports = [];
 		updateOverflowButton(this.overflowBtn, []);
+		if (this.scriptBodyEl && this.scriptMetaEl) {
+			this.scriptBodyEl.empty();
+			this.scriptMetaEl.setText('');
+			this.notesToggleBtnEl?.removeClass('has-notes');
+		}
 	}
 
 	public async showSlide(index: number) {
@@ -388,6 +535,8 @@ export class PresenterPreviewView extends ItemView {
 			sourcePath: this.currentFile.path,
 			component: this.component,
 		});
+
+		await this.updateScriptDock(slide);
 
 		this.applySlideScale();
 	}

@@ -249,14 +249,20 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
 - **エディタタブヘッダー**: Markdown ノートの右上ヘッダーに配置された「TV/プレゼンテーション」アイコンをクリック
 - **リボンメニュー**: 左リボンの「TV」アイコンをクリック
 
-### 8.3 プレビューツールバー機能
-プレビューペイン上部に常駐するコンパクトなツールバーです。
+### 8.3 プレビューツールバー機能と発表者台本ドック (Speaker Script Dock)
+プレビューペイン上部に常駐するコンパクトなツールバーおよび、16:9ステージ下部に配置される発表者台本ドックです。
 - **前へ (`‹`) / 次へ (`›`) ボタン**: 前後のスライドへ手動移動
 - **スライド番号ボタン (`X / Y`)**: クリックでスライドジャンプダイアログを表示し、任意のスライドへ直接移動
 - **カーソル追従トグル (ピン留めアイコン)**:
   - **有効 (Active)**: エディタ内のカーソル行番号に応じて、プレビュー対象スライドを自動切り替え
   - **無効 (Locked)**: 特定のスライドを固定表示したまま、ドキュメントの他の箇所を自由に編集可能
-- **テンプレートナビゲーターボタン (`layout-template` アイコン)**: クリックで「スライド・テンプレート・ナビゲーター (`TemplateNavigatorModal`)」を開き、現在プレビュー中のノートに対して目的別のスライドテンプレートを即座に挿入可能
+- **発表者台本ドック開閉トグル (`file-text` アイコン / `.presenter-btn-notes`)**:
+  - プレビューペイン下部の「**Speaker script & context**（`.presenter-preview-script-dock`）」の表示/非表示を切り替え（初期状態は設定の `showNotes` に連動）
+  - 現在のスライドに `> [!note]` が存在する場合はインジケータードットが点灯
+  - 台本ドックのヘッダーには、現在のスライドのノート文字数・想定発話時間およびプレゼン全体の合計発話時間（例: `Slide: 120 chars (~1 min) · Deck total: ~8 min`）をリアルタイム算出して表示
+- **AIブループリント / サマリーコピーボタン (`sparkles` アイコン / `.presenter-btn-blueprint`)**:
+  - クリックでメニューを展開し、「**Copy AI slide blueprint (Gamma / Claude / Genspark)**」または「**Copy executive summary for sharing**」をワンクリック実行
+- **ストーリーボード＆論理骨格ナビゲーターボタン (`layout-template` アイコン)**: クリックで「ストーリーボード＆論理骨格ナビゲーター (`TemplateNavigatorModal`)」を開き、現在プレビュー中のノートに対して目的別のスライド骨格テンプレートを即座に挿入可能
 - **全画面プレゼン開始ボタン**: 現在プレビュー表示中のスライド位置から、即座にフルスクリーンのプレゼンテーションモーダルを開始
 
 ### 8.4 同期・パフォーマンス制御
@@ -460,8 +466,12 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
 ### 13.2 クリック拡大 (Lightbox)
 - プレゼン中および配布HTML上で、画像（`<img>`）またはMermaid図（`.mermaid`）をクリックすると、画面中央に拡大表示。`Escape` または背景クリックで元のスライドに復帰。
 
-### 13.3 共有用エグゼクティブサマリーコピー (`Presenter: Copy summary for sharing`)
-- プレゼンタイトル、章・各スライド構成番号、および結論Callout（`> [!important]`）や重要バッジ（`[重要]`）を抽出した構造化テキストをクリップボードにコピー。Slackやメールでの共有を瞬時に行えます。
+### 13.3 AIスライド生成ブループリント & 共有用エグゼクティブサマリーコピー
+- **AIスライド生成用プロンプト＆構成定義書コピー (`Presenter: Copy AI slide prompt & storyboard blueprint` / `copy-ai-slide-blueprint`)**:
+  - Gamma、Claude、Genspark等の外部AIスライド生成ツールへそのまま貼り付け可能な構造化プロンプト（`extractAiSlideBlueprint`）をクリップボードにコピー。
+  - 全体のメタデータ（タイトル、総スライド枚数、アスペクト比、テーマカラー、台本総文字数・想定発話時間）に加え、各スライドの役割（Cover / Section Divider / Key Quote / Content）、ディレクティブから自動推論した推奨レイアウト骨格（`inferSlideLayoutBlueprint`）、クリーンアップ済みスライド本文（`cleanSlideMarkdownForBlueprint`）、および口頭スクリプト（`cleanSpeakerNotesForBlueprint`）を出力。
+- **共有用エグゼクティブサマリーコピー (`Presenter: Copy executive summary for sharing` / `copy-presentation-summary`)**:
+  - プレゼンタイトル、章・各スライド構成番号、および結論Callout（`> [!important]`）や重要バッジ（`[重要]`）を抽出した構造化テキストをクリップボードにコピー。Slackやメールでの共有を瞬時に行えます。
 
 ---
 
@@ -476,10 +486,11 @@ Obsidian以外のMarkdownビューア（GitHub、VS Code等）ではコメント
 | `toggle-preview` | `Presenter: Toggle slide preview` | スライドプレビューペインの開閉をトグル |
 | `export-html` | `Presenter: Export presentation as standalone HTML` | 単一完結のポータブルHTMLプレゼンテーションを出力・保存 |
 | `export-pptx` | `Presenter: Export presentation as powerpoint (.pptx)` | 編集可能なネイティブPowerPointファイルを出力・保存 |
-| `check-overflow` | `Presenter: Check slide overflow` | スライドはみ出し検査モーダル（警告率一覧・ワンクリック分割）を開く |
-| `copy-presentation-summary` | `Presenter: Copy summary for sharing` | スライド構成と要点をまとめたテキストをクリップボードにコピー |
+| `check-overflow` | `Presenter: Check slide overflow` | スライドはみ出し（情報密度）検査モーダル（警告率一覧・ワンクリック分割）を開く |
+| `copy-ai-slide-blueprint` | `Presenter: Copy AI slide prompt & storyboard blueprint` | AIスライド生成ツール向けのスライド別構成定義・台本ブループリントをクリップボードにコピー |
+| `copy-presentation-summary` | `Presenter: Copy executive summary for sharing` | スライド構成と要点をまとめたエグゼクティブサマリーをクリップボードにコピー |
 | `insert-design-template` | `Presenter: Insert slide design template...` | 全13種のデザインテンプレートをキーワード検索して即座に挿入するクイックピッカーを表示 |
-| `open-template-navigator` | `Presenter: Open slide template navigator...` | 目的別（12種）・全13種のプロフェッショナル・スライドテンプレートナビゲーターを開く |
+| `open-template-navigator` | `Presenter: Open storyboard & layout navigator...` | 目的別（12種）・全13種のストーリーボード＆論理骨格ナビゲーターを開く |
 | `insert-template-horizontal-flow` | `Presenter: Insert template: Horizontal step flow (ホリゾンタルフロー型)` | 横並びステップフロー（`<!-- columns 3 step -->`）テンプレートを挿入 |
 | `insert-template-vertical-flow` | `Presenter: Insert template: Vertical tower flow (縦並び＋右向きフロー型)` | 全体進行Callout＋3列タワー（`<!-- columns 3 card -->`）テンプレートを挿入 |
 | `insert-template-swimlane` | `Presenter: Insert template: Swimlane timeline (スイムレーン部門別型)` | 部門別マトリクステーブル＋業務改革Calloutテンプレートを挿入 |
