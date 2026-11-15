@@ -23,7 +23,7 @@ src/
 ├── settings.ts                 # グローバル設定UI (PluginSettingTab, 宣言的設定API)
 ├── commands/
 │   ├── insertColumns.ts        # カラム・テンプレート挿入コマンド群・ピッカー登録
-│   ├── exportSummary.ts        # 共有用サマリーコピーコマンド
+│   ├── exportSummary.ts        # AIスライド生成ブループリント & 共有用サマリーコピーコマンド
 │   └── splitSlide.ts          # スライド自動分割処理
 ├── templates/
 │   └── slideTemplates.ts       # プロフェッショナル・スライドテンプレート体系 (13種・12目的・6原則・Markdownスニペット)
@@ -50,7 +50,7 @@ src/
 │   └── pptxTypes.ts            # PPTXエクスポート専用型定義
 └── ui/
     ├── presenterModal.ts       # プレゼンテーション全画面モーダル・ツールバー・印刷制御
-    ├── presenterPreviewView.ts # リアルタイムプレビューペイン (ItemView)
+    ├── presenterPreviewView.ts # リアルタイム絵コンテ＆発表者台本ドック プレビューペイン (ItemView)
     ├── slideRenderer.ts        # Markdownレンダリング、動的CSS変数・ヘッダー/フッター/ノート生成
     ├── stageHelpers.ts         # スケーリング計算・ツールバー構築・共通UIヘルパー
     ├── jumpModal.ts            # スライド番号直接ジャンプモーダル

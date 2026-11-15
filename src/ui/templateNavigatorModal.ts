@@ -234,18 +234,18 @@ export class TemplateNavigatorModal extends Modal {
 		const titleBlock = headerEl.createDiv({ cls: 'presenter-template-nav-title-block' });
 		titleBlock.createEl('h2', {
 			cls: 'presenter-template-nav-title',
-			text: 'スライド・テンプレート体系',
+			text: 'ストーリーボード＆論理骨格ナビゲーター',
 		});
 		titleBlock.createEl('p', {
 			cls: 'presenter-template-nav-subtitle',
-			text: 'プロフェッショナル基準のレイアウト設計と論理構成',
+			text: '「1スライド・1メッセージ」を形にする、コンサル流13の論理アーキタイプ',
 		});
 
 		const tabsBar = headerEl.createDiv({ cls: 'presenter-template-nav-tabs' });
 		const tabs: Array<{ id: NavigatorTab; label: string }> = [
-			{ id: 'usecase', label: '目的から探す' },
-			{ id: 'all', label: '全テンプレート' },
-			{ id: 'principles', label: 'デザイン絶対原則' },
+			{ id: 'usecase', label: '伝えたい主張から選ぶ' },
+			{ id: 'all', label: '全13種の論理骨格' },
+			{ id: 'principles', label: 'ストーリー＆絵コンテ6原則' },
 		];
 
 		for (const tab of tabs) {

@@ -138,7 +138,7 @@ export function updateOverflowButton(
 		}
 		overflowBtn.setAttribute(
 			'aria-label',
-			`${overflowing.length} slide(s) overflow card boundaries. Click to inspect.`
+			`${overflowing.length} slide(s) exceed 1-slide-1-message density. Click to split or move details to > [!note].`
 		);
 	} else {
 		overflowBtn.addClass('is-hidden');

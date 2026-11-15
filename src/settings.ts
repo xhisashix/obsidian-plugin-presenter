@@ -142,7 +142,7 @@ export class PresenterSettingTab extends PluginSettingTab {
 				items: [
 					{
 						name: 'Show notes by default',
-						desc: 'Display presenter notes panel (`> [!note]`) by default during presentations.',
+						desc: 'Display speaker script & presenter notes (`> [!note]`) by default in live preview and fullscreen presentations.',
 						control: {
 							type: 'toggle',
 							key: 'showNotes',
@@ -371,7 +371,7 @@ export class PresenterSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Show notes by default')
-			.setDesc('Display presenter notes panel (`> [!note]`) by default during presentations.')
+			.setDesc('Display speaker script & presenter notes (`> [!note]`) by default in live preview and fullscreen presentations.')
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.showNotes)

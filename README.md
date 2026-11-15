@@ -2,18 +2,23 @@
 
 # Obsidian Presenter
 
-A presentation plugin for Obsidian that turns your Markdown notes directly into clean, styled slides with live preview and high-quality export.
+**Storyboard & Speaker Script Studio for Obsidian — Built for the AI Presentation Era.**
 
-Keep your natural note-taking workflow and AI-generated Markdown structure (`# H1` as title slide, `## H2` as slide delimiter) intact. Featuring intuitive frontmatter theming, multi-column grid layouts, speaker notes, standalone portable HTML export, and slide overflow auto-fit.
+Stop fighting pixel alignment in Markdown. In the era of AI slide generators (Gamma, Claude, Genspark), **Obsidian Presenter** lets you focus on what only a human can craft: **the core argument, storyline, 1-slide-1-message density, and speaker script**.
+
+Write naturally in Markdown (`# H1` as cover, `## H2` as slide action title, `> [!note]` as speaker script & background context). Rehearse your 16:9 visual storyboard alongside a live **Speaker Script Dock** (with character count and speaking time estimation), and either **copy a structured AI Slide Blueprint** in one click or share directly as a **self-contained HTML SlideDoc**, **PDF**, or **editable PowerPoint (`.pptx`)**.
 
 ---
 
 ## Features
 
-- **Live Split-Pane Preview**:
-  - View rendered slides right beside your editor in real time as you write.
-  - Automatically syncs and highlights the slide matching your editor cursor position (with a pin/unpin toggle).
-  - Smooth typing experience powered by a 250ms debounced renderer.
+- **Live Storyboard & Speaker Script Studio (Split-Pane Preview)**:
+  - View a 16:9 visual storyboard right beside your editor in real time as you write.
+  - Built-in **Speaker Script & Context Dock** beneath the slide card displays your `> [!note]` talking points alongside live **character count and speaking time estimates (`~X min`)**.
+  - Automatically syncs and highlights the slide matching your editor cursor position (with a pin/unpin toggle and a 250ms debounced renderer).
+- **One-Click AI Slide Prompt & Storyboard Blueprint Copy**:
+  - Run `Presenter: Copy AI slide prompt & storyboard blueprint` (or click the **✨ Sparkles** button on the preview toolbar) to copy a structured, slide-by-slide design prompt and storyboard specification for Gamma, Claude, Genspark, or ChatGPT.
+  - Preserves each slide's role, layout archetype (2-column, 3-step flow, 2x2 matrix, pyramid, funnel, chart, etc.), on-slide body copy, and speaker script context—plus total estimated speaking time.
 - **Natural Markdown Structure & Continuation Heading Inheritance**:
   - `# H1`: Presentation title slide.
   - `## H2`: New slide title and delimiter.
@@ -44,8 +49,9 @@ Keep your natural note-taking workflow and AI-generated Markdown structure (`# H
   - Press `G` or `O` (or click the grid icon on the toolbar) to view a bird's-eye thumbnail grid of all slides, enabling instant jump navigation during Q&A sessions.
 - **Clickable Image & Diagram Zoom (Lightbox)**:
   - Click any image or Mermaid diagram during a presentation or in exported HTML to zoom in full-screen (`Escape` to close).
-- **One-Click Summary Copy for Sharing**:
-  - Run `Presenter: Copy summary for sharing` from the command palette to copy a structured outline with key takeaways to your clipboard for instant pasting into Slack, Teams, or email.
+- **One-Click Executive Summary & AI Blueprint Copy**:
+  - Run `Presenter: Copy AI slide prompt & storyboard blueprint` to copy a complete slide-by-slide storyboard prompt for AI slide generation tools.
+  - Run `Presenter: Copy executive summary for sharing` from the command palette (or the preview toolbar ✨ menu) to copy a structured outline with key takeaways to your clipboard for instant pasting into Slack, Teams, or email.
 - **Automatic Labels & Badges**:
   - Writing `[IMPORTANT]`, `[NOTE]`, or `[STEP 1]` automatically formats text into a visually distinct accent badge.
 - **Full Obsidian Markdown Support**:
@@ -233,8 +239,8 @@ Ideal for clean side-by-side lists and image comparisons.
 
 Insert column directives or full consulting slide templates quickly using the Command Palette (`Cmd + P` / `Ctrl + P`), the live preview toolbar (`layout-template` icon), or by binding hotkeys:
 
-- `Presenter: Insert slide design template...` (Quick `SuggestModal` search picker for all 13 design templates with wireframe previews; `Enter` smart-inserts based on cursor context, `Shift+Enter` inserts layout body only, `Cmd/Ctrl+Enter` inserts full slide)
-- `Presenter: Open slide template navigator...` (Visual 3-tab navigator with 13 slide templates, 12 usecases, and design principles)
+- `Presenter: Insert slide design template...` (Quick `SuggestModal` search picker for all 13 logical archetypes with wireframe previews; `Enter` smart-inserts based on cursor context, `Shift+Enter` inserts layout body only, `Cmd/Ctrl+Enter` inserts full slide)
+- `Presenter: Open storyboard & layout navigator...` (Visual 3-tab navigator with 13 logical slide archetypes, 12 communication purposes, and 6 storyboard principles)
 - `Presenter: Insert design template: <template name>` (13 direct commands for horizontal flow, vertical flow, swimlane, cycle, 2-column, 3-column, 2x2 matrix, pyramid, chart & insight, big number KPI, funnel, bento box, and executive summary)
 - `Presenter: Insert column layout...` (Interactive modal picker)
 - `Presenter: Insert 2-column layout`

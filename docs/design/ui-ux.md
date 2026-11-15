@@ -154,13 +154,21 @@ cardEl.style.transform = `scale(${Math.max(scale, 0.2)})`;
   - ページ送り（前へ・次へ）と現在位置カウンター表示（`X / Y`）。
   - **カーソル追従トグル（ピンボタン）**:
     追従有効時はアクセントカラー（`--interactive-accent` / `#38bdf8`）のハイライト背景と境界線でアクティブ状態を明示。
-  - **スライド・テンプレート・ナビゲーターボタン (`layout-template`)**:
-    プレビューを確認しながら1クリックでテンプレートナビゲーターを開き、目的別のスライド構成スニペットを即座に挿入。
+  - **発表者台本ドック開閉トグル (`file-text` / `.presenter-btn-notes`)**:
+    16:9スライドステージ下部に配置された発表者台本ドック（`.presenter-preview-script-dock`）の表示/非表示を切り替え。現在のスライドに `> [!note]` が存在する場合はアクセントカラーのインジケータードットが点灯。
+  - **AIブループリント / サマリーコピーボタン (`sparkles` / `.presenter-btn-blueprint`)**:
+    クリックでコンテキストメニューを開き、AIスライド生成ツール向け構造化プロンプト（`Copy AI slide blueprint`）または共有用エグゼクティブサマリー（`Copy executive summary for sharing`）をワンクリックでクリップボードへコピー。
+  - **ストーリーボード＆論理骨格ナビゲーターボタン (`layout-template`)**:
+    プレビューを確認しながら1クリックでナビゲーターを開き、目的別のスライド骨格スニペットを即座に挿入。
   - **全画面プレゼンボタン**:
     プレビュー状態から1クリックでフルスクリーンプレゼンテーションを開始。
 - **プレビューキャンバス (`.presenter-preview-stage`)**:
   - `ResizeObserver` による追従拡大縮小。狭小なサイドバー幅（300px前後）から大型の分割ペインまで、スライドのアスペクト比を1ピクセルも崩さず美しくセンタリング描画。
   - スライドカードに繊細なドロップシャドウ（`box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35)`）を施し、エディタとの視覚的分離と立体感を演出。
+- **発表者台本＆コンテキストドック (`.presenter-preview-script-dock`)**:
+  - プレビューペイン下部に配置される台本・口頭スクリプト確認用ドック（`max-height: 36%`）。
+  - ヘッダー（`.presenter-preview-script-header`）にはタイトル（`Speaker script & context`）と、現在のスライドの文字数・想定発話時間およびデッキ全体の合計想定発話時間（`.presenter-preview-script-meta`）を表示。
+  - 本文領域（`.presenter-preview-script-body`）には `> [!note]` から抽出された発表者ノートを Markdown レンダリングして表示し、ノート未記入時は `> [!note]` の書き方をガイドするプレースホルダー（`.presenter-preview-script-empty`）を表示。
 - **空状態（Empty State）**:
   Markdownファイルが開かれていない場合は、落ち着いたミュートカラーでガイダンスメッセージを表示。
 
