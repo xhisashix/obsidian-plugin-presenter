@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-11-15
+
+### Added
+
+- **AI Slide Prompt & Storyboard Blueprint Exporter**:
+  - Added `Presenter: Copy AI slide prompt & storyboard blueprint` (`copy-ai-slide-blueprint`) command and a preview toolbar `sparkles` (`✨`) menu button for one-click copying.
+  - Generates structured prompts for AI slide tools (Gamma, Claude, Genspark, etc.) with inferred layout blueprints (`inferSlideLayoutBlueprint`), cleaned slide Markdown (`cleanSlideMarkdownForBlueprint`), speaker notes (`cleanSpeakerNotesForBlueprint`), and estimated speaking duration (`estimateScriptMetrics`).
+  - Updated `copy-presentation-summary` display name to `Presenter: Copy executive summary for sharing` while preserving its command ID.
+- **Live Speaker Script & Context Dock**:
+  - Added a collapsible speaker script dock (`.presenter-preview-script-dock`) below the 16:9 stage in the live preview pane to display `> [!note]` speaker notes in real time (zero `!important` CSS).
+  - Calculates and displays per-slide character counts, estimated speaking time, and deck total speaking duration in the dock header.
+  - Added a preview toolbar toggle button (`file-text` icon with a note-presence indicator dot) with automatic stage scaling recalculation.
+- **Smart Auto-Layouts for Standard Markdown**:
+  - Renamed `tsutawaruTransforms.ts` to `smartTransforms.ts` and expanded automatic layout inference from standard Markdown without custom directives.
+  - Automatically converts 2–4 `### H3` sections or bold-labeled bullet lists into 2–3 column layouts or 2×2 card grids, and infers 6:4 split layouts for standalone image + list and code block + explanation list slides.
+  - Added Hero KPI card transformation (`.presenter-cols-hero-kpi`), recommended comparison table column highlighting (`<!-- table: highlight N -->` / `[推奨]`), `Q.` / `A.` aligned cards, and eyebrow badge extraction (`.presenter-card-eyebrow`) from `### 01. ...` / `### STEP 2: ...` headings.
+
+### Changed & Improved
+
+- **PPTX-Quality Design System & Typography**:
+  - Introduced Royal Blue (`#2563eb`) + Sunset Orange (`#ea580c`) color tokens, H2 left accent bars, cover/section/quote slide hierarchy, numbered list (`<ol>`) summary cards, and dark slate code blocks synchronized across live preview, standalone HTML export, and PPTX export.
+  - Improved slide overflow detection and auto-fit scaling stability (`src/ui/overflow.ts`, `tests/overflow.test.ts`).
+- **Storyboard & Information Density UX Reframing**:
+  - Reframed the template navigator as the Storyboard & Layout Navigator and overflow inspection as a "1-slide, 1-message" information density check across UI copy, `manifest.json`, `README.md`, `README_ja.md`, and `docs/design/*` while preserving 100% compatibility with existing command IDs and frontmatter.
+
+### Fixed
+
+- **Blockquote Contrast & KPI Markdown Parsing**:
+  - Removed `blockquote` automatic `margin-top: auto` spacing and enforced `color: var(--presenter-main-color)` for high-contrast readability.
+  - Inserted blank lines around `preprocessKpi` HTML blocks so CommonMark parsers do not swallow following captions.
+
+---
+
 ## [1.6.1] - 2026-11-11
 
 ### Added

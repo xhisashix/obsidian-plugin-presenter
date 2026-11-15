@@ -649,7 +649,8 @@ Direct the story, let AI do the rendering.
 
 	const cleanedBody = cleanSlideMarkdownForBlueprint(presentation.slides[1]!.markdown);
 	assert.ok(!cleanedBody.includes('<div class="presenter-cols'));
-	assert.ok(cleanedBody.includes('### 1. Situation'));
+	assert.ok(!cleanedBody.includes('<span class="presenter-card-eyebrow'));
+	assert.ok(cleanedBody.includes('### 01. Situation'));
 
 	const stepArchetype = inferSlideLayoutBlueprint(presentation.slides[2]!);
 	assert.equal(stepArchetype.archetype, 'Horizontal Step Flow (ホリゾンタルフロー型)');

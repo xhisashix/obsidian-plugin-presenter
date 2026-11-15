@@ -140,6 +140,11 @@ export function cleanSlideMarkdownForBlueprint(markdown: string): string {
 		'- $1 | $3 ($2%)'
 	);
 	cleaned = cleaned.replace(/<div class="presenter-kpi-value">(.*?)<\/div>/g, '**KPI: $1**');
+	cleaned = cleaned.replace(
+		/<span class="presenter-card-eyebrow">(.*?)<\/span>\s*<span class="presenter-card-title">(.*?)<\/span>/g,
+		'$1. $2'
+	);
+	cleaned = cleaned.replace(/<span class="presenter-card-(?:eyebrow|title)">(.*?)<\/span>/g, '$1');
 	cleaned = cleaned.replace(/<span class="presenter-badge">(.*?)<\/span>/g, '[$1]');
 	cleaned = cleaned.replace(/<\/div>/g, '');
 

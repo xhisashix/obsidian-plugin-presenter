@@ -1,7 +1,7 @@
 {
 	"id": "markdown-presenter",
 	"name": "Presenter",
-	"version": "1.6.1",
+	"version": "1.7.0",
 	"minAppVersion": "1.7.2",
 	"description": "Turn Markdown notes into structured 16:9 storyboards and speaker scripts. Features 13 consulting layouts, live script preview, AI blueprint copy, and HTML/PPTX export.",
 	"author": "xhisashix",
